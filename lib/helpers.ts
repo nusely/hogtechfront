@@ -1,0 +1,106 @@
+// Format currency to GHS (Ghanaian Cedis)
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-GH', {
+    style: 'currency',
+    currency: 'GHS',
+    minimumFractionDigits: 2,
+  }).format(amount);
+};
+
+// Calculate discount percentage
+export const calculateDiscountPercentage = (
+  originalPrice: number,
+  discountPrice: number
+): number => {
+  if (originalPrice <= 0) return 0;
+  const discount = ((originalPrice - discountPrice) / originalPrice) * 100;
+  return Math.round(discount);
+};
+
+// Format date
+export const formatDate = (date: string | Date): string => {
+  return new Intl.DateTimeFormat('en-GH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(date));
+};
+
+// Generate slug from string
+export const generateSlug = (text: string): string => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+// Truncate text
+export const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + '...';
+};
+
+// Validate email
+export const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+// Validate phone number (Ghana format)
+export const isValidPhoneNumber = (phone: string): boolean => {
+  // Ghana phone numbers: +233 or 0 followed by 9 digits
+  const phoneRegex = /^(\+233|0)[0-9]{9}$/;
+  return phoneRegex.test(phone.replace(/\s/g, ''));
+};
+
+// Calculate cart total
+export const calculateCartTotal = (
+  items: Array<{ price: number; quantity: number }>
+): number => {
+  return items.reduce((total, item) => total + item.price * item.quantity, 0);
+};
+
+// Get image URL from Supabase storage
+export const getImageUrl = (path: string, bucket: string = 'products'): string => {
+  if (!path) return '/placeholders/placeholder-product.webp';
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) return path;
+  
+  return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+};
+
+// Debounce function for search
+export const debounce = <T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): ((...args: Parameters<T>) => void) => {
+  let timeoutId: NodeJS.Timeout;
+  
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
+// Get stock status badge color
+export const getStockStatusColor = (stock: number): string => {
+  if (stock === 0) return 'text-red-600 bg-red-50';
+  if (stock < 10) return 'text-orange-600 bg-orange-50';
+  return 'text-green-600 bg-green-50';
+};
+
+// Get order status color
+export const getOrderStatusColor = (status: string): string => {
+  const statusColors: Record<string, string> = {
+    pending: 'text-yellow-600 bg-yellow-50',
+    processing: 'text-blue-600 bg-blue-50',
+    shipped: 'text-purple-600 bg-purple-50',
+    delivered: 'text-green-600 bg-green-50',
+    cancelled: 'text-red-600 bg-red-50',
+  };
+  return statusColors[status.toLowerCase()] || 'text-gray-600 bg-gray-50';
+};
+
