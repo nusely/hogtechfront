@@ -35,6 +35,7 @@ export const megaMenuData: MegaMenuCategory[] = [
   {
     id: 'phones',
     title: 'Phones',
+    slug: 'phones',
     icon: 'Smartphone',
     columns: [
       {
@@ -74,6 +75,7 @@ export const megaMenuData: MegaMenuCategory[] = [
   {
     id: 'computers',
     title: 'Computers',
+    slug: 'computers',
     icon: 'Laptop',
     columns: [
       {
@@ -111,6 +113,7 @@ export const megaMenuData: MegaMenuCategory[] = [
   {
     id: 'accessories',
     title: 'Accessories',
+    slug: 'accessories',
     icon: 'Headphones',
     columns: [
       {
@@ -142,6 +145,7 @@ export const megaMenuData: MegaMenuCategory[] = [
   {
     id: 'smartwatches',
     title: 'Smartwatches',
+    slug: 'smartwatches',
     icon: 'Watch',
     columns: [
       {
