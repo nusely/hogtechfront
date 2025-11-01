@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, Heart, User } from 'lucide-react';
+import { Home, ShoppingBag, Heart, Tag, User } from 'lucide-react';
 import { useAppSelector } from '@/store';
 
 export const MobileBottomNav = () => {
@@ -32,6 +32,12 @@ export const MobileBottomNav = () => {
       badge: wishlistCount > 0 ? wishlistCount : undefined,
     },
     {
+      href: '/deals',
+      label: 'Deals',
+      icon: Tag,
+      exact: false,
+    },
+    {
       href: isAuthenticated ? '/profile' : '/login',
       label: 'My Account',
       icon: User,
@@ -51,7 +57,7 @@ export const MobileBottomNav = () => {
       className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden shadow-lg"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
     >
-      <div className="flex items-center justify-around px-2 py-2">
+      <div className="flex items-center justify-between px-1 py-2 gap-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item);
@@ -61,7 +67,7 @@ export const MobileBottomNav = () => {
               key={item.href}
               href={item.href}
               className={`
-                flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors
+                flex flex-col items-center justify-center gap-0.5 px-1.5 py-1.5 rounded-lg transition-colors flex-shrink-0
                 ${active 
                   ? 'text-[#FF7A19]' 
                   : 'text-[#3A3A3A]'
@@ -79,7 +85,7 @@ export const MobileBottomNav = () => {
                   </span>
                 )}
               </div>
-              <span className={`text-[10px] font-medium ${active ? 'text-[#FF7A19]' : 'text-[#3A3A3A]'}`}>
+              <span className={`text-[9px] font-medium leading-tight ${active ? 'text-[#FF7A19]' : 'text-[#3A3A3A]'}`}>
                 {item.label}
               </span>
             </Link>

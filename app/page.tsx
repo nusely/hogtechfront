@@ -74,7 +74,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-white">
+    <div className="bg-white overflow-x-hidden">
       {/* Hero Section */}
       <section className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         <HeroSlider banners={heroBanners} />

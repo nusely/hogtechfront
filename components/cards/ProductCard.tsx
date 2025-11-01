@@ -101,14 +101,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             )}
           </div>
 
-          {/* Rating - Fixed position on left corner */}
+          {/* Rating - Fixed position on bottom left corner */}
           <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
             <Star size={10} className="fill-yellow-400 text-yellow-400" />
             <span className="text-xs font-medium text-[#1A1A1A]">{product.rating.toFixed(1)}</span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Cart Icon - Top right (opposite of rating), always visible */}
+          <div className="absolute top-3 right-3 z-10">
+            <button
+              onClick={handleAddToCart}
+              disabled={!product.in_stock}
+              className={`p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-md ${
+                isInCart 
+                  ? 'bg-orange-600 hover:bg-orange-700' 
+                  : 'bg-[#FF7A19] hover:bg-orange-500'
+              }`}
+              title={!product.in_stock ? 'Out of Stock' : isInCart ? 'In Cart' : 'Add to Cart'}
+            >
+              <ShoppingCart 
+                size={16} 
+                className="text-white"
+              />
+            </button>
+          </div>
+
+          {/* Action Buttons - Show on hover, positioned to not overlap */}
+          <div className="absolute top-12 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
               onClick={handleWishlist}
               className="p-2 bg-white rounded-full shadow-md hover:bg-orange-50 transition-colors"
@@ -155,8 +174,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             {product.brand}
           </p>
 
-          {/* Product Name - 30% smaller than before */}
-          <h3 className="text-[7px] sm:text-[8px] font-semibold text-[#1A1A1A] mb-2 line-clamp-2 group-hover:text-[#FF7A19] transition-colors min-h-[2.5rem]">
+          {/* Product Name - Reduced by another 20% */}
+          <h3 className="text-[5.5px] sm:text-[6px] font-semibold text-[#1A1A1A] mb-2 line-clamp-2 group-hover:text-[#FF7A19] transition-colors min-h-[2.5rem]">
             {product.name}
           </h3>
 
@@ -173,28 +192,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             )}
           </div>
 
-          {/* Mobile: Cart Icon Only */}
-          <div className="flex items-center justify-center">
-            <button
-              onClick={handleAddToCart}
-              disabled={!product.in_stock}
-              className={`p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
-                isInCart 
-                  ? 'bg-orange-50' 
-                  : 'bg-gray-100 hover:bg-gray-200'
-              }`}
-              title={!product.in_stock ? 'Out of Stock' : isInCart ? 'In Cart' : 'Add to Cart'}
-            >
-              <ShoppingCart 
-                size={20} 
-                className={isInCart ? 'text-[#FF7A19]' : 'text-white'}
-                style={{
-                  filter: isInCart ? 'none' : 'drop-shadow(0 1px 1px rgba(0,0,0,0.2))',
-                  WebkitFilter: isInCart ? 'none' : 'drop-shadow(0 1px 1px rgba(0,0,0,0.2))'
-                }}
-              />
-            </button>
-          </div>
         </div>
       </div>
     </Link>
