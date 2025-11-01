@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { Product } from '@/types/product';
-import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { formatCurrency, calculateDiscountPercentage } from '@/lib/helpers';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -156,31 +155,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             {product.brand}
           </p>
 
-          {/* Product Name - Smaller on mobile, normal on desktop */}
-          <h3 className="text-[10px] sm:text-xs font-semibold text-[#1A1A1A] mb-2 line-clamp-2 group-hover:text-[#FF7A19] transition-colors min-h-[2.5rem]">
+          {/* Product Name - 30% smaller than before */}
+          <h3 className="text-[7px] sm:text-[8px] font-semibold text-[#1A1A1A] mb-2 line-clamp-2 group-hover:text-[#FF7A19] transition-colors min-h-[2.5rem]">
             {product.name}
           </h3>
 
 
-          {/* Price - Smaller on mobile */}
+          {/* Price - 10% bigger than before */}
           <div className="flex items-baseline gap-2 mb-3 mt-auto">
-            <span className="text-xs sm:text-sm font-bold text-[#1A1A1A]">
+            <span className="text-sm sm:text-base font-bold text-[#1A1A1A]">
               {formatCurrency(product.discount_price || product.original_price)}
             </span>
             {hasDiscount && (
-              <span className="text-[10px] sm:text-xs text-[#3A3A3A] line-through">
+              <span className="text-xs sm:text-sm text-[#3A3A3A] line-through">
                 {formatCurrency(product.original_price)}
               </span>
             )}
           </div>
 
-          {/* Add to Cart - Icon on mobile, Button on desktop */}
-          <div className="flex items-center justify-between gap-2">
-            {/* Mobile: Cart Icon */}
+          {/* Mobile: Cart Icon Only */}
+          <div className="flex items-center justify-center">
             <button
               onClick={handleAddToCart}
               disabled={!product.in_stock}
-              className={`md:hidden p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
+              className={`p-2 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${
                 isInCart 
                   ? 'bg-orange-50' 
                   : 'bg-gray-100 hover:bg-gray-200'
@@ -196,18 +194,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                 }}
               />
             </button>
-
-            {/* Desktop: Full Button */}
-            <Button
-              onClick={handleAddToCart}
-              disabled={!product.in_stock}
-              variant="primary"
-              size="md"
-              icon={!isInCart ? <ShoppingCart size={16} /> : undefined}
-              className="hidden md:flex w-full text-sm whitespace-nowrap h-10 hover:scale-105 transition-transform duration-200 hover:shadow-lg"
-            >
-              {!product.in_stock ? 'Out of Stock' : isInCart ? 'Added to Cart' : 'Add to Cart'}
-            </Button>
           </div>
         </div>
       </div>
