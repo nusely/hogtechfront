@@ -20,7 +20,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 
-interface ReviewWithDetails extends Review {
+interface ReviewWithDetails extends Omit<Review, 'user'> {
   user?: {
     id: string;
     first_name?: string;
