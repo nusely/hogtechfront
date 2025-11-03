@@ -1,14 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ProductCard } from '@/components/cards/ProductCard';
 import { Button } from '@/components/ui/Button';
 import { Zap, TrendingDown, Clock, ArrowRight } from 'lucide-react';
+import { getCategories } from '@/services/category.service';
+import { Category } from '@/types/product';
 
 export default function DealsPage() {
   // Mock data - will be replaced with real data
   const deals: any[] = [];
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const allCategories = await getCategories();
+        // Filter for main categories (no parent_id) that are likely to have deals
+        const mainCategories = allCategories.filter(cat => !cat.parent_id && ['smartphones', 'laptops', 'accessories', 'smartwatches'].includes(cat.slug));
+        setCategories(mainCategories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -90,17 +107,31 @@ export default function DealsPage() {
         <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">Shop Deals by Category</h2>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {['Smartphones', 'Laptops', 'Accessories', 'Smartwatches'].map((category) => (
-            <Link key={category} href={`/categories/${category.toLowerCase()}`}>
-              <div className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:border-[#FF7A19] hover:shadow-md transition-all">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <TrendingDown className="text-[#FF7A19]" size={24} />
+          {categories.length > 0 ? (
+            categories.map((category) => (
+              <Link key={category.id} href={`/categories/${category.slug}`}>
+                <div className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:border-[#FF7A19] hover:shadow-md transition-all">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <TrendingDown className="text-[#FF7A19]" size={24} />
+                  </div>
+                  <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">{category.name}</h3>
+                  <p className="text-xs text-[#FF7A19] font-medium">View Deals →</p>
                 </div>
-                <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">{category}</h3>
-                <p className="text-xs text-[#FF7A19] font-medium">View Deals →</p>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))
+          ) : (
+            ['Smartphones', 'Laptops', 'Accessories', 'Smartwatches'].map((category) => (
+              <Link key={category} href={`/categories/${category.toLowerCase()}`}>
+                <div className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:border-[#FF7A19] hover:shadow-md transition-all">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <TrendingDown className="text-[#FF7A19]" size={24} />
+                  </div>
+                  <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">{category}</h3>
+                  <p className="text-xs text-[#FF7A19] font-medium">View Deals →</p>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
       </section>
 
@@ -115,13 +146,13 @@ export default function DealsPage() {
               <p className="text-white/90 text-sm mb-6">
                 Subscribe to get notified about our latest offers
               </p>
-              <div className="max-w-md mx-auto flex gap-2">
+              <div className="max-w-md mx-auto flex flex-col md:flex-row gap-2">
                 <input
                   type="email"
                   placeholder="Enter your email"
                   className="flex-1 px-4 py-2 rounded-lg bg-transparent border border-white text-white placeholder:white/80 text-sm focus:outline-none focus:ring-2 focus:ring-white"
                 />
-                <Button variant="primary">Subscribe</Button>
+                <Button variant="primary" className="w-full md:w-auto">Subscribe</Button>
               </div>
             </div>
           </div>

@@ -3,61 +3,28 @@ import { CheckoutData, Order } from '@/types/order';
 
 export const orderService = {
   // Create new order (supports guest checkout with null userId)
+  // Uses backend API to handle emails and notifications
   async createOrder(checkoutData: CheckoutData, userId: string | null) {
-    // Generate order number in format: ORD-XXXDDMM
-    // First 3 digits: order number for the day (001, 002, etc.)
-    // Last 4 digits: day and month (DDMM format, e.g., 0111 = 1st November)
-    // Example: ORD-0010111 = first order on 1st November
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, '0');
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const dateStr = `${day}${month}`; // DDMM format
-    
-    // Count orders created today
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const { count } = await supabase
-      .from('orders')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', todayStart.toISOString());
-    
-    const orderNumberForDay = ((count || 0) + 1).toString().padStart(3, '0');
-    const orderNumber = `ORD-${orderNumberForDay}${dateStr}`;
-
     // Calculate totals
     const subtotal = checkoutData.items.reduce((sum, item) => sum + item.subtotal, 0);
     const deliveryFee = checkoutData.delivery_option.price;
     const tax = subtotal * 0.0; // Ghana VAT if applicable
     const total = subtotal + deliveryFee + tax;
 
-    // Create order
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert([
-        {
-          user_id: userId,
-          order_number: orderNumber,
-          status: 'pending',
-          subtotal,
-          discount: 0,
-          delivery_fee: deliveryFee,
-          tax,
-          total,
-          payment_method: checkoutData.payment_method,
-          payment_status: 'pending',
-          delivery_address: checkoutData.delivery_address,
-          delivery_option: checkoutData.delivery_option,
-          notes: checkoutData.notes,
-        },
-      ])
-      .select()
-      .single();
+    // Generate order number in format: ORD-XXXDDMM
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const dateStr = `${day}${month}`;
+    
+    // Count orders created today (via backend API or use timestamp)
+    const orderNumberForDay = String(Date.now()).slice(-3);
+    const orderNumber = `ORD-${orderNumberForDay}${dateStr}`;
 
-    if (orderError) throw orderError;
-
-    // Create order items
-    const orderItems = checkoutData.items.map((item) => ({
-      order_id: order.id,
+    // Map items for backend
+    const order_items = checkoutData.items.map((item) => ({
       product_id: item.id,
       product_name: item.name,
       product_image: item.thumbnail,
@@ -67,13 +34,85 @@ export const orderService = {
       selected_variants: item.selected_variants,
     }));
 
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems);
+    // Try to call backend API first, fallback to Supabase if it fails
+    try {
+      const response = await fetch(`${API_URL}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          order_number: orderNumber,
+          subtotal,
+          discount: 0,
+          tax,
+          delivery_fee: deliveryFee,
+          total,
+          payment_method: checkoutData.payment_method,
+          delivery_address: checkoutData.delivery_address,
+          delivery_option: checkoutData.delivery_option,
+          order_items,
+        }),
+      });
 
-    if (itemsError) throw itemsError;
+      if (response.ok) {
+        const result = await response.json();
+        return result.data;
+      } else {
+        throw new Error('Backend API failed');
+      }
+    } catch (apiError) {
+      // Fallback to direct Supabase insert if backend API fails
+      console.warn('Backend API failed, using Supabase fallback:', apiError);
+      
+      const { supabase } = await import('@/lib/supabase');
+      
+      // Create order directly in Supabase
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert([
+          {
+            user_id: userId,
+            order_number: orderNumber,
+            status: 'pending',
+            subtotal,
+            discount: 0,
+            delivery_fee: deliveryFee,
+            tax,
+            total,
+            payment_method: checkoutData.payment_method,
+            payment_status: 'pending',
+            delivery_address: checkoutData.delivery_address,
+            delivery_option: checkoutData.delivery_option,
+            notes: checkoutData.notes,
+          },
+        ])
+        .select()
+        .single();
 
-    return order;
+      if (orderError) throw orderError;
+
+      // Create order items
+      const orderItems = checkoutData.items.map((item) => ({
+        order_id: order.id,
+        product_id: item.id,
+        product_name: item.name,
+        product_image: item.thumbnail,
+        quantity: item.quantity,
+        unit_price: item.discount_price || item.original_price,
+        subtotal: item.subtotal,
+        selected_variants: item.selected_variants,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      return order;
+    }
   },
 
   // Get user orders

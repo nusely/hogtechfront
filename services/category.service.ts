@@ -50,12 +50,10 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching category:', {
-        message: (error as any)?.message,
-        details: (error as any)?.details,
-        hint: (error as any)?.hint,
-        code: (error as any)?.code,
-      });
+      // Only log non-404 errors
+      if ((error as any)?.code !== 'PGRST116' && (error as any)?.code !== '42P01') {
+        console.error('Error fetching category:', error);
+      }
       return null;
     }
     return data;

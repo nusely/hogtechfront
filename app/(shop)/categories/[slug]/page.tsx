@@ -108,10 +108,11 @@ export default function CategoryProductsPage() {
           </p>
 
           <div className="flex items-center gap-4">
+            {/* Sort dropdown - hidden on mobile */}
             <select
               value={filters.sortBy}
               onChange={(e) => handleSortChange(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="hidden md:block px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="newest">Newest First</option>
               <option value="price">Price: Low to High</option>
@@ -120,8 +121,9 @@ export default function CategoryProductsPage() {
               <option value="rating">Highest Rated</option>
             </select>
 
-            <Button variant="outline" size="sm" icon={<SlidersHorizontal size={16} />}>
-              Filters
+            {/* Filters button - visible on all screens, icon only on mobile */}
+            <Button variant="outline" size="sm" icon={<SlidersHorizontal size={16} />} className="md:flex md:items-center md:gap-2">
+              <span className="hidden md:inline">Filters</span>
             </Button>
           </div>
         </div>

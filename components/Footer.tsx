@@ -52,13 +52,13 @@ export function Footer() {
   }
 
   return (
-    <footer className="bg-[#1A1A1A] text-white py-6 sm:py-8 mt-12 sm:mt-16 border-t border-gray-800">
+    <footer className="bg-[#1A1A1A] text-white py-6 sm:py-8 border-t border-gray-800">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6">
           {/* Store Info */}
           <div>
-            <h3 className="font-bold text-lg mb-3 text-[#FF7A19]">{storeName}</h3>
-            <p className="text-sm text-gray-400 mb-4">{storeTagline}</p>
+            <h3 className="font-bold text-lg mb-3 text-white">{storeName}</h3>
+            <p className="text-sm text-white mb-4">{storeTagline}</p>
             <div className="space-y-2 text-sm text-gray-400">
               {storePhone && (
                 <a href={`tel:${storePhone.replace(/\s/g, '')}`} className="block hover:text-[#FF7A19] transition-colors">

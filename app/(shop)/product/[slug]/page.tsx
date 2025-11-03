@@ -233,7 +233,8 @@ export default function ProductDetailPage() {
                 {product.category_name || 'Category'}
               </Link>
               <ChevronRight size={16} />
-              <span className="text-[#1A1A1A] font-medium">
+              <span className="text-[#1A1A1A] font-medium hidden md:inline">{product.name}</span>
+              <span className="text-[#1A1A1A] font-medium md:hidden">
                 {product.name.length > 12 ? `${product.name.substring(0, 12)}...` : product.name}
               </span>
             </div>
@@ -292,7 +293,7 @@ export default function ProductDetailPage() {
               <div className="bg-white rounded-xl p-6">
                 <div className="mb-4">
                   <p className="text-xs sm:text-sm text-[#FF7A19] font-semibold mb-2">{product.brand}</p>
-                  <h1 className="text-base sm:text-xl md:text-2xl font-bold text-[#1A1A1A] mb-3">{product.name}</h1>
+                  <h2 className="text-base sm:text-xl md:text-2xl font-bold text-[#1A1A1A] mb-3">{product.name}</h2>
                   
                   {/* Rating */}
                   <div className="flex items-center gap-2 sm:gap-3 mb-4">

@@ -12,7 +12,9 @@ import { Check, CreditCard, Smartphone, Banknote, ChevronLeft } from 'lucide-rea
 import { formatCurrency } from '@/lib/helpers';
 import { orderService } from '@/services/order.service';
 import { deliveryOptionsService } from '@/services/deliveryOptions.service';
+import { paymentService } from '@/services/payment.service';
 import { DeliveryOption } from '@/types/order';
+import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
 export default function CheckoutPage() {
@@ -24,7 +26,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Delivery Information
+  // Delivery Information - Auto-fill from user if logged in
   const [deliveryInfo, setDeliveryInfo] = useState({
     full_name: user?.full_name || '',
     phone: user?.phone || '',
@@ -33,6 +35,48 @@ export default function CheckoutPage() {
     region: '',
     postal_code: '',
   });
+
+  // Auto-fill delivery info when user logs in or component mounts
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      setDeliveryInfo(prev => ({
+        ...prev,
+        full_name: user.full_name || prev.full_name,
+        phone: user.phone || prev.phone,
+      }));
+      
+      // Try to fetch user's default address
+      const fetchUserAddress = async () => {
+        try {
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          if (currentUser) {
+            const { data: addresses } = await supabase
+              .from('addresses')
+              .select('*')
+              .eq('user_id', currentUser.id)
+              .eq('is_default', true)
+              .maybeSingle();
+            
+            if (addresses) {
+              setDeliveryInfo({
+                full_name: addresses.full_name || user.full_name || '',
+                phone: addresses.phone || user.phone || '',
+                street_address: addresses.street_address || '',
+                city: addresses.city || '',
+                region: addresses.region || '',
+                postal_code: addresses.postal_code || '',
+              });
+            }
+          }
+        } catch (error) {
+          // Silently fail - user can fill manually
+          console.error('Error fetching user address:', error);
+        }
+      };
+      
+      fetchUserAddress();
+    }
+  }, [user, isAuthenticated]);
 
   // Delivery Options
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
@@ -144,14 +188,53 @@ export default function CheckoutPage() {
         notes,
       };
 
+      // For cash on delivery, create order directly
+      if (paymentMethod === 'cash_on_delivery') {
+        const order = await orderService.createOrder(checkoutData, userId);
+        dispatch(clearCart());
+        toast.success('Order placed successfully!');
+        router.push(`/orders/${order.id}`);
+        return;
+      }
+
+      // For mobile money and card, create order first, then initialize payment
       const order = await orderService.createOrder(checkoutData, userId);
 
-      // Clear cart
-      dispatch(clearCart());
+      // Initialize Paystack payment for mobile_money or card
+      if (paymentMethod === 'mobile_money' || paymentMethod === 'card') {
+        const email = user?.email || deliveryInfo.phone || 'customer@ventech.com';
+        
+        // Initialize Paystack payment
+        const paymentResult = await paymentService.initializePayment({
+          email,
+          amount: Math.round(grandTotal * 100), // Convert to pesewas
+          reference: order.order_number,
+          metadata: {
+            order_id: order.id,
+            user_id: userId || 'guest',
+            payment_method: paymentMethod,
+          },
+        });
 
-      // Redirect to order confirmation
-      toast.success('Order placed successfully!');
-      router.push(`/orders/${order.id}`);
+        if (paymentResult.success) {
+          // Payment modal will open automatically
+          // Store order ID in sessionStorage for verification after payment
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('pending_order_id', order.id);
+            sessionStorage.setItem('pending_order_reference', order.order_number);
+          }
+          
+          // Don't clear cart yet - wait for payment verification
+          toast.success('Redirecting to payment...');
+        } else {
+          throw new Error(paymentResult.message || 'Failed to initialize payment');
+        }
+      } else {
+        // For other payment methods, just redirect
+        dispatch(clearCart());
+        toast.success('Order placed successfully!');
+        router.push(`/orders/${order.id}`);
+      }
     } catch (error: any) {
       console.error('Order error:', error);
       toast.error(error.message || 'Failed to place order');
@@ -194,9 +277,9 @@ export default function CheckoutPage() {
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center gap-4">
-            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-[#FF7A19]' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                step >= 1 ? 'bg-[#FF7A19] text-white' : 'bg-gray-200'
               }`}>
                 {step > 1 ? <Check size={20} /> : '1'}
               </div>
@@ -205,9 +288,9 @@ export default function CheckoutPage() {
 
             <div className="w-16 h-0.5 bg-gray-300" />
 
-            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-[#FF7A19]' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                step >= 2 ? 'bg-[#FF7A19] text-white' : 'bg-gray-200'
               }`}>
                 {step > 2 ? <Check size={20} /> : '2'}
               </div>
@@ -216,9 +299,9 @@ export default function CheckoutPage() {
 
             <div className="w-16 h-0.5 bg-gray-300" />
 
-            <div className={`flex items-center gap-2 ${step >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-2 ${step >= 3 ? 'text-[#FF7A19]' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                step >= 3 ? 'bg-[#FF7A19] text-white' : 'bg-gray-200'
               }`}>
                 3
               </div>
@@ -337,15 +420,15 @@ export default function CheckoutPage() {
                     onClick={() => setPaymentMethod('mobile_money')}
                     className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                       paymentMethod === 'mobile_money'
-                        ? 'border-blue-600 bg-blue-50'
+                        ? 'border-[#FF7A19] bg-orange-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Smartphone className="text-blue-600" size={24} />
+                      <Smartphone className={paymentMethod === 'mobile_money' ? 'text-[#FF7A19]' : 'text-gray-600'} size={24} />
                       <div>
                         <p className="font-semibold text-gray-900">Mobile Money</p>
-                        <p className="text-sm text-gray-600">Pay with MTN or Vodafone Cash</p>
+                        <p className="text-sm text-gray-600">Pay with MTN Mobile Money via Paystack</p>
                       </div>
                     </div>
                   </button>
@@ -354,15 +437,15 @@ export default function CheckoutPage() {
                     onClick={() => setPaymentMethod('card')}
                     className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                       paymentMethod === 'card'
-                        ? 'border-blue-600 bg-blue-50'
+                        ? 'border-[#FF7A19] bg-orange-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <CreditCard className="text-purple-600" size={24} />
+                      <CreditCard className={paymentMethod === 'card' ? 'text-[#FF7A19]' : 'text-gray-600'} size={24} />
                       <div>
                         <p className="font-semibold text-gray-900">Debit/Credit Card</p>
-                        <p className="text-sm text-gray-600">Pay securely with your card</p>
+                        <p className="text-sm text-gray-600">Pay securely with Visa, Mastercard via Paystack</p>
                       </div>
                     </div>
                   </button>

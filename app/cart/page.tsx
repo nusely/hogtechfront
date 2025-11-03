@@ -32,12 +32,11 @@ export default function CartPage() {
     dispatch(updateQuantity({ id: productId, quantity }));
   };
 
-  const deliveryFee = total >= 20000 ? 0 : 15;
+  // No delivery fee on cart page - delivery options are selected on checkout
+  const deliveryFee = 0;
   const couponDiscount = appliedCoupon?.discount_amount || 0;
   const totalDiscount = discountAmount + couponDiscount;
-  // Free delivery is already included in the discount_amount if applicable
-  const finalDeliveryFee = deliveryFee;
-  const grandTotal = total + finalDeliveryFee + taxAmount - totalDiscount;
+  const grandTotal = total + taxAmount - totalDiscount;
 
   const handleCouponApplied = (validation: CouponValidation) => {
     setAppliedCoupon(validation);
@@ -226,11 +225,6 @@ export default function CartPage() {
                   </div>
                 )}
                 
-                <div className="flex justify-between text-gray-600">
-                  <span>Delivery Fee</span>
-                  <span>{finalDeliveryFee === 0 ? 'FREE' : formatCurrency(finalDeliveryFee)}</span>
-                </div>
-                
                 {taxAmount > 0 && (
                   <div className="flex justify-between text-gray-600">
                     <span>Tax (VAT)</span>
@@ -238,12 +232,9 @@ export default function CartPage() {
                   </div>
                 )}
                 
-                {total >= 20000 && !appliedCoupon && (
-                  <div className="text-sm text-green-600 flex items-center gap-1">
-                    <span>✓</span>
-                    <span>You qualify for FREE delivery!</span>
-                  </div>
-                )}
+                <div className="text-xs text-gray-500 mt-2">
+                  <span>Delivery fee will be calculated at checkout</span>
+                </div>
               </div>
 
               <div className="border-t border-gray-200 pt-4 mb-6">
@@ -274,7 +265,7 @@ export default function CartPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                   <span>✓</span>
-                  <span>Free returns within 30 days</span>
+                  <span>Free returns within 7 days</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <span>✓</span>

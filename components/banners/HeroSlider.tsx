@@ -41,19 +41,7 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
   };
 
   if (banners.length === 0) {
-    return (
-      <div className="relative w-full aspect-[16/6] max-h-[250px] sm:max-h-[300px] md:max-h-[350px] bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl overflow-hidden flex items-center justify-center">
-        <div className="text-center text-white px-4">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">Welcome to VENTECH</h1>
-          <p className="text-xl md:text-2xl mb-8">Your trusted tech store</p>
-          <Link href="/categories">
-            <Button variant="secondary" size="lg">
-              Shop Now
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

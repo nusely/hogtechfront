@@ -583,7 +583,7 @@ export default function LaptopBankingPage() {
       <section className="py-12 bg-[#1A1A1A] text-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <h3 className="text-2xl font-bold mb-6">Get In Touch</h3>
+            <h3 className="text-2xl font-bold mb-6 text-white">Get In Touch</h3>
             <div className="grid md:grid-cols-3 gap-6">
               <a href="tel:+233551344310" className="flex flex-col items-center gap-2 hover:text-[#FF7A19] transition-colors">
                 <Phone size={24} />
@@ -598,7 +598,7 @@ export default function LaptopBankingPage() {
                 <span className="text-sm">Ho Civic Center Shop #22 & Accra</span>
               </div>
             </div>
-            <p className="mt-8 text-sm text-white/80">
+            <p className="mt-8 text-sm text-[#FF7A19]">
               Signed contract within 24 hours | Limited slots available per cycle
             </p>
           </div>

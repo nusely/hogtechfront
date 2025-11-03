@@ -30,6 +30,7 @@ import { supabasePublic } from '@/lib/supabase';
 export default function Home() {
   const [heroBanners, setHeroBanners] = useState<Banner[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -93,7 +94,14 @@ export default function Home() {
         
         // Fetch products
         const productsData = await productService.getProducts();
-        setFeaturedProducts(productsData);
+        
+        // Filter featured products
+        const featured = productsData.filter((p: Product) => p.featured === true);
+        setFeaturedProducts(featured);
+        
+        // Filter out featured products from all products
+        const allProducts = productsData.filter((p: Product) => p.featured !== true);
+        setAllProducts(allProducts);
         
         // Fetch banners
         await fetchBanners();
@@ -221,7 +229,7 @@ export default function Home() {
 
         {isLoading ? (
           <ProductListSkeleton count={20} />
-        ) : featuredProducts.length === 0 ? (
+        ) : allProducts.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <p className="text-[#3A3A3A] text-sm mb-4">No products available yet</p>
             <Link href="/shop">
@@ -232,7 +240,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {featuredProducts.slice(0, 20).map((product) => (
+            {allProducts.slice(0, 20).map((product) => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
@@ -310,32 +318,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Newsletter Section */}
-      <section className="container mx-auto px-4 py-10">
-        <div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-8 text-center text-white">
-          <h2 className="text-2xl font-bold mb-2">Stay Updated</h2>
-          <p className="text-white/90 text-sm mb-6">Subscribe to get special offers and updates</p>
-          <div className="max-w-md mx-auto flex gap-2">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              suppressHydrationWarning
-              className="flex-1 px-4 py-2 rounded-lg bg-transparent border border-white text-white placeholder:white/80 text-sm focus:outline-none focus:ring-2 focus:ring-white"
-            />
-            <Button variant="secondary" size="md">
-              Subscribe
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* Call to Action Section */}
       <section className="bg-[#1A1A1A] py-12">
         <div className="container mx-auto px-4 text-center text-white">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white">
             Ready to Upgrade Your Tech?
           </h2>
-          <p className="text-base text-white/80 mb-6">
+          <p className="text-base text-white mb-6">
             Explore our collection of the latest gadgets and electronics
           </p>
           <Link href="/categories">
