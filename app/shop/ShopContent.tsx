@@ -96,15 +96,13 @@ export function ShopContent() {
     // Apply client-side filters if needed
     if (filters.category) {
       filtered = filtered.filter(p => 
-        p.category_id === filters.category || 
-        (p.category as any)?.id === filters.category
+        p.category_id === filters.category
       );
     }
     
     if (filters.brand) {
       filtered = filtered.filter(p => 
-        p.brand_id === filters.brand || 
-        (p.brand as any)?.id === filters.brand
+        p.brand_id === filters.brand
       );
     }
     
@@ -376,7 +374,6 @@ export function ShopContent() {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      viewMode={viewMode}
                       onQuickView={() => setQuickViewProduct(product)}
                     />
                   ))}

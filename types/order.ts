@@ -51,7 +51,7 @@ export type OrderStatus =
 
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 
-export type PaymentMethod = 'mobile_money' | 'card' | 'cash_on_delivery';
+export type PaymentMethod = 'mobile_money' | 'card' | 'cash_on_delivery' | 'paystack';
 
 export interface DeliveryOption {
   id: string;
@@ -88,6 +88,7 @@ export interface CheckoutData {
   delivery_option: DeliveryOption;
   payment_method: PaymentMethod;
   notes?: string;
+  payment_reference?: string;
 }
 
 

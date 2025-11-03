@@ -19,6 +19,15 @@ export interface PaymentResponse {
   authorization_url?: string;
   access_code?: string;
   message?: string;
+  data?: {
+    status?: string;
+    metadata?: {
+      user_id?: string;
+      order_id?: string;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
 }
 
 export const paymentService = {

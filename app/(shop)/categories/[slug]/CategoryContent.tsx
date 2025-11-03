@@ -73,7 +73,7 @@ export function CategoryContent({ category }: CategoryContentProps) {
 
   // Filter products by price range
   const filteredProducts = products.filter((product) => {
-    const price = product.price_range?.min || product.price || 0;
+    const price = product.price_range?.min || product.discount_price || product.original_price || 0;
     return price >= priceRange[0] && price <= priceRange[1];
   });
 

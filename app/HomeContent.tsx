@@ -54,30 +54,34 @@ export function HomeContent() {
           // Only log in development mode
           if (process.env.NODE_ENV === 'development') {
             console.error('Error fetching banners:', {
+              error: error,
               message: (error as any)?.message || 'Unknown error',
               code: errorCode,
+              status: (error as any)?.status,
               details: (error as any)?.details,
+              hint: (error as any)?.hint,
+              fullError: JSON.stringify(error, null, 2),
             });
           }
         }
         return [];
       }
       
-      if (bannersData) {
+      if (bannersData && Array.isArray(bannersData)) {
         // Filter for hero type banners (if type field exists) and map to expected format
         const heroBanners = bannersData
-          .filter((b: any) => !b.type || b.type === 'hero')
+          .filter((b: any) => b && b.active !== false && (!b.type || b.type === 'hero'))
           .map((b: any) => ({
-            id: b.id,
+            id: b.id || '',
             title: b.title || '',
-            subtitle: b.subtitle || '',
-            description: b.description || '',
+            subtitle: b.subtitle || undefined,
+            description: b.description || undefined,
             image_url: b.image_url || '',
-            link_url: b.link_url || b.link || '',
+            link_url: b.link_url || b.link || undefined,
             link_text: b.button_text || b.link_text || 'Shop Now',
             display_order: b.order || b.sort_order || b.display_order || 0,
             active: b.active !== false,
-            type: b.type || 'hero',
+            type: (b.type || 'hero') as 'hero',
             position: b.order || b.sort_order || b.display_order || 0,
             created_at: b.created_at || new Date().toISOString(),
             updated_at: b.updated_at || new Date().toISOString(),
@@ -86,10 +90,18 @@ export function HomeContent() {
         
         return heroBanners as Banner[];
       }
+      
+      return [];
     } catch (error) {
       // Only log in development mode
       if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching banners:', error);
+        console.error('Error fetching banners:', {
+          error,
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined,
+          type: typeof error,
+          stringified: JSON.stringify(error, null, 2),
+        });
       }
     }
     return [];

@@ -117,7 +117,7 @@ export default function TransactionsPage() {
     const matchesSearch =
       transaction.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       transaction.customer_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.order_id.toLowerCase().includes(searchQuery.toLowerCase());
+      transaction.order_number.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
       statusFilter === 'all' || transaction.status === statusFilter;
@@ -250,7 +250,7 @@ export default function TransactionsPage() {
                   <tr key={transaction.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="font-mono text-sm font-semibold text-[#1A1A1A]">
-                        {transaction.order_id}
+                        {transaction.order_number}
                       </span>
                     </td>
                     <td className="px-6 py-4">

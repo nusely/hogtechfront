@@ -22,7 +22,7 @@ export function DealsContent() {
         setIsLoading(true);
         const [categoriesData, dealsData] = await Promise.all([
           getCategories(),
-          productService.getProducts({ on_sale: true, limit: 20 }),
+          productService.getProducts({ limit: 20 }),
         ]);
         setCategories(categoriesData.slice(0, 8));
         setDeals(dealsData);
