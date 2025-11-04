@@ -46,12 +46,35 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [isSelectMode, setIsSelectMode] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user?.role !== 'admin') {
       router.push('/');
       return;
     }
+    
+    // Clear pending orders notification when orders page is opened
+    const clearPendingOrdersNotification = async () => {
+      try {
+        // Mark pending orders notifications as read (if notifications table exists)
+        try {
+          await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('type', 'order')
+            .eq('is_read', false);
+        } catch (notifError) {
+          // Notifications table might not exist - ignore
+        }
+      } catch (error) {
+        // Ignore errors
+      }
+    };
+    
+    clearPendingOrdersNotification();
+    
     // Debounce search
     const timeoutId = setTimeout(() => {
       fetchOrders();
@@ -115,45 +138,130 @@ export default function AdminOrdersPage() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string, trackingNumber?: string) => {
     try {
-      const { error } = await supabase
-        .from('orders')
-        .update({
+      // Update order status via backend API (handles emails automatically)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           status: newStatus,
           tracking_number: trackingNumber,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', orderId);
+        }),
+      });
 
-      if (error) throw error;
-
-      // Send email notification via backend API
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/status`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            status: newStatus,
-            tracking_number: trackingNumber,
-          }),
-        });
-
-        if (response.ok) {
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
           toast.success('Order status updated and email sent!');
+          fetchOrders(); // Refresh orders
         } else {
-          toast.success('Order status updated (email failed)');
+          throw new Error(result.message || 'Failed to update order status');
         }
-      } catch (emailError) {
-        console.error('Email notification failed:', emailError);
-        toast.success('Order status updated (email failed)');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update order status');
       }
-
-      // Refresh orders
-      fetchOrders();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating order status:', error);
-      toast.error('Failed to update order status');
+      toast.error(error.message || 'Failed to update order status');
+    }
+  };
+
+  const updatePaymentStatus = async (orderId: string, newPaymentStatus: string) => {
+    try {
+      // Update payment status via backend API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/payment-status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          payment_status: newPaymentStatus,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          toast.success('Payment status updated!');
+          fetchOrders(); // Refresh orders
+        } else {
+          throw new Error(result.message || 'Failed to update payment status');
+        }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update payment status');
+      }
+    } catch (error: any) {
+      console.error('Error updating payment status:', error);
+      toast.error(error.message || 'Failed to update payment status');
+    }
+  };
+
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOrders.size === orders.length && orders.length > 0) {
+      setSelectedOrders(new Set());
+    } else {
+      setSelectedOrders(new Set(orders.map(o => o.id)));
+    }
+  };
+
+  const bulkUpdateStatus = async (newStatus: string) => {
+    if (selectedOrders.size === 0) {
+      toast.error('Please select at least one order');
+      return;
+    }
+
+    try {
+      const updatePromises = Array.from(selectedOrders).map(orderId =>
+        updateOrderStatus(orderId, newStatus)
+      );
+      
+      await Promise.all(updatePromises);
+      const count = selectedOrders.size;
+      setSelectedOrders(new Set());
+      setIsSelectMode(false);
+      toast.success(`Updated ${count} order(s)!`);
+      fetchOrders(); // Refresh orders
+    } catch (error) {
+      console.error('Error bulk updating orders:', error);
+      toast.error('Failed to update some orders');
+    }
+  };
+
+  const bulkUpdatePaymentStatus = async (newPaymentStatus: string) => {
+    if (selectedOrders.size === 0) {
+      toast.error('Please select at least one order');
+      return;
+    }
+
+    try {
+      const updatePromises = Array.from(selectedOrders).map(orderId =>
+        updatePaymentStatus(orderId, newPaymentStatus)
+      );
+      
+      await Promise.all(updatePromises);
+      const count = selectedOrders.size;
+      setSelectedOrders(new Set());
+      setIsSelectMode(false);
+      toast.success(`Updated payment status for ${count} order(s)!`);
+      fetchOrders(); // Refresh orders
+    } catch (error) {
+      console.error('Error bulk updating payment status:', error);
+      toast.error('Failed to update some orders');
     }
   };
 
@@ -245,13 +353,54 @@ export default function AdminOrdersPage() {
                 <p className="text-sm text-[#3A3A3A] mt-1">Manage and track customer orders</p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              icon={<Download size={18} />}
-              onClick={handleExportOrders}
-            >
-              Export
-            </Button>
+            <div className="flex items-center gap-2">
+              {isSelectMode && selectedOrders.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <select
+                    onChange={(e) => bulkUpdateStatus(e.target.value)}
+                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Bulk Update Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <select
+                    onChange={(e) => bulkUpdatePaymentStatus(e.target.value)}
+                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Bulk Update Payment</option>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="failed">Failed</option>
+                    <option value="refunded">Refunded</option>
+                  </select>
+                  <span className="text-sm text-[#3A3A3A]">
+                    {selectedOrders.size} selected
+                  </span>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsSelectMode(!isSelectMode);
+                  if (isSelectMode) setSelectedOrders(new Set());
+                }}
+              >
+                {isSelectMode ? 'Cancel' : 'Select'}
+              </Button>
+              <Button 
+                variant="outline" 
+                icon={<Download size={18} />}
+                onClick={handleExportOrders}
+              >
+                Export
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -326,6 +475,16 @@ export default function AdminOrdersPage() {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b">
                   <tr>
+                    {isSelectMode && (
+                      <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">
+                        <input
+                          type="checkbox"
+                          checked={selectedOrders.size === orders.length && orders.length > 0}
+                          onChange={toggleSelectAll}
+                          className="w-4 h-4 rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                        />
+                      </th>
+                    )}
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Order #</th>
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Customer</th>
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Date</th>
@@ -338,7 +497,17 @@ export default function AdminOrdersPage() {
                 </thead>
                 <tbody className="divide-y">
                   {orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
+                    <tr key={order.id} className={`hover:bg-gray-50 ${selectedOrders.has(order.id) ? 'bg-blue-50' : ''}`}>
+                      {isSelectMode && (
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedOrders.has(order.id)}
+                            onChange={() => toggleOrderSelection(order.id)}
+                            className="w-4 h-4 rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                          />
+                        </td>
+                      )}
                       <td className="px-6 py-4">
                         <span className="font-mono text-sm text-[#FF7A19] font-semibold">
                           {order.order_number}
@@ -365,7 +534,17 @@ export default function AdminOrdersPage() {
                         {getStatusBadge(order.status)}
                       </td>
                       <td className="px-6 py-4">
-                        {getPaymentStatusBadge(order.payment_status)}
+                        {/* Payment status dropdown - always editable */}
+                        <select
+                          value={order.payment_status}
+                          onChange={(e) => updatePaymentStatus(order.id, e.target.value)}
+                          className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#FF7A19] bg-white"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="paid">Paid</option>
+                          <option value="failed">Failed</option>
+                          <option value="refunded">Refunded</option>
+                        </select>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">

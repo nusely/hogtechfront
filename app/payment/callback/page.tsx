@@ -40,35 +40,109 @@ export default function PaymentCallbackPage() {
         hasProcessedRef.current = true;
 
         // Verify payment with backend
+        console.log('Verifying payment with reference:', reference);
         const verifyResult = await paymentService.verifyPayment(reference);
+        
+        console.log('Payment verification result:', {
+          success: verifyResult.success,
+          status: verifyResult.data?.status,
+          hasMetadata: !!verifyResult.data?.metadata,
+          metadata: verifyResult.data?.metadata,
+        });
 
         if (verifyResult.success && verifyResult.data?.status === 'success') {
           // Payment verified successfully
-          // Get checkout data from sessionStorage
+          // Get checkout data from sessionStorage or metadata
           const checkoutDataStr = sessionStorage.getItem('pending_checkout_data');
+          const metadata = verifyResult.data?.metadata || {};
           
-          if (checkoutDataStr) {
-            const checkoutData = JSON.parse(checkoutDataStr);
-            
-            // Get user ID from metadata
-            const userId = verifyResult.data?.metadata?.user_id || checkoutData.user_id || null;
-            
-            // Create order after successful payment verification
+          console.log('Payment verified, retrieving checkout data...', {
+            hasCheckoutDataStr: !!checkoutDataStr,
+            hasMetadataCheckoutData: !!metadata.checkout_data,
+            metadata,
+          });
+          
+          // Get checkout data - prefer metadata, fallback to sessionStorage
+          let checkoutData: any = null;
+          if (metadata.checkout_data) {
+            // Checkout data is in Paystack metadata
+            checkoutData = metadata.checkout_data;
+            console.log('Using checkout data from metadata:', checkoutData);
+          } else if (checkoutDataStr) {
             try {
-              // Get checkout data from stored session or metadata
-              const orderCheckoutData = checkoutData.checkout_data || checkoutData;
+              const parsed = JSON.parse(checkoutDataStr);
+              // Checkout data is stored directly in sessionStorage (spread from checkoutData object)
+              // It should have items, delivery_address, delivery_option, payment_method, etc.
+              checkoutData = parsed;
               
-              // Ensure email is included in delivery address for guest customers
-              if (orderCheckoutData.delivery_address && checkoutData.customer_email) {
-                orderCheckoutData.delivery_address.email = checkoutData.customer_email;
+              // If it has checkout_data nested, use that instead
+              if (parsed.checkout_data) {
+                checkoutData = parsed.checkout_data;
               }
               
-              // Include payment reference from stored data
-              if (checkoutData.payment_reference) {
-                orderCheckoutData.payment_reference = checkoutData.payment_reference;
-              }
-              
-              const order = await orderService.createOrder(orderCheckoutData, userId);
+              console.log('Using checkout data from sessionStorage:', checkoutData);
+            } catch (e) {
+              console.error('Error parsing checkout data:', e);
+            }
+          }
+          
+          if (!checkoutData || !checkoutData.items || !Array.isArray(checkoutData.items) || checkoutData.items.length === 0) {
+            console.error('Invalid checkout data:', checkoutData);
+            setStatus('error');
+            setMessage('Payment verified but checkout data is missing or invalid. Please contact support.');
+            return;
+          }
+          
+          // Get user ID from metadata or checkout data
+          const userId = (metadata.user_id && metadata.user_id !== 'guest') 
+            ? metadata.user_id 
+            : (checkoutData.user_id || null);
+          
+          // Ensure payment reference is included
+          if (!checkoutData.payment_reference) {
+            checkoutData.payment_reference = reference;
+          }
+          
+          // Ensure payment method is set
+          if (!checkoutData.payment_method) {
+            checkoutData.payment_method = 'paystack';
+          }
+          
+          // Ensure email is included in delivery address for guest customers
+          if (checkoutData.delivery_address) {
+            if (!checkoutData.delivery_address.email) {
+              checkoutData.delivery_address.email = metadata.customer_email || checkoutData.customer_email || null;
+            }
+          }
+          
+          console.log('Creating order with data:', {
+            userId,
+            itemsCount: checkoutData.items?.length || 0,
+            hasDeliveryAddress: !!checkoutData.delivery_address,
+            hasDeliveryOption: !!checkoutData.delivery_option,
+            paymentMethod: checkoutData.payment_method,
+            paymentReference: checkoutData.payment_reference,
+          });
+          
+          // Create order after successful payment verification
+          try {
+            console.log('Calling orderService.createOrder with:', {
+              userId,
+              itemsCount: checkoutData.items?.length,
+              hasDeliveryAddress: !!checkoutData.delivery_address,
+              hasDeliveryOption: !!checkoutData.delivery_option,
+            });
+            
+            const order = await orderService.createOrder(checkoutData, userId);
+            
+            if (!order || !order.id) {
+              throw new Error('Order creation returned invalid response');
+            }
+            
+            console.log('Order created successfully:', {
+              id: order.id,
+              order_number: order.order_number,
+            });
               
               // Update transaction with order_id after order is created
               try {
@@ -98,20 +172,25 @@ export default function PaymentCallbackPage() {
               
               setStatus('success');
               setMessage('Payment successful! Your order has been created.');
+              toast.success(`Order ${order.order_number || order.id} created successfully!`);
               
-              // Redirect to success page
+              // Redirect to order detail page
               setTimeout(() => {
-                router.push(`/orders/success?order=${order.id}&reference=${reference}`);
+                router.push(`/orders/${order.id}`);
               }, 2000);
             } catch (orderError: any) {
-              console.error('Error creating order:', orderError);
+              console.error('Error creating order:', {
+                error: orderError,
+                message: orderError?.message,
+                response: orderError?.response,
+                data: orderError?.data,
+                stack: orderError?.stack,
+              });
               setStatus('error');
-              setMessage('Payment verified but failed to create order. Please contact support.');
+              const errorMessage = orderError?.message || orderError?.response?.data?.message || 'Failed to create order';
+              setMessage(`Payment verified but failed to create order: ${errorMessage}. Please contact support.`);
+              toast.error(`Order creation failed: ${errorMessage}`);
             }
-          } else {
-            setStatus('error');
-            setMessage('Payment verified but checkout data is missing. Please contact support.');
-          }
         } else {
           setStatus('error');
           setMessage(verifyResult.message || 'Payment verification failed');

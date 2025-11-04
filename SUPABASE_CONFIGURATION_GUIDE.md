@@ -52,32 +52,40 @@
 
 ---
 
-### Step 3: (Optional) Configure Resend SMTP for Supabase Auth Emails
+### Step 3: Configure Custom SMTP for Supabase Auth Emails
 
-If you want Supabase auth emails (verification, password reset) to also use Resend instead of Supabase's default email service:
+**IMPORTANT:** Resend doesn't provide SMTP (only API). For Supabase Auth emails, you need an SMTP service.
 
-1. **Go to:** **Authentication** → **Settings** → **SMTP Settings**
+**Recommended: Use Brevo (Sendinblue) - Free Tier**
 
-2. **Enable Custom SMTP:**
-   - Toggle **"Enable Custom SMTP"** to **ON**
+1. **Sign up for Brevo:**
+   - Go to https://www.brevo.com/
+   - Create account and verify your domain `ventechgadgets.com`
 
-3. **Configure Resend SMTP:**
-   
-   **For Resend SMTP, use these settings:**
-   ```
-   Host: smtp.resend.com
-   Port: 587
-   Username: resend
-   Password: re_MnujjdYu_121DroDAHMe5fbZbAp1S8ccF (your Resend API key)
-   Sender Name: VENTECH GADGETS
-   Sender Email: support@ventechgadgets.com (or noreply@ventechgadgets.com)
-   ```
+2. **Get SMTP Credentials:**
+   - Go to Brevo Dashboard → Settings → SMTP & API
+   - Generate SMTP key
+   - Copy credentials:
+     - **Host:** `smtp-relay.brevo.com`
+     - **Port:** `587` (TLS)
+     - **Username:** Your Brevo login email
+     - **Password:** Your SMTP key
 
-   **Note:** 
-   - The sender email must be verified in Resend Dashboard
-   - If your domain isn't verified yet, use `onboarding@resend.dev` for testing
+3. **Configure Supabase:**
+   - Go to: **Authentication** → **Settings** → **SMTP Settings**
+   - Enable **"Enable Custom SMTP"**
+   - Fill in:
+     ```
+     Host: smtp-relay.brevo.com
+     Port: 587
+     Username: your-brevo-email@example.com
+     Password: your-smtp-key
+     Sender Name: VENTECH GADGETS
+     Sender Email: noreply@ventechgadgets.com
+     ```
+   - **Save Settings**
 
-4. **Save Settings**
+**Alternative:** Use Mailgun, AWS SES, or another SMTP provider. See `SUPABASE_AUTH_EMAIL_SETUP.md` for detailed instructions.
 
 ---
 
@@ -89,9 +97,10 @@ If you want Supabase auth emails (verification, password reset) to also use Rese
 - ✅ **Works:** Automatically after domain verification
 
 ### Supabase Auth Emails (Verification, password reset)
-- ✅ **Uses:** Supabase default email service (recommended)
+- ⚠️ **Uses:** Supabase default email service (may timeout/fail)
    - OR
-- ✅ **Uses:** Resend SMTP (if configured in Step 3)
+- ✅ **Uses:** Brevo/Mailgun SMTP (if configured in Step 3) - **RECOMMENDED**
+   - **Note:** Resend doesn't provide SMTP, so use Brevo or another SMTP service
 
 ---
 
@@ -175,14 +184,16 @@ https://yourdomain.com/auth/callback
 https://yourdomain.com/reset-password
 ```
 
-### Resend SMTP Settings (if using):
+### Brevo SMTP Settings (Recommended for Supabase Auth):
 ```
-Host: smtp.resend.com
+Host: smtp-relay.brevo.com
 Port: 587
-Username: resend
-Password: your_resend_api_key
-Sender: support@ventechgadgets.com
+Username: your-brevo-email@example.com
+Password: your-brevo-smtp-key
+Sender: noreply@ventechgadgets.com
 ```
+
+**Note:** Resend doesn't provide SMTP. Use Brevo (free tier) or Mailgun for Supabase Auth emails.
 
 ---
 

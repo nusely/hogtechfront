@@ -43,10 +43,12 @@ export const getCategories = async (): Promise<Category[]> => {
       });
     }
     
-    // Map categories with accurate product counts
+    // Map categories with accurate product counts and image mapping
     const categoriesWithCounts = categories.map(category => ({
       ...category,
       product_count: countsMap.get(category.id) || 0,
+      // Map image fields: prioritize image_url, then thumbnail_url, then thumbnail
+      thumbnail: (category as any).image_url || (category as any).thumbnail_url || category.thumbnail || '',
     }));
     
     console.log('Categories fetched successfully:', categoriesWithCounts);
@@ -76,7 +78,7 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
   try {
     const { data, error } = await supabase
       .from('categories')
-      .select('id, name, slug, description, thumbnail, icon, parent_id, product_count, order, created_at')
+      .select('id, name, slug, description, thumbnail, image_url, thumbnail_url, icon, parent_id, product_count, order, created_at')
       .eq('slug', slug)
       .maybeSingle();
 
@@ -86,6 +88,13 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
         console.error('Error fetching category:', error);
       }
       return null;
+    }
+    // Map image fields: prioritize image_url, then thumbnail_url, then thumbnail
+    if (data) {
+      return {
+        ...data,
+        thumbnail: (data as any).image_url || (data as any).thumbnail_url || data.thumbnail || '',
+      };
     }
     return data;
   } catch (error) {

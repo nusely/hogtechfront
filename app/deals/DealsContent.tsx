@@ -147,13 +147,13 @@ export function DealsContent() {
           <p className="text-white/90 mb-6 max-w-2xl mx-auto">
             Subscribe to our newsletter and be the first to know about exclusive deals, flash sales, and special offers!
           </p>
-          <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
+          <form className="max-w-md mx-auto flex flex-col gap-3">
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-white"
+              className="w-full px-4 py-3 rounded-lg text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-white"
             />
-            <Button variant="secondary" size="lg" type="submit">
+            <Button variant="secondary" size="lg" type="submit" className="w-full sm:w-auto sm:mx-auto">
               Subscribe
             </Button>
           </form>

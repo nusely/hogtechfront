@@ -33,12 +33,18 @@ export const wishlistService = {
   async addToWishlist(userId: string, productId: string): Promise<boolean> {
     try {
       // Check if already in wishlist
-      const { data: existing } = await supabase
+      const { data: existing, error: checkError } = await supabase
         .from('wishlists')
         .select('id')
         .eq('user_id', userId)
         .eq('product_id', productId)
-        .single();
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        // PGRST116 = no rows found (not an error)
+        console.error('Error checking wishlist:', checkError);
+        throw checkError;
+      }
 
       if (existing) {
         return false; // Already in wishlist
@@ -57,6 +63,12 @@ export const wishlistService = {
           console.warn('Wishlist table does not exist yet. Please run create_wishlist_table.sql');
           return false;
         }
+        // 23505 = unique_violation (already exists - race condition)
+        if (error.code === '23505') {
+          console.warn('Product already in wishlist (race condition)');
+          return false;
+        }
+        console.error('Error adding to wishlist:', error);
         throw error;
       }
       return true;

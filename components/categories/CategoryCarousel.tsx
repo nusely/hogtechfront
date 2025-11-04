@@ -69,9 +69,9 @@ export const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }
         </div>
       </div>
 
-      {/* Desktop: Grid (max 8 per row, always one row) */}
-      <div className="hidden md:grid md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3 sm:gap-4">
-        {categories.slice(0, 8).map((category) => (
+      {/* Desktop: Single responsive row (7-10 cards max, no wrapping) */}
+      <div className="hidden md:grid md:grid-cols-7 lg:grid-cols-8 xl:grid-cols-9 2xl:grid-cols-10 gap-3 lg:gap-4">
+        {categories.slice(0, 10).map((category) => (
           <CategoryCard key={category.id} category={category} />
         ))}
       </div>

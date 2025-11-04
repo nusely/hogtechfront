@@ -126,8 +126,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             </button>
           </div>
 
-          {/* Action Buttons - Show on hover, positioned to not overlap */}
-          <div className="absolute top-12 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          {/* Action Buttons - Desktop: Show on hover, Mobile: Show wishlist only (no hover) */}
+          {/* Desktop: Wishlist and Quick View on hover */}
+          <div className="hidden md:flex absolute top-12 right-3 flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             <button
               onClick={handleWishlist}
               className="p-2 bg-white rounded-full shadow-md hover:bg-orange-50 transition-colors"
@@ -164,6 +165,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                 </svg>
               </button>
             )}
+          </div>
+          
+          {/* Mobile: Wishlist only (below cart icon, no circular background, just heart) */}
+          <div className="md:hidden absolute top-14 right-3 z-10">
+            <button
+              onClick={handleWishlist}
+              className="p-1"
+              title="Add to wishlist"
+            >
+              <Heart
+                size={18}
+                className={isWishlisted ? 'fill-[#FF7A19] text-[#FF7A19]' : 'text-[#3A3A3A]'}
+              />
+            </button>
           </div>
         </div>
 

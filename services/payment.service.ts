@@ -138,13 +138,22 @@ export const paymentService = {
         }
 
         // Store checkout data for order creation after payment
+        // Note: checkout_data is already stored in checkout page, but we also store it here as backup
         if (typeof window !== 'undefined') {
+          // Store minimal data here - full checkout_data is in sessionStorage from checkout page
           sessionStorage.setItem('pending_checkout_data', JSON.stringify({
             reference: data.reference,
             email: data.email,
             metadata: data.metadata,
+            checkout_data: data.metadata?.checkout_data, // Include checkout_data from metadata as backup
           }));
           sessionStorage.setItem('pending_payment_reference', data.reference);
+          
+          // Ensure Paystack redirects to callback page after payment
+          // The callback_url is set in initializePayment, but we also set it here for safety
+          if (authorization_url && !authorization_url.includes('/payment/callback')) {
+            console.warn('Paystack callback URL may not be set correctly');
+          }
         }
 
         return {

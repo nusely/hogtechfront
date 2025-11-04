@@ -73,7 +73,7 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
             <div className="max-w-2xl text-center">
               {banner.subtitle && (
                 <p 
-                  className="text-sm md:text-base font-medium mb-2 uppercase tracking-wide"
+                  className="text-xs sm:text-sm md:text-base font-medium mb-2 uppercase tracking-wide text-white"
                   style={{ color: banner.text_color || '#FFFFFF' }}
                 >
                   {banner.subtitle}
@@ -81,7 +81,7 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
               )}
               {banner.title && (
                 <h2 
-                  className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4"
+                  className="text-xl sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 text-white"
                   style={{ color: banner.text_color || '#FFFFFF' }}
                 >
                   {banner.title}
@@ -89,7 +89,7 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
               )}
               {banner.description && (
                 <p 
-                  className="text-base md:text-xl mb-6 max-w-xl mx-auto"
+                  className="text-xs sm:text-sm md:text-base lg:text-xl mb-6 max-w-xl mx-auto text-white"
                   style={{ color: banner.text_color || '#FFFFFF' }}
                 >
                   {banner.description}
@@ -133,8 +133,8 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentSlide ? 'bg-white w-8' : 'bg-white/50'
+              className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full transition-all ${
+                index === currentSlide ? 'bg-white md:w-8 w-5' : 'bg-white/50'
               }`}
             />
           ))}

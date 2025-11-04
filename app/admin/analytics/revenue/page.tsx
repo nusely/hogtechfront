@@ -61,23 +61,50 @@ export default function RevenueAnalyticsPage() {
           startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       }
 
-      // Fetch paid transactions in date range (use transactions table as source of truth)
-      // This ensures we capture all revenue from transactions, including those that might not be linked to orders
+      // Fetch revenue from orders table (source of truth for revenue)
+      // Use backend API first to bypass RLS, then fallback to Supabase
       let orders: any[] = [];
       let total = 0;
       let transactionCount = 0;
       let averageOrder = 0;
 
-      const { data: transactions, error: transactionsError } = await supabase
-        .from('transactions')
-        .select('amount, payment_status, paid_at, created_at, order:orders!transactions_order_id_fkey(id, order_number, order_items(*))')
-        .eq('payment_status', 'paid')
-        .gte('created_at', startDate.toISOString())
-        .order('created_at', { ascending: true });
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      
+      // Try backend API first (bypasses RLS)
+      try {
+        const response = await fetch(`${API_URL}/api/orders`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-      if (transactionsError) {
-        console.error('Error fetching transactions, falling back to orders:', transactionsError);
-        // Fallback to orders if transactions fail
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            // Filter orders by date range and payment status (paid only)
+            const filteredOrders = (result.data || []).filter((order: any) => {
+              const orderDate = new Date(order.created_at);
+              return orderDate >= startDate && order.payment_status === 'paid';
+            });
+
+            orders = filteredOrders.map((order: any) => ({
+              total: parseFloat(order.total) || 0,
+              created_at: order.created_at,
+              order_items: order.order_items || [],
+            }));
+
+            total = orders.reduce((sum, order) => sum + order.total, 0);
+            transactionCount = orders.length;
+            averageOrder = transactionCount > 0 ? total / transactionCount : 0;
+          }
+        }
+      } catch (apiError) {
+        console.warn('Backend API failed, trying Supabase:', apiError);
+      }
+
+      // Fallback to Supabase if API didn't return data
+      if (orders.length === 0) {
         const { data: ordersData, error: ordersError } = await supabase
           .from('orders')
           .select('total, created_at, order_items(*)')
@@ -85,49 +112,67 @@ export default function RevenueAnalyticsPage() {
           .gte('created_at', startDate.toISOString())
           .order('created_at', { ascending: true });
 
-        if (ordersError) throw ordersError;
+        if (ordersError) {
+          console.error('Error fetching orders:', ordersError);
+          throw ordersError;
+        }
 
-        orders = ordersData || [];
+        orders = (ordersData || []).map((order: any) => ({
+          total: parseFloat(order.total) || 0,
+          created_at: order.created_at,
+          order_items: order.order_items || [],
+        }));
+
         // Calculate total revenue and transactions from orders
-        total = orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+        total = orders.reduce((sum, order) => sum + order.total, 0);
         transactionCount = orders.length;
         averageOrder = transactionCount > 0 ? total / transactionCount : 0;
-      } else {
-        // Calculate total revenue and transactions from transactions table
-        transactionCount = transactions?.length || 0;
-        total = transactions?.reduce((sum, tx) => sum + (parseFloat(tx.amount) || 0), 0) || 0;
-        averageOrder = transactionCount > 0 ? total / transactionCount : 0;
-        
-        // Map transactions to orders format for compatibility with rest of code
-        orders = transactions?.map((tx: any) => ({
-          total: tx.amount,
-          created_at: tx.paid_at || tx.created_at,
-          order_items: tx.order?.order_items || [],
-        })) || [];
       }
 
       // Calculate previous period for growth
-      const previousStartDate = new Date(startDate.getTime() - (now.getTime() - startDate.getTime()));
-      
-      // Try to fetch previous period transactions
-      const { data: previousTransactions } = await supabase
-        .from('transactions')
-        .select('amount, paid_at, created_at')
-        .eq('payment_status', 'paid')
-        .gte('created_at', previousStartDate.toISOString())
-        .lt('created_at', startDate.toISOString());
+      const periodDuration = now.getTime() - startDate.getTime();
+      const previousStartDate = new Date(startDate.getTime() - periodDuration);
+      const previousEndDate = startDate;
 
+      // Fetch previous period orders for growth calculation
       let previousTotal = 0;
-      if (previousTransactions && previousTransactions.length > 0) {
-        previousTotal = previousTransactions.reduce((sum, tx) => sum + (parseFloat(tx.amount) || 0), 0);
-      } else {
-        // Fallback to orders if transactions not available
+      
+      // Try backend API first
+      try {
+        const response = await fetch(`${API_URL}/api/orders`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const previousPeriodOrders = (result.data || []).filter((order: any) => {
+              const orderDate = new Date(order.created_at);
+              return orderDate >= previousStartDate && 
+                     orderDate < previousEndDate && 
+                     order.payment_status === 'paid';
+            });
+
+            previousTotal = previousPeriodOrders.reduce((sum: number, order: any) => 
+              sum + (parseFloat(order.total) || 0), 0
+            );
+          }
+        }
+      } catch (apiError) {
+        console.warn('Backend API failed for previous period, trying Supabase:', apiError);
+      }
+
+      // Fallback to Supabase if API didn't return data
+      if (previousTotal === 0) {
         const { data: previousOrders } = await supabase
           .from('orders')
           .select('total')
           .eq('payment_status', 'paid')
           .gte('created_at', previousStartDate.toISOString())
-          .lt('created_at', startDate.toISOString());
+          .lt('created_at', previousEndDate.toISOString());
 
         previousTotal = previousOrders?.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0) || 0;
       }

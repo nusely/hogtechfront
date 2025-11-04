@@ -8,11 +8,11 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { clearCart } from '@/store/cartSlice';
-import { Check, CreditCard, Smartphone, Banknote, ChevronLeft } from 'lucide-react';
+import { Check, Banknote, ChevronLeft } from 'lucide-react';
 import { formatCurrency } from '@/lib/helpers';
 import { orderService } from '@/services/order.service';
 import { deliveryOptionsService } from '@/services/deliveryOptions.service';
-import { paymentService } from '@/services/payment.service';
+// import { paymentService } from '@/services/payment.service'; // Disabled - only Cash on Delivery
 import { DeliveryOption } from '@/types/order';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
@@ -49,26 +49,28 @@ export default function CheckoutPage() {
       }));
       
       // Try to fetch user's default address
+      // Note: addresses table might not exist - use users table instead
       const fetchUserAddress = async () => {
         try {
           const { data: { user: currentUser } } = await supabase.auth.getUser();
           if (currentUser) {
-            const { data: addresses } = await supabase
-              .from('addresses')
-              .select('*')
-              .eq('user_id', currentUser.id)
-              .eq('is_default', true)
+            // Try to get address from users table (shipping_address field)
+            const { data: userProfile } = await supabase
+              .from('users')
+              .select('shipping_address, first_name, last_name, email, phone')
+              .eq('id', currentUser.id)
               .maybeSingle();
             
-            if (addresses) {
+            if (userProfile && userProfile.shipping_address) {
+              const shipping = userProfile.shipping_address as any;
               setDeliveryInfo({
-                full_name: addresses.full_name || user.full_name || '',
-                email: user.email || '', // Add email from user
-                phone: addresses.phone || user.phone || '',
-                street_address: addresses.street_address || '',
-                city: addresses.city || '',
-                region: addresses.region || '',
-                postal_code: addresses.postal_code || '',
+                full_name: shipping.full_name || `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || user.full_name || '',
+                email: userProfile.email || user.email || '',
+                phone: shipping.phone || userProfile.phone || user.phone || '',
+                street_address: shipping.street_address || shipping.address_line1 || '',
+                city: shipping.city || '',
+                region: shipping.region || '',
+                postal_code: shipping.postal_code || '',
               });
             }
           }
@@ -87,7 +89,7 @@ export default function CheckoutPage() {
   
   // Selected Options
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryOption | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'paystack' | 'cash_on_delivery'>('paystack');
+  const [paymentMethod] = useState<'cash_on_delivery'>('cash_on_delivery'); // Only Cash on Delivery enabled
   const [notes, setNotes] = useState('');
 
   // Fetch delivery options function
@@ -209,72 +211,12 @@ export default function CheckoutPage() {
         notes,
       };
 
-      // For Paystack (Momo/Card), initialize payment first, then create order after payment
-      if (paymentMethod === 'paystack') {
-        // Use email from delivery info (collected from form, includes guest emails)
-        const email = deliveryInfo.email || user?.email;
-        
-        if (!email) {
-          throw new Error('Email is required for payment. Please provide your email address.');
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          throw new Error('Please provide a valid email address.');
-        }
-        
-        // Generate a unique reference for this payment
-        const paymentReference = `ORDER-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Store checkout data temporarily for order creation after payment
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('pending_checkout_data', JSON.stringify({
-            ...checkoutData,
-            payment_method: 'paystack',
-            payment_reference: paymentReference,
-            grand_total: grandTotal,
-            user_id: userId, // Include user_id for order creation (null for guests)
-            customer_email: email, // Store customer email for order emails
-          }));
-          sessionStorage.setItem('pending_payment_reference', paymentReference);
-        }
-        
-        // Initialize Paystack payment via backend
-        const paymentResult = await paymentService.initializePayment({
-          email,
-          amount: Math.round(grandTotal * 100), // Convert to pesewas
-          reference: paymentReference,
-          callback_url: `${window.location.origin}/payment/callback`,
-          metadata: {
-            user_id: userId || 'guest',
-            payment_method: 'paystack',
-            payment_reference: paymentReference,
-            customer_email: email,
-            checkout_data: checkoutData,
-          },
-        });
-
-        if (paymentResult.success) {
-          // Payment modal will open automatically
-          // Don't clear cart yet - wait for payment verification
-          toast.success('Redirecting to payment...');
-          // The payment callback will handle order creation
-        } else {
-          const errorMsg = paymentResult.message || 'Failed to initialize payment. Please check your backend server is running and NEXT_PUBLIC_API_URL is configured correctly.';
-          console.error('Payment initialization failed:', {
-            message: paymentResult.message,
-            API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
-          });
-          throw new Error(errorMsg);
-        }
-      } else {
-        // For Cash on Delivery, create order directly (emails and notifications handled by backend)
-        const order = await orderService.createOrder(checkoutData, userId);
-        dispatch(clearCart());
-        toast.success('Order placed successfully! You will receive a confirmation email shortly.');
-        router.push(`/orders/${order.id}`);
-      }
+      // Only Cash on Delivery is enabled - create order directly
+      // Emails and notifications are handled by backend
+      const order = await orderService.createOrder(checkoutData, userId);
+      dispatch(clearCart());
+      toast.success('Order placed successfully! You will receive a confirmation email shortly.');
+      router.push(`/orders/${order.id}`);
     } catch (error: any) {
       console.error('Order error:', {
         error,
@@ -505,45 +447,30 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* Step 2: Payment Method */}
+            {/* Step 2: Payment Method - Cash on Delivery Only */}
             {step === 2 && (
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Payment Method</h2>
 
                 <div className="space-y-3 mb-6">
-                  <button
-                    onClick={() => setPaymentMethod('paystack')}
-                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      paymentMethod === 'paystack'
-                        ? 'border-[#FF7A19] bg-orange-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
+                  {/* Cash on Delivery - Only Option */}
+                  <div className="w-full p-4 rounded-lg border-2 border-[#FF7A19] bg-orange-50">
                     <div className="flex items-center gap-3">
-                      <CreditCard className={paymentMethod === 'paystack' ? 'text-[#FF7A19]' : 'text-gray-600'} size={24} />
-                      <div>
-                        <p className="font-semibold text-gray-900">Momo/Card</p>
-                        <p className="text-sm text-gray-600">Pay with Mobile Money or Card via Paystack</p>
-                      </div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => setPaymentMethod('cash_on_delivery')}
-                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                      paymentMethod === 'cash_on_delivery'
-                        ? 'border-[#FF7A19] bg-orange-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Banknote className={paymentMethod === 'cash_on_delivery' ? 'text-[#FF7A19]' : 'text-gray-600'} size={24} />
+                      <Banknote className="text-[#FF7A19]" size={24} />
                       <div>
                         <p className="font-semibold text-gray-900">Cash on Delivery</p>
                         <p className="text-sm text-gray-600">Pay when you receive your order</p>
                       </div>
                     </div>
-                  </button>
+                  </div>
+
+                  {/* Payment method info */}
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Note:</strong> Payment will be collected when your order is delivered. 
+                      You'll receive a confirmation email once your order is placed.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Additional Notes */}
@@ -623,7 +550,7 @@ export default function CheckoutPage() {
                 {/* Payment Method */}
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <h3 className="font-bold text-gray-900 mb-2">Payment Method</h3>
-                  <p className="text-gray-600 capitalize">{paymentMethod === 'paystack' ? 'Momo/Card' : paymentMethod.replace('_', ' ')}</p>
+                  <p className="text-gray-600 capitalize">Cash on Delivery</p>
                 </div>
 
                 <div className="flex gap-4">

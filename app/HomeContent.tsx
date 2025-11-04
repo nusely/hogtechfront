@@ -39,7 +39,55 @@ export function HomeContent() {
   // Fetch banners separately to allow refresh
   const fetchBanners = useCallback(async () => {
     try {
-      // Use anonymous/public client for banner fetching (no auth required)
+      // Try backend API first (bypasses RLS) - use public endpoint /api/banners/hero
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      try {
+        const response = await fetch(`${API_URL}/api/banners/hero`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            // Map to expected format (already filtered by type 'hero' from backend)
+            const heroBanners = (result.data || [])
+              .filter((b: any) => b && b.active !== false)
+              .map((b: any) => ({
+                id: b.id || '',
+                title: b.title || '',
+                subtitle: b.subtitle || undefined,
+                description: b.description || undefined,
+                image_url: b.image_url || '',
+                link_url: b.link_url || b.link || undefined,
+                link_text: b.button_text || b.link_text || undefined,
+                display_order: b.order || b.sort_order || b.display_order || b.position || 0,
+                active: b.active !== false,
+                type: (b.type || 'hero') as 'hero',
+                position: b.order || b.sort_order || b.display_order || b.position || 0,
+                text_color: b.text_color || '#FFFFFF',
+                created_at: b.created_at || new Date().toISOString(),
+                updated_at: b.updated_at || new Date().toISOString(),
+              }))
+              .sort((a: any, b: any) => a.display_order - b.display_order);
+            
+            return heroBanners as Banner[];
+          }
+        } else {
+          // Log non-OK responses for debugging
+          const errorText = await response.text().catch(() => 'Unable to read error');
+          console.warn(`Backend API returned ${response.status}: ${errorText}`);
+        }
+      } catch (apiError: any) {
+        console.warn('Backend API failed, trying Supabase:', {
+          message: apiError?.message || 'Unknown error',
+          error: apiError,
+        });
+      }
+
+      // Fallback to Supabase (may have RLS restrictions)
       const { data: bannersData, error } = await supabasePublic
         .from('banners')
         .select('*')
@@ -48,21 +96,22 @@ export function HomeContent() {
         .limit(10);
       
       if (error) {
-        // Only log error if it's not a 401 (authentication) or PGRST301 (not found) - which might be expected for public access
+        // Improved error logging
         const errorCode = (error as any)?.code || (error as any)?.status;
-        if (errorCode !== '401' && errorCode !== 'PGRST301' && errorCode !== 401 && errorCode !== 404) {
-          // Only log in development mode
-          if (process.env.NODE_ENV === 'development') {
-            console.error('Error fetching banners:', {
-              error: error,
-              message: (error as any)?.message || 'Unknown error',
-              code: errorCode,
-              status: (error as any)?.status,
-              details: (error as any)?.details,
-              hint: (error as any)?.hint,
-              fullError: JSON.stringify(error, null, 2),
-            });
-          }
+        const errorMessage = (error as any)?.message || 'Unknown error';
+        
+        // Only log if it's not a common "expected" error
+        if (errorCode !== '401' && errorCode !== 'PGRST301' && errorCode !== 'PGRST116' && errorCode !== 401 && errorCode !== 404) {
+          console.error('Error fetching banners from Supabase:', {
+            error: error,
+            message: errorMessage,
+            code: errorCode,
+            status: (error as any)?.status,
+            details: (error as any)?.details,
+            hint: (error as any)?.hint,
+            errorString: error?.toString(),
+            errorJson: error ? JSON.stringify(error, Object.getOwnPropertyNames(error)) : 'No error object',
+          });
         }
         return [];
       }
@@ -94,18 +143,18 @@ export function HomeContent() {
       
       return [];
     } catch (error) {
-      // Only log in development mode
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching banners:', {
-          error,
-          message: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-          type: typeof error,
-          stringified: JSON.stringify(error, null, 2),
-        });
-      }
+      // Improved error logging
+      console.error('Error fetching banners:', {
+        error,
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        errorString: error?.toString(),
+        errorJson: error ? JSON.stringify(error, Object.getOwnPropertyNames(error)) : 'No error object',
+      });
+      return [];
     }
-    return [];
   }, []);
 
 
@@ -120,16 +169,20 @@ export function HomeContent() {
           getCategories(),
         ]);
 
-        // Filter out featured products from all products
-        const nonFeaturedProducts = productsData.filter(p => !p.featured);
+        // Get featured products separately - only products explicitly marked as featured
+        const featuredData = await productService.getProducts({ featured: true, limit: 10 });
+        // Filter to ensure only products with featured=true are included
+        const actualFeaturedProducts = featuredData.filter(p => p.featured === true);
+        setFeaturedProducts(actualFeaturedProducts);
+
+        // Filter out featured products from all products - exclude products that are featured
+        const featuredProductIds = new Set(actualFeaturedProducts.map(p => p.id));
+        const nonFeaturedProducts = productsData.filter(p => !p.featured && !featuredProductIds.has(p.id));
         setAllProducts(nonFeaturedProducts);
 
-        // Get featured products separately
-        const featuredData = await productService.getProducts({ featured: true, limit: 10 });
-        setFeaturedProducts(featuredData);
-
         // Set categories (main categories only for homepage)
-        const mainCategories = categoriesData.filter(cat => !cat.parent_id).slice(0, 8);
+        // Don't slice here - let CategoryCarousel handle the display limit
+        const mainCategories = categoriesData.filter(cat => !cat.parent_id);
         setCategories(mainCategories);
       } catch (error) {
         console.error('Error fetching homepage data:', error);
@@ -258,7 +311,7 @@ export function HomeContent() {
               ))}
             </div>
           ) : categories.length > 0 ? (
-            <CategoryCarousel categories={categories.slice(0, 8)} />
+            <CategoryCarousel categories={categories} />
           ) : (
             <div className="text-center py-12 bg-white rounded-xl">
               <Tag className="mx-auto mb-4 text-gray-400" size={48} />
@@ -340,13 +393,33 @@ export function HomeContent() {
         </div>
       </section>
 
+      {/* Stay Updated / Newsletter Section */}
+      <section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
+        <div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-6 md:p-12 text-center text-white">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4">Stay Updated</h2>
+          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
+            Subscribe to our newsletter and be the first to know about exclusive deals, flash sales, and special offers!
+          </p>
+          <form className="max-w-md mx-auto flex flex-col gap-3">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full px-4 py-3 rounded-lg text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-white"
+            />
+            <Button variant="secondary" size="lg" type="submit" className="w-full sm:w-auto sm:mx-auto">
+              Subscribe
+            </Button>
+          </form>
+        </div>
+      </section>
+
       {/* Call to Action Section */}
       <section className="bg-[#1A1A1A] py-12">
-        <div className="container mx-auto px-4 text-center !text-white">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3 !text-white">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white">
             Ready to Upgrade Your Tech?
           </h2>
-          <p className="text-base !text-white mb-6">
+          <p className="text-base text-white mb-6">
             Explore our collection of the latest gadgets and electronics
           </p>
           <Link href="/categories">

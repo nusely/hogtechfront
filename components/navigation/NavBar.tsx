@@ -153,7 +153,7 @@ export const NavBar = () => {
                 </Link>
 
                 <div className="relative group">
-                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                  <Link href="/orders" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                     <User size={18} className="text-[#3A3A3A]" />
                     <div className="flex flex-col items-start">
                       <span className="text-xs font-medium text-[#3A3A3A]">Account</span>
@@ -162,7 +162,7 @@ export const NavBar = () => {
                       </span>
                     </div>
                     <ChevronDown size={14} className="text-[#3A3A3A]" />
-                  </button>
+                  </Link>
                   
                   {/* Dropdown Menu */}
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
