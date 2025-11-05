@@ -70,7 +70,7 @@ export default function AdminUsersPage() {
           id: u.id,
           email: u.email,
           role: u.role,
-          name: u.name || u.full_name,
+          name: u.full_name,
         })),
       });
 

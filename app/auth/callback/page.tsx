@@ -42,41 +42,159 @@ export default function AuthCallbackPage() {
 
               // Try to use first_name/last_name if columns exist, otherwise use name
               try {
-                const { data: newProfile, error: createError } = await supabase
+                // First, check if profile already exists (might have been created by trigger)
+                const { data: existingProfile, error: checkError } = await supabase
                   .from('users')
-                  .insert({
-                    ...profileData,
-                    first_name: firstName,
-                    last_name: lastName,
-                  })
-                  .select()
-                  .single();
+                  .select('*')
+                  .eq('id', user.id)
+                  .maybeSingle();
 
-                if (createError) {
-                  // If error, try with 'name' field instead (might be the actual schema)
-                  if (createError.message?.includes('column') || createError.code === '42703') {
-                    const { data: newProfile2, error: createError2 } = await supabase
-                      .from('users')
-                      .insert({
-                        ...profileData,
-                        name: fullName,
-                      })
-                      .select()
-                      .single();
+                if (existingProfile) {
+                  // Profile already exists, update it with missing fields
+                  const updateData: any = {
+                    email: user.email || '',
+                    updated_at: new Date().toISOString(),
+                  };
 
-                    if (createError2) {
-                      console.error('Error creating user profile (with name field):', createError2);
+                  // Try to update with first_name/last_name if columns exist
+                  const { data: updatedProfile, error: updateError } = await supabase
+                    .from('users')
+                    .update({
+                      ...updateData,
+                      first_name: firstName || existingProfile.first_name || '',
+                      last_name: lastName || existingProfile.last_name || '',
+                      full_name: fullName || existingProfile.full_name || existingProfile.name || '',
+                      name: fullName || existingProfile.name || existingProfile.full_name || '',
+                      phone: user.user_metadata?.phone || user.phone || existingProfile.phone,
+                    })
+                    .eq('id', user.id)
+                    .select()
+                    .single();
+
+                  if (updateError) {
+                    // If update with first_name/last_name fails, try with just name
+                    if (updateError.message?.includes('column') || updateError.code === '42703') {
+                      const { data: updatedProfile2, error: updateError2 } = await supabase
+                        .from('users')
+                        .update({
+                          ...updateData,
+                          name: fullName || existingProfile.name,
+                          phone: user.user_metadata?.phone || user.phone || existingProfile.phone,
+                        })
+                        .eq('id', user.id)
+                        .select()
+                        .single();
+
+                      if (updateError2) {
+                        console.error('Error updating user profile (with name field):', {
+                          error: updateError2,
+                          message: updateError2.message,
+                          code: updateError2.code,
+                          details: updateError2.details,
+                        });
+                      } else {
+                        console.log('User profile updated successfully (with name field):', updatedProfile2);
+                      }
                     } else {
-                      console.log('User profile created successfully (with name field):', newProfile2);
+                      console.error('Error updating user profile:', {
+                        error: updateError,
+                        message: updateError.message,
+                        code: updateError.code,
+                        details: updateError.details,
+                      });
                     }
                   } else {
-                    console.error('Error creating user profile:', createError);
+                    console.log('User profile updated successfully:', updatedProfile);
                   }
                 } else {
-                  console.log('User profile created successfully:', newProfile);
+                  // Profile doesn't exist, create it
+                  const { data: newProfile, error: createError } = await supabase
+                    .from('users')
+                    .insert({
+                      ...profileData,
+                      first_name: firstName || '',
+                      last_name: lastName || '',
+                      full_name: fullName || '',
+                      name: fullName || '',
+                    })
+                    .select()
+                    .single();
+
+                  if (createError) {
+                    // If error, try with 'name' field only (might be the actual schema)
+                    if (createError.message?.includes('column') || createError.code === '42703') {
+                      const { data: newProfile2, error: createError2 } = await supabase
+                        .from('users')
+                        .insert({
+                          ...profileData,
+                          name: fullName,
+                        })
+                        .select()
+                        .single();
+
+                      if (createError2) {
+                        // Check if it's a duplicate key error (profile already exists)
+                        if (createError2.code === '23505' || createError2.message?.includes('duplicate') || createError2.message?.includes('unique')) {
+                          console.log('Profile already exists (duplicate), fetching existing profile');
+                          // Fetch the existing profile
+                          const { data: existing, error: fetchError } = await supabase
+                            .from('users')
+                            .select('*')
+                            .eq('id', user.id)
+                            .single();
+
+                          if (existing && !fetchError) {
+                            console.log('User profile fetched successfully (existing):', existing);
+                          } else {
+                            console.error('Error fetching existing profile:', fetchError);
+                          }
+                        } else {
+                          console.error('Error creating user profile (with name field):', {
+                            error: createError2,
+                            message: createError2.message,
+                            code: createError2.code,
+                            details: createError2.details,
+                          });
+                        }
+                      } else {
+                        console.log('User profile created successfully (with name field):', newProfile2);
+                      }
+                    } else {
+                      // Check if it's a duplicate key error (profile already exists)
+                      if (createError.code === '23505' || createError.message?.includes('duplicate') || createError.message?.includes('unique')) {
+                        console.log('Profile already exists (duplicate), fetching existing profile');
+                        // Fetch the existing profile
+                        const { data: existing, error: fetchError } = await supabase
+                          .from('users')
+                          .select('*')
+                          .eq('id', user.id)
+                          .single();
+
+                        if (existing && !fetchError) {
+                          console.log('User profile fetched successfully (existing):', existing);
+                        } else {
+                          console.error('Error fetching existing profile:', fetchError);
+                        }
+                      } else {
+                        console.error('Error creating user profile:', {
+                          error: createError,
+                          message: createError.message,
+                          code: createError.code,
+                          details: createError.details,
+                        });
+                      }
+                    }
+                  } else {
+                    console.log('User profile created successfully:', newProfile);
+                  }
                 }
               } catch (insertError: any) {
-                console.error('Error inserting user profile:', insertError);
+                console.error('Error inserting user profile:', {
+                  error: insertError,
+                  message: insertError?.message,
+                  code: insertError?.code,
+                  details: insertError?.details,
+                });
               }
             }
           } catch (error) {

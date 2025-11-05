@@ -25,6 +25,7 @@ interface DeliveryOption {
   name: string;
   description: string;
   price: number;
+  type: 'delivery' | 'pickup';
   estimated_days?: number;
   is_active: boolean;
   display_order: number;
@@ -45,6 +46,7 @@ export default function AdminSettingsPage() {
     name: '',
     description: '',
     price: '',
+    type: 'delivery' as 'delivery' | 'pickup',
     estimated_days: '',
     is_active: true,
     display_order: 0,
@@ -85,6 +87,7 @@ export default function AdminSettingsPage() {
           name: formData.name,
           description: formData.description || undefined,
           price: parseFloat(formData.price),
+          type: formData.type,
           estimated_days: formData.estimated_days ? parseInt(formData.estimated_days) : undefined,
           is_active: formData.is_active,
           display_order: formData.display_order,
@@ -95,6 +98,7 @@ export default function AdminSettingsPage() {
           name: formData.name,
           description: formData.description || undefined,
           price: parseFloat(formData.price),
+          type: formData.type,
           estimated_days: formData.estimated_days ? parseInt(formData.estimated_days) : undefined,
           is_active: formData.is_active,
           display_order: formData.display_order,
@@ -117,6 +121,7 @@ export default function AdminSettingsPage() {
       name: option.name,
       description: option.description || '',
       price: option.price.toString(),
+      type: option.type || 'delivery',
       estimated_days: option.estimated_days?.toString() || '',
       is_active: option.is_active,
       display_order: option.display_order,
@@ -180,6 +185,7 @@ export default function AdminSettingsPage() {
       name: '',
       description: '',
       price: '',
+      type: 'delivery' as 'delivery' | 'pickup',
       estimated_days: '',
       is_active: true,
       display_order: deliveryOptions.length,
@@ -250,11 +256,26 @@ export default function AdminSettingsPage() {
                 name="price"
                 type="number"
                 step="0.01"
+                min="0"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="0.00"
                 required
               />
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as 'delivery' | 'pickup' })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="delivery">Delivery</option>
+                  <option value="pickup">Pickup</option>
+                </select>
+              </div>
               <div className="md:col-span-2">
                 <Input
                   label="Description"
@@ -330,6 +351,9 @@ export default function AdminSettingsPage() {
                   Description
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Price
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -346,7 +370,7 @@ export default function AdminSettingsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {deliveryOptions.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                     No delivery options yet. Click "Add Delivery Option" to create one.
                   </td>
                 </tr>
@@ -381,8 +405,17 @@ export default function AdminSettingsPage() {
                       <div className="text-sm text-gray-500">{option.description || '-'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <div className={`text-sm font-medium px-2 py-1 rounded ${
+                        option.type === 'pickup' 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {option.type === 'pickup' ? 'Pickup' : 'Delivery'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {option.price === 0 ? 'FREE' : formatCurrency(option.price)}
+                        {formatCurrency(option.price)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

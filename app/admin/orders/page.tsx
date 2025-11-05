@@ -86,11 +86,112 @@ export default function AdminOrdersPage() {
   const fetchOrders = async () => {
     try {
       setIsLoading(true);
+      
+      // Try backend API first (bypasses RLS)
+      // Handle both cases: NEXT_PUBLIC_API_URL with or without /api
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const API_URL = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
+      try {
+        const params = new URLSearchParams();
+        if (statusFilter !== 'all') {
+          params.append('status', statusFilter);
+        }
+        const url = `${API_URL}/orders${params.toString() ? `?${params.toString()}` : ''}`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const data = result.data;
+            
+            // Process the data
+            let formattedOrders = data.map((order: any) => {
+              // Get customer name - try multiple sources
+              let customerName = 'Unknown';
+              let customerEmail = 'No email';
+              
+              if (order.user) {
+                // Logged-in user - try multiple name sources
+                const user = order.user as any;
+                customerName = user.full_name || 
+                              `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+                              user.full_name ||
+                              user.email?.split('@')[0] ||
+                              'Unknown';
+                customerEmail = user.email || 'No email';
+              } else if (order.shipping_address) {
+                // Guest order - get from shipping address
+                const shipping = order.shipping_address as any;
+                customerName = shipping.full_name || 
+                              `${shipping.first_name || ''} ${shipping.last_name || ''}`.trim() ||
+                              shipping.full_name ||
+                              shipping.email?.split('@')[0] ||
+                              'Guest Customer';
+                customerEmail = shipping.email || 'No email';
+              } else if (order.delivery_address) {
+                // Fallback to delivery_address
+                const delivery = order.delivery_address as any;
+                customerName = delivery.full_name || 
+                              `${delivery.first_name || ''} ${delivery.last_name || ''}`.trim() ||
+                              delivery.full_name ||
+                              delivery.email?.split('@')[0] ||
+                              'Guest Customer';
+                customerEmail = delivery.email || 'No email';
+              }
+              
+              // Normalize payment_status - ensure it's lowercase and has a default
+              let paymentStatus = (order.payment_status || 'pending').toLowerCase();
+              if (!['pending', 'paid', 'failed', 'refunded'].includes(paymentStatus)) {
+                paymentStatus = 'pending'; // Default to pending if invalid value
+              }
+              
+              return {
+                id: order.id,
+                order_number: order.order_number,
+                user_name: customerName,
+                user_email: customerEmail,
+                total_amount: order.total,
+                status: order.status || 'pending',
+                payment_status: paymentStatus as 'pending' | 'paid' | 'failed' | 'refunded',
+                created_at: order.created_at,
+                items_count: order.order_items?.length || 0,
+                notes: order.notes || null,
+              };
+            });
+
+            // Apply search filter client-side
+            if (searchQuery) {
+              const searchLower = searchQuery.toLowerCase();
+              formattedOrders = formattedOrders.filter((order: any) =>
+                order.order_number.toLowerCase().includes(searchLower) ||
+                order.id.toLowerCase().includes(searchLower) ||
+                order.user_name.toLowerCase().includes(searchLower) ||
+                order.user_email.toLowerCase().includes(searchLower)
+              );
+            }
+
+            setOrders(formattedOrders);
+            return; // Success - exit early
+          }
+        }
+      } catch (apiError) {
+        console.warn('Backend API failed, trying Supabase:', apiError);
+        // Fall through to Supabase fallback
+      }
+
+      // Fallback: Try Supabase directly (may have RLS restrictions)
+      // Note: full_name may not exist yet, so we only query existing columns
       let query = supabase
         .from('orders')
         .select(`
           *,
-          user:users!orders_user_id_fkey(id, first_name, last_name, email),
+          user:users!orders_user_id_fkey(id, first_name, last_name, full_name, email),
           order_items(*)
         `);
 
@@ -101,20 +202,79 @@ export default function AdminOrdersPage() {
 
       const { data, error } = await query.order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase query error:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        throw error;
+      }
 
-      let formattedOrders = data?.map(order => ({
-        id: order.id,
-        order_number: order.order_number,
-        user_name: `${order.user?.first_name || ''} ${order.user?.last_name || ''}`.trim() || 'Unknown',
-        user_email: order.user?.email || 'No email',
-        total_amount: order.total,
-        status: order.status,
-        payment_status: order.payment_status,
-        created_at: order.created_at,
-        items_count: order.order_items?.length || 0,
-        notes: order.notes || null,
-      })) || [];
+      let formattedOrders = data?.map(order => {
+        // Get customer name - try multiple sources
+        let customerName = 'Unknown';
+        let customerEmail = 'No email';
+        
+        if (order.user) {
+          // Logged-in user - try multiple name sources
+          const user = order.user as any;
+          customerName = user.full_name || 
+                        `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+                        user.full_name ||
+                        user.email?.split('@')[0] ||
+                        'Unknown';
+          customerEmail = user.email || 'No email';
+        } else if (order.shipping_address) {
+          // Guest order - get from shipping address
+          const shipping = order.shipping_address as any;
+          customerName = shipping.full_name || 
+                        `${shipping.first_name || ''} ${shipping.last_name || ''}`.trim() ||
+                        shipping.full_name ||
+                        shipping.email?.split('@')[0] ||
+                        'Guest Customer';
+          customerEmail = shipping.email || 'No email';
+        } else if (order.delivery_address) {
+          // Fallback to delivery_address
+          const delivery = order.delivery_address as any;
+          customerName = delivery.full_name || 
+                        `${delivery.first_name || ''} ${delivery.last_name || ''}`.trim() ||
+                        delivery.full_name ||
+                        delivery.email?.split('@')[0] ||
+                        'Guest Customer';
+          customerEmail = delivery.email || 'No email';
+        }
+        
+        // Normalize payment_status - ensure it's lowercase and has a default
+        let paymentStatus = (order.payment_status || 'pending').toLowerCase();
+        if (!['pending', 'paid', 'failed', 'refunded'].includes(paymentStatus)) {
+          paymentStatus = 'pending'; // Default to pending if invalid value
+        }
+        
+        // Log payment_status for debugging
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Order payment_status:', {
+            order_number: order.order_number,
+            raw_payment_status: order.payment_status,
+            normalized_payment_status: paymentStatus,
+            payment_status_type: typeof order.payment_status,
+          });
+        }
+        
+        return {
+          id: order.id,
+          order_number: order.order_number,
+          user_name: customerName,
+          user_email: customerEmail,
+          total_amount: order.total,
+          status: order.status || 'pending',
+          payment_status: paymentStatus as 'pending' | 'paid' | 'failed' | 'refunded',
+          created_at: order.created_at,
+          items_count: order.order_items?.length || 0,
+          notes: order.notes || null,
+        };
+      }) || [];
 
       // Apply search filter client-side
       if (searchQuery) {
@@ -128,9 +288,31 @@ export default function AdminOrdersPage() {
       }
 
       setOrders(formattedOrders);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error('Failed to fetch orders');
+    } catch (error: any) {
+      console.error('Error fetching orders:', {
+        error,
+        message: error?.message || 'Unknown error',
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        stack: error?.stack,
+        name: error?.name,
+        fullError: JSON.stringify(error, null, 2),
+      });
+      
+      // Provide more specific error message
+      let errorMessage = 'Failed to fetch orders';
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.code === 'PGRST301' || error?.message?.includes('permission')) {
+        errorMessage = 'Permission denied. Please check if you have admin access.';
+      } else if (error?.message?.includes('policy') || error?.code === '42501') {
+        errorMessage = 'Access denied by security policy. Please contact support.';
+      } else if (error?.code) {
+        errorMessage = `Error ${error.code}: ${error.message || 'Failed to fetch orders'}`;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -536,8 +718,12 @@ export default function AdminOrdersPage() {
                       <td className="px-6 py-4">
                         {/* Payment status dropdown - always editable */}
                         <select
-                          value={order.payment_status}
-                          onChange={(e) => updatePaymentStatus(order.id, e.target.value)}
+                          value={(order.payment_status || 'pending').toLowerCase()}
+                          onChange={(e) => {
+                            const newStatus = e.target.value;
+                            console.log('Payment status changed:', { orderId: order.id, order_number: order.order_number, oldStatus: order.payment_status, newStatus });
+                            updatePaymentStatus(order.id, newStatus);
+                          }}
                           className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#FF7A19] bg-white"
                         >
                           <option value="pending">Pending</option>
@@ -551,9 +737,18 @@ export default function AdminOrdersPage() {
                           <Button 
                             variant="ghost" 
                             size="sm"
-                            onClick={() => {
-                              setSelectedOrderId(order.id);
-                              setIsModalOpen(true);
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              console.log('View button clicked for order:', order.id, order.order_number);
+                              if (order.id) {
+                                setSelectedOrderId(order.id);
+                                setIsModalOpen(true);
+                                console.log('Modal should open with orderId:', order.id);
+                              } else {
+                                console.error('Order ID is missing:', order);
+                                toast.error('Order ID is missing');
+                              }
                             }}
                           >
                             <Eye size={16} />
@@ -594,19 +789,17 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Order Detail Modal */}
-      {selectedOrderId && (
-        <OrderDetailModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedOrderId(null);
-          }}
-          orderId={selectedOrderId}
-          onStatusUpdate={() => {
-            fetchOrders();
-          }}
-        />
-      )}
+      <OrderDetailModal
+        isOpen={isModalOpen && !!selectedOrderId}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedOrderId(null);
+        }}
+        orderId={selectedOrderId || ''}
+        onStatusUpdate={() => {
+          fetchOrders();
+        }}
+      />
     </div>
   );
 }

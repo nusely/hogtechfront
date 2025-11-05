@@ -1,12 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { X, ShoppingCart, Heart, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Product } from '@/types/product';
 import { Button } from '../ui/Button';
 import { formatCurrency, calculateDiscountPercentage } from '@/lib/helpers';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { addToCart } from '@/store/cartSlice';
+import { useWishlist } from '@/hooks/useWishlist';
+import { LoginPromptModal } from '../auth/LoginPromptModal';
+import toast from 'react-hot-toast';
 
 interface QuickViewProps {
   product: Product | null;
@@ -15,6 +20,13 @@ interface QuickViewProps {
 }
 
 export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }) => {
+  const dispatch = useAppDispatch();
+  const { items } = useAppSelector((state) => state.cart);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isInWishlist, toggleItem } = useWishlist();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginAction, setLoginAction] = useState<'wishlist' | 'cart' | 'general'>('general');
+
   if (!product) return null;
 
   const hasDiscount = product.discount_price && product.discount_price < product.original_price;
@@ -22,18 +34,65 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
     ? calculateDiscountPercentage(product.original_price, product.discount_price!)
     : 0;
 
+  const isInCart = items.some(item => item.id === product.id);
+  const isWishlisted = isInWishlist(product.id);
+
+  const handleAddToCart = () => {
+    const cartItem = {
+      ...product,
+      quantity: 1,
+      selected_variants: {},
+      subtotal: product.discount_price || product.original_price,
+    };
+
+    dispatch(
+      addToCart({
+        product: cartItem,
+        quantity: 1,
+      })
+    );
+
+    toast.success(`${product.name} added to cart!`);
+  };
+
+  const handleWishlist = async () => {
+    if (!isAuthenticated) {
+      setLoginAction('wishlist');
+      setShowLoginModal(true);
+      return;
+    }
+
+    try {
+      const success = await toggleItem(product.id);
+      if (success) {
+        toast.success(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist');
+      } else {
+        toast.error('Failed to update wishlist');
+      }
+    } catch (error) {
+      console.error('Wishlist error:', error);
+      toast.error('Failed to update wishlist');
+    }
+  };
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-          />
+    <>
+      <LoginPromptModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        action={loginAction}
+      />
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={onClose}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
 
           {/* Modal */}
           <motion.div
@@ -136,14 +195,21 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
                       size="lg"
                       className="w-full"
                       disabled={!product.in_stock}
+                      onClick={handleAddToCart}
                       icon={<ShoppingCart size={20} />}
                     >
-                      {product.in_stock ? 'Add to Cart' : 'Out of Stock'}
+                      {product.in_stock ? (isInCart ? 'In Cart' : 'Add to Cart') : 'Out of Stock'}
                     </Button>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <Button variant="outline" size="md" className="w-full" icon={<Heart size={18} />}>
-                        Wishlist
+                      <Button
+                        variant="outline"
+                        size="md"
+                        className="w-full"
+                        onClick={handleWishlist}
+                        icon={<Heart size={18} />}
+                      >
+                        {isWishlisted ? 'Wishlisted' : 'Wishlist'}
                       </Button>
                       <Button
                         variant="secondary"
@@ -162,9 +228,10 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
               </div>
             </div>
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

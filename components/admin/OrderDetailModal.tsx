@@ -53,8 +53,15 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   useEffect(() => {
-    if (isOpen && orderId) {
+    if (isOpen && orderId && orderId.trim() !== '') {
+      console.log('OrderDetailModal: Fetching order:', orderId);
       fetchOrder();
+    } else {
+      console.log('OrderDetailModal: Not fetching - isOpen:', isOpen, 'orderId:', orderId);
+      if (isOpen && (!orderId || orderId.trim() === '')) {
+        console.error('OrderDetailModal: orderId is empty or invalid');
+        toast.error('Order ID is missing');
+      }
     }
   }, [isOpen, orderId]);
 

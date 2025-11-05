@@ -28,30 +28,99 @@ export interface AuthResponse {
   error: Error | null;
 }
 
-// Sign up with email and password
+// Sign up with email and password (via backend API - bypasses Supabase email sending)
 export const signUp = async (data: SignUpData): Promise<AuthResponse> => {
   try {
-    const { data: authData, error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          first_name: data.firstName,
-          last_name: data.lastName,
-          phone: data.phone,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+    // Sign up via backend API using Admin API (bypasses Supabase email rate limits)
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const response = await fetch(`${API_URL}/api/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+      }),
     });
 
-    if (error) throw error;
+    const responseData = await response.json();
 
+    if (!response.ok) {
+      const error = new Error(responseData.message || 'Failed to create account') as any;
+      error.status = response.status;
+      error.code = responseData.errors?.code;
+      throw error;
+    }
+
+    // User was created successfully via Admin API
+    // Now we need to sign them in to get a session
+    // But first, let's check if the user was created
+    const backendUser = responseData.data?.user;
+    
+    if (!backendUser) {
+      throw new Error('User created but user data not returned');
+    }
+
+    // Sign in the user to get a session
+    // Note: Since we created the user with email_confirm: false, they might need to verify first
+    // But we'll try to sign them in anyway
+    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (signInError) {
+      // If sign-in fails (e.g., email not confirmed), that's okay
+      // The user was created, they just need to verify their email first
+      console.warn('[SignUp] User created but sign-in failed (may need email verification):', signInError.message);
+      
+      // Return the user data from backend (without session)
+      return {
+        user: {
+          id: backendUser.id,
+          email: backendUser.email,
+          email_confirmed_at: backendUser.email_confirmed_at,
+          user_metadata: backendUser.user_metadata,
+        } as User,
+        session: null,
+        error: null,
+      };
+    }
+
+    console.log('[SignUp] Account created and signed in successfully via backend API');
     return {
       user: authData.user,
       session: authData.session,
       error: null,
     };
   } catch (error: any) {
+    // Check for specific error types
+    if (error.status === 409) {
+      // User already exists
+      const duplicateError = new Error('User with this email already exists') as any;
+      duplicateError.status = 409;
+      return {
+        user: null,
+        session: null,
+        error: duplicateError,
+      };
+    }
+
+    if (error.status === 429) {
+      // Rate limit (shouldn't happen with backend, but handle it)
+      const rateLimitError = new Error('Too many requests. Please wait a few minutes before trying again.') as any;
+      rateLimitError.status = 429;
+      return {
+        user: null,
+        session: null,
+        error: rateLimitError,
+      };
+    }
+
     return {
       user: null,
       session: null,
@@ -95,16 +164,31 @@ export const signOut = async (): Promise<{ error: Error | null }> => {
   }
 };
 
-// Send password reset email
+// Send password reset email (via backend API using Resend)
 export const resetPassword = async (data: ResetPasswordData): Promise<{ error: Error | null }> => {
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    // Send password reset email via our backend API (Resend) instead of Supabase
+    // This bypasses Supabase email rate limits
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const response = await fetch(`${API_URL}/api/auth/send-password-reset-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: data.email }),
     });
 
-    if (error) throw error;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const error = new Error(errorData.message || 'Failed to send password reset email') as any;
+      error.status = response.status;
+      throw error;
+    }
+
+    console.log('[ResetPassword] Password reset email sent via backend API (Resend)');
     return { error: null };
   } catch (error: any) {
+    console.error('[ResetPassword] Error sending password reset email:', error);
     return { error };
   }
 };
@@ -147,20 +231,31 @@ export const getCurrentSession = async (): Promise<Session | null> => {
   }
 };
 
-// Resend verification email
+// Resend verification email (via backend API using Resend)
 export const resendVerificationEmail = async (email: string): Promise<{ error: Error | null }> => {
   try {
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+    // Send verification email via our backend API (Resend) instead of Supabase
+    // This bypasses Supabase email rate limits
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const response = await fetch(`${API_URL}/api/auth/send-verification-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ email }),
     });
 
-    if (error) throw error;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const error = new Error(errorData.message || 'Failed to resend verification email') as any;
+      error.status = response.status;
+      throw error;
+    }
+
+    console.log('[ResendVerificationEmail] Verification email sent via backend API (Resend)');
     return { error: null };
   } catch (error: any) {
+    console.error('[ResendVerificationEmail] Error sending verification email:', error);
     return { error };
   }
 };
@@ -225,30 +320,144 @@ export const getUserProfile = async (userId?: string) => {
 
           // Try to use first_name/last_name if columns exist, otherwise use name
           try {
+            // First, check if profile already exists (might have been created by trigger)
+            const { data: existingProfile, error: checkError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
+
+            if (existingProfile) {
+              // Profile already exists, update it with missing fields
+              const updateData: any = {
+                email: user.email || '',
+                updated_at: new Date().toISOString(),
+              };
+
+              // Try to update with first_name/last_name if columns exist
+              const { data: updatedProfile, error: updateError } = await supabase
+                .from('users')
+                .update({
+                  ...updateData,
+                  first_name: firstName || existingProfile.first_name || '',
+                  last_name: lastName || existingProfile.last_name || '',
+                  full_name: fullName || existingProfile.full_name || '',
+                  phone: user.user_metadata?.phone || user.phone || existingProfile.phone,
+                })
+                .eq('id', user.id)
+                .select()
+                .single();
+
+              if (updateError) {
+                // If update with first_name/last_name fails, try with just full_name
+                if (updateError.message?.includes('column') || updateError.code === '42703') {
+                  const { data: updatedProfile2, error: updateError2 } = await supabase
+                    .from('users')
+                    .update({
+                      ...updateData,
+                      full_name: fullName || existingProfile.full_name,
+                      phone: user.user_metadata?.phone || user.phone || existingProfile.phone,
+                    })
+                    .eq('id', user.id)
+                    .select()
+                    .single();
+
+                  if (updateError2) {
+                    console.error('Error updating user profile (with name field):', {
+                      error: updateError2,
+                      message: updateError2.message,
+                      code: updateError2.code,
+                      details: updateError2.details,
+                    });
+                    // Return existing profile even if update failed
+                    return {
+                      ...existingProfile,
+                      full_name: fullName,
+                      first_name: firstName,
+                      last_name: lastName,
+                    };
+                  }
+                  return {
+                    ...updatedProfile2,
+                    full_name: fullName,
+                    first_name: firstName,
+                    last_name: lastName,
+                  };
+                } else {
+                  console.error('Error updating user profile:', {
+                    error: updateError,
+                    message: updateError.message,
+                    code: updateError.code,
+                    details: updateError.details,
+                  });
+                  // Return existing profile even if update failed
+                  return {
+                    ...existingProfile,
+                    full_name: fullName,
+                    first_name: firstName,
+                    last_name: lastName,
+                  };
+                }
+              }
+
+              return {
+                ...updatedProfile,
+                full_name: fullName,
+                first_name: firstName,
+                last_name: lastName,
+              };
+            }
+
+            // Profile doesn't exist, create it
             const { data: newProfile, error: createError } = await supabase
               .from('users')
               .insert({
                 ...profileData,
-                first_name: firstName,
-                last_name: lastName,
+                first_name: firstName || '',
+                last_name: lastName || '',
+                full_name: fullName || '',
               })
               .select()
               .single();
 
             if (createError) {
-              // If error, try with 'name' field instead (might be the actual schema)
+              // If error, try with 'full_name' field only (might be the actual schema)
               if (createError.message?.includes('column') || createError.code === '42703') {
                 const { data: newProfile2, error: createError2 } = await supabase
                   .from('users')
                   .insert({
                     ...profileData,
-                    name: fullName,
+                    full_name: fullName,
                   })
                   .select()
                   .single();
 
                 if (createError2) {
-                  console.error('Error creating user profile (with name field):', createError2);
+                  // Check if it's a duplicate key error (profile already exists)
+                  if (createError2.code === '23505' || createError2.message?.includes('duplicate') || createError2.message?.includes('unique')) {
+                    console.log('Profile already exists, fetching existing profile');
+                    // Fetch the existing profile
+                    const { data: existing, error: fetchError } = await supabase
+                      .from('users')
+                      .select('*')
+                      .eq('id', user.id)
+                      .single();
+
+                    if (existing && !fetchError) {
+                      return {
+                        ...existing,
+                        full_name: fullName,
+                        first_name: firstName,
+                        last_name: lastName,
+                      };
+                    }
+                  }
+                  console.error('Error creating user profile (with name field):', {
+                    error: createError2,
+                    message: createError2.message,
+                    code: createError2.code,
+                    details: createError2.details,
+                  });
                   return null;
                 }
                 // Format the response to match User type
@@ -259,7 +468,31 @@ export const getUserProfile = async (userId?: string) => {
                   last_name: lastName,
                 };
               } else {
-                console.error('Error creating user profile:', createError);
+                // Check if it's a duplicate key error (profile already exists)
+                if (createError.code === '23505' || createError.message?.includes('duplicate') || createError.message?.includes('unique')) {
+                  console.log('Profile already exists, fetching existing profile');
+                  // Fetch the existing profile
+                  const { data: existing, error: fetchError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                  if (existing && !fetchError) {
+                    return {
+                      ...existing,
+                      full_name: fullName,
+                      first_name: firstName,
+                      last_name: lastName,
+                    };
+                  }
+                }
+                console.error('Error creating user profile:', {
+                  error: createError,
+                  message: createError.message,
+                  code: createError.code,
+                  details: createError.details,
+                });
                 return null;
               }
             }
@@ -272,7 +505,12 @@ export const getUserProfile = async (userId?: string) => {
               last_name: lastName,
             };
           } catch (insertError: any) {
-            console.error('Error inserting user profile:', insertError);
+            console.error('Error inserting user profile:', {
+              error: insertError,
+              message: insertError?.message,
+              code: insertError?.code,
+              details: insertError?.details,
+            });
             return null;
           }
         }
@@ -286,7 +524,7 @@ export const getUserProfile = async (userId?: string) => {
     // Format the response to match User type - construct full_name from first_name + last_name
     const firstName = data.first_name || '';
     const lastName = data.last_name || '';
-    const fullName = `${firstName} ${lastName}`.trim() || data.full_name || data.name || data.email?.split('@')[0] || 'User';
+    const fullName = `${firstName} ${lastName}`.trim() || data.full_name || data.email?.split('@')[0] || 'User';
     
     return {
       ...data,

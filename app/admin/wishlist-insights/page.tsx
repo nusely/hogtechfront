@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase';
 
 interface WishlistUser {
   id: string;
-  name: string;
+  full_name: string;
   email: string;
   items_count: number;
   total_value: number;
@@ -75,7 +75,7 @@ export default function WishlistInsightsPage() {
         if (!userMap.has(userId)) {
           userMap.set(userId, {
             id: userId,
-            name: (item.user as any)?.full_name || `${(item.user as any)?.first_name || ''} ${(item.user as any)?.last_name || ''}`.trim() || 'Unknown User',
+            full_name: (item.user as any)?.full_name || `${(item.user as any)?.first_name || ''} ${(item.user as any)?.last_name || ''}`.trim() || 'Unknown User',
             email: item.user?.email || 'No email',
             items_count: 0,
             total_value: 0,
@@ -105,7 +105,7 @@ export default function WishlistInsightsPage() {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -226,7 +226,7 @@ export default function WishlistInsightsPage() {
               <div key={user.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="font-bold text-[#1A1A1A] mb-1">{user.name}</h3>
+                    <h3 className="font-bold text-[#1A1A1A] mb-1">{user.full_name || user.email?.split('@')[0] || 'User'}</h3>
                     <p className="text-sm text-[#3A3A3A] mb-2">{user.email}</p>
                     <div className="flex items-center gap-4 text-sm">
                       <span className="text-[#3A3A3A]">

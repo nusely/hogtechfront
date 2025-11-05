@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/Button';
 import { authService } from '@/services/auth.service';
 import { useAppDispatch } from '@/store';
 import { logout as logoutAction } from '@/store/authSlice';
+import { supabase } from '@/lib/supabase';
+import { wishlistService } from '@/services/wishlist.service';
 import toast from 'react-hot-toast';
 
 interface UserProfile {
@@ -42,6 +44,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [ordersCount, setOrdersCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -115,6 +119,28 @@ export default function ProfilePage() {
         sms_notifications: user.sms_notifications ?? true,
         email_notifications: user.email_notifications ?? true,
       });
+
+      // Fetch orders count
+      try {
+        const { count: ordersCount, error: ordersError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        if (!ordersError) {
+          setOrdersCount(ordersCount || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching orders count:', error);
+      }
+
+      // Fetch wishlist count
+      try {
+        const wishlistItems = await wishlistService.getWishlist(user.id);
+        setWishlistCount(wishlistItems.length);
+      } catch (error) {
+        console.error('Error fetching wishlist count:', error);
+      }
     } catch (error) {
       console.error('Error loading profile:', error);
       toast.error('Failed to load profile');
@@ -247,11 +273,11 @@ export default function ProfilePage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[#3A3A3A]">Orders</span>
-                  <span className="font-semibold text-sm text-[#1A1A1A]">0</span>
+                  <span className="font-semibold text-sm text-[#1A1A1A]">{ordersCount}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-[#3A3A3A]">Wishlist</span>
-                  <span className="font-semibold text-sm text-[#1A1A1A]">0</span>
+                  <span className="font-semibold text-sm text-[#1A1A1A]">{wishlistCount}</span>
                 </div>
               </div>
             </div>

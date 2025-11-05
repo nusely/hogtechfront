@@ -61,6 +61,7 @@ export interface DeliveryOption {
   name: string;
   description: string;
   price: number;
+  type: 'delivery' | 'pickup';
   estimated_days?: number;
 }
 

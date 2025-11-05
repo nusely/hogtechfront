@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
@@ -10,6 +10,7 @@ import { formatCurrency, calculateDiscountPercentage, formatPriceRange } from '@
 import { useAppDispatch, useAppSelector } from '@/store';
 import { addToCart } from '@/store/cartSlice';
 import { useWishlist } from '@/hooks/useWishlist';
+import { LoginPromptModal } from '../auth/LoginPromptModal';
 import toast from 'react-hot-toast';
 
 interface ProductCardProps {
@@ -20,7 +21,9 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
   const dispatch = useAppDispatch();
   const { items } = useAppSelector((state) => state.cart);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { isInWishlist, toggleItem } = useWishlist();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   const isInCart = items.some(item => item.id === product.id);
   const isWishlisted = isInWishlist(product.id);
@@ -55,6 +58,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
     e.preventDefault();
     e.stopPropagation();
     
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+    
     try {
       const success = await toggleItem(product.id);
       if (success) {
@@ -69,8 +77,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   };
 
   return (
-    <Link href={`/product/${product.slug}`}>
-      <div className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col">
+    <>
+      <LoginPromptModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        action="wishlist"
+      />
+      <Link href={`/product/${product.slug}`}>
+        <div className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col">
         {/* Image Container */}
         <div className="relative aspect-square overflow-hidden bg-gray-50">
           <Image
@@ -228,6 +242,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         </div>
       </div>
     </Link>
+    </>
   );
 };
 

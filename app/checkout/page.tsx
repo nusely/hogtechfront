@@ -86,48 +86,49 @@ export default function CheckoutPage() {
 
   // Delivery Options
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
+  const [isLoadingDeliveryOptions, setIsLoadingDeliveryOptions] = useState(true);
   
   // Selected Options
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryOption | null>(null);
   const [paymentMethod] = useState<'cash_on_delivery'>('cash_on_delivery'); // Only Cash on Delivery enabled
   const [notes, setNotes] = useState('');
 
+  // No default options - must come from admin panel
+  // If no options are available, show error message
+
   // Fetch delivery options function
   const fetchDeliveryOptions = async () => {
+    setIsLoadingDeliveryOptions(true);
     try {
+      console.log('Fetching delivery options...');
       const options = await deliveryOptionsService.getActiveDeliveryOptions();
-      setDeliveryOptions(options);
-      if (options.length > 0 && !selectedDelivery) {
-        setSelectedDelivery(options[0]);
+      console.log('Delivery options fetched:', options);
+      
+      if (options && options.length > 0) {
+        setDeliveryOptions(options);
+        if (!selectedDelivery) {
+          setSelectedDelivery(options[0]);
+        }
+      } else {
+        // If no options returned, show error
+        console.warn('No delivery options returned from database');
+        setDeliveryOptions([]);
+        toast.error('No delivery options available. Please contact support.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching delivery options:', error);
-      // Fallback to default options if fetch fails
-      const defaultOptions: DeliveryOption[] = [
-        {
-          id: 'standard',
-          name: 'Standard Delivery',
-          description: '5-7 business days',
-          price: 0,
-          estimated_days: 6,
-        },
-        {
-          id: 'express',
-          name: 'Express Delivery',
-          description: '2-3 business days',
-          price: 15,
-          estimated_days: 3,
-        },
-        {
-          id: 'overnight',
-          name: 'Overnight Delivery',
-          description: 'Next business day',
-          price: 30,
-          estimated_days: 1,
-        },
-      ];
-      setDeliveryOptions(defaultOptions);
-      setSelectedDelivery(defaultOptions[0]);
+      console.error('Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+      });
+      
+      // Don't use defaults - show error
+      setDeliveryOptions([]);
+      toast.error('Failed to load delivery options. Please refresh the page.');
+    } finally {
+      setIsLoadingDeliveryOptions(false);
     }
   };
 
@@ -195,6 +196,14 @@ export default function CheckoutPage() {
       }
     }
 
+    // Validate delivery option is selected
+    const finalDeliveryOption = selectedDelivery || deliveryOptions[0];
+    if (!finalDeliveryOption) {
+      toast.error('Please select a delivery option');
+      setStep(1); // Go back to step 1 to select delivery option
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -206,7 +215,7 @@ export default function CheckoutPage() {
           country: 'Ghana',
           is_default: false,
         },
-        delivery_option: selectedDelivery || deliveryOptions[0],
+        delivery_option: finalDeliveryOption,
         payment_method: paymentMethod,
         notes,
       };
@@ -253,8 +262,8 @@ export default function CheckoutPage() {
     }
   };
 
-  // Free shipping for orders over 20,000 cedis
-  const deliveryFee = total >= 20000 ? 0 : (selectedDelivery?.price || deliveryOptions[0]?.price || 0);
+  // Calculate delivery/pickup fee (no free delivery - all options have a price)
+  const deliveryFee = selectedDelivery?.price || deliveryOptions[0]?.price || 0;
   const tax = 0;
   const grandTotal = total + deliveryFee + tax;
 
@@ -402,36 +411,87 @@ export default function CheckoutPage() {
                   />
                 </div>
 
-                {/* Delivery Options */}
+                {/* Delivery/Pickup Options */}
                 <div className="mt-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">Delivery Option</h3>
-                  {deliveryOptions.length === 0 ? (
+                  <h3 className="font-semibold text-gray-900 mb-4">Delivery/Pickup Option</h3>
+                  {isLoadingDeliveryOptions ? (
                     <div className="text-center py-8 text-gray-500">
                       Loading delivery options...
                     </div>
+                  ) : deliveryOptions.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <p className="mb-2">No delivery options available.</p>
+                      <p className="text-sm">Please contact support or try again later.</p>
+                    </div>
                   ) : (
-                    <div className="space-y-3">
-                      {deliveryOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() => setSelectedDelivery(option)}
-                          className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                            selectedDelivery?.id === option.id
-                              ? 'border-blue-600 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-semibold text-gray-900">{option.name}</p>
-                              <p className="text-sm text-gray-600">{option.description}</p>
-                            </div>
-                            <span className="font-bold text-gray-900">
-                              {option.price === 0 ? 'FREE' : formatCurrency(option.price)}
-                            </span>
+                    <div className="space-y-4">
+                      {/* Group delivery and pickup options separately */}
+                      {deliveryOptions.filter(opt => opt.type === 'delivery').length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-2">Delivery Options</h4>
+                          <div className="space-y-3">
+                            {deliveryOptions
+                              .filter(opt => opt.type === 'delivery')
+                              .map((option) => (
+                                <button
+                                  key={option.id}
+                                  onClick={() => setSelectedDelivery(option)}
+                                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                                    selectedDelivery?.id === option.id
+                                      ? 'border-blue-600 bg-blue-50'
+                                      : 'border-gray-200 hover:border-gray-300'
+                                  }`}
+                                >
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <p className="font-semibold text-gray-900">{option.name}</p>
+                                      <p className="text-sm text-gray-600">{option.description}</p>
+                                      {option.estimated_days && (
+                                        <p className="text-xs text-gray-500 mt-1">
+                                          Estimated: {option.estimated_days} day{option.estimated_days !== 1 ? 's' : ''}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <span className="font-bold text-gray-900">
+                                      {formatCurrency(option.price)}
+                                    </span>
+                                  </div>
+                                </button>
+                              ))}
                           </div>
-                        </button>
-                      ))}
+                        </div>
+                      )}
+                      
+                      {deliveryOptions.filter(opt => opt.type === 'pickup').length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-2">Pickup Options</h4>
+                          <div className="space-y-3">
+                            {deliveryOptions
+                              .filter(opt => opt.type === 'pickup')
+                              .map((option) => (
+                                <button
+                                  key={option.id}
+                                  onClick={() => setSelectedDelivery(option)}
+                                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                                    selectedDelivery?.id === option.id
+                                      ? 'border-blue-600 bg-blue-50'
+                                      : 'border-gray-200 hover:border-gray-300'
+                                  }`}
+                                >
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <p className="font-semibold text-gray-900">{option.name}</p>
+                                      <p className="text-sm text-gray-600">{option.description}</p>
+                                    </div>
+                                    <span className="font-bold text-gray-900">
+                                      {formatCurrency(option.price)}
+                                    </span>
+                                  </div>
+                                </button>
+                              ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -588,7 +648,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
-                  <span>{deliveryFee === 0 ? 'FREE' : formatCurrency(deliveryFee)}</span>
+                  <span>{formatCurrency(deliveryFee)}</span>
                 </div>
                 {tax > 0 && (
                   <div className="flex justify-between text-gray-600">

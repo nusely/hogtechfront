@@ -1,17 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { signUp } from '@/services/auth.service';
 import toast from 'react-hot-toast';
-import { Mail, Lock, User, Phone, ArrowRight, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, Phone, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 
 export function RegisterContent() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [rateLimitCooldown, setRateLimitCooldown] = useState<number | null>(null);
+  const [isRateLimited, setIsRateLimited] = useState(false);
+  const cooldownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSubmitTimeRef = useRef<number>(0);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -30,6 +34,47 @@ export function RegisterContent() {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
+
+  // Cleanup cooldown interval on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownIntervalRef.current) {
+        clearInterval(cooldownIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Cooldown timer effect
+  useEffect(() => {
+    if (rateLimitCooldown !== null && rateLimitCooldown > 0) {
+      setIsRateLimited(true);
+      cooldownIntervalRef.current = setInterval(() => {
+        setRateLimitCooldown((prev) => {
+          if (prev === null || prev <= 1) {
+            setIsRateLimited(false);
+            if (cooldownIntervalRef.current) {
+              clearInterval(cooldownIntervalRef.current);
+              cooldownIntervalRef.current = null;
+            }
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setIsRateLimited(false);
+      if (cooldownIntervalRef.current) {
+        clearInterval(cooldownIntervalRef.current);
+        cooldownIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (cooldownIntervalRef.current) {
+        clearInterval(cooldownIntervalRef.current);
+      }
+    };
+  }, [rateLimitCooldown]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -69,6 +114,22 @@ export function RegisterContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent rapid submissions (client-side debouncing)
+    const now = Date.now();
+    if (now - lastSubmitTimeRef.current < 2000) {
+      toast.error('Please wait a moment before submitting again.');
+      return;
+    }
+    lastSubmitTimeRef.current = now;
+
+    // Check if rate limited
+    if (isRateLimited) {
+      toast.error(`Please wait ${rateLimitCooldown} seconds before trying again.`, {
+        duration: 3000,
+      });
+      return;
+    }
+
     if (!validateForm()) {
       return;
     }
@@ -87,11 +148,23 @@ export function RegisterContent() {
       if (error) {
         // Handle rate limiting (429 error)
         const errorWithStatus = error as any;
-        if (errorWithStatus.status === 429 || error.message?.includes('429') || error.message?.toLowerCase().includes('rate limit')) {
-          toast.error('Too many requests. Please wait a few minutes before trying again.', {
-            duration: 5000,
-          });
-        } else if (error.message?.includes('already registered') || error.message?.includes('already exists')) {
+        if (
+          errorWithStatus.status === 429 || 
+          error.message?.includes('429') || 
+          error.message?.toLowerCase().includes('too many requests') ||
+          error.message?.toLowerCase().includes('rate limit') ||
+          error.message === 'RATE_LIMIT_EXCEEDED'
+        ) {
+          // Set cooldown to 180 seconds (3 minutes)
+          setRateLimitCooldown(180);
+          toast.error(
+            'Too many signup attempts. Please wait 3 minutes before trying again.',
+            {
+              duration: 6000,
+              icon: '⏱️',
+            }
+          );
+        } else if (error.message?.includes('already registered') || error.message?.includes('already exists') || error.message?.includes('User already registered')) {
           toast.error('This email is already registered. Please sign in instead.', {
             duration: 5000,
           });
@@ -107,6 +180,10 @@ export function RegisterContent() {
         if (userEmail) {
           localStorage.setItem('pendingVerificationEmail', userEmail);
         }
+        
+        // Clear any rate limit cooldown on success
+        setRateLimitCooldown(null);
+        setIsRateLimited(false);
         
         toast.success('Account created successfully! Please check your email to verify your account.');
         // Clear form
@@ -218,6 +295,21 @@ export function RegisterContent() {
               icon={<Lock size={18} />}
             />
 
+            {/* Rate Limit Warning */}
+            {isRateLimited && rateLimitCooldown !== null && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center gap-3">
+                <Clock size={20} className="text-orange-600 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-orange-900">
+                    Too many signup attempts
+                  </p>
+                  <p className="text-xs text-orange-700 mt-1">
+                    Please wait {rateLimitCooldown} seconds before trying again.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Submit Button */}
             <Button
               type="submit"
@@ -225,9 +317,14 @@ export function RegisterContent() {
               size="lg"
               className="w-full"
               isLoading={isLoading}
-              icon={<ArrowRight size={20} />}
+              disabled={isRateLimited || isLoading}
+              icon={isRateLimited ? <Clock size={20} /> : <ArrowRight size={20} />}
             >
-              Create Account
+              {isRateLimited && rateLimitCooldown !== null
+                ? `Wait ${rateLimitCooldown}s`
+                : isLoading
+                ? 'Creating Account...'
+                : 'Create Account'}
             </Button>
           </form>
 
