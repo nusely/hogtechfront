@@ -10,7 +10,7 @@ export const orderService = {
     // Calculate totals
     const subtotal = checkoutData.items.reduce((sum, item) => sum + item.subtotal, 0);
     // Handle missing delivery_option gracefully
-    const deliveryFee = checkoutData.delivery_option?.price || checkoutData.delivery_option?.cost || 0;
+    const deliveryFee = checkoutData.delivery_option?.price || 0;
     const tax = subtotal * 0.0; // Ghana VAT if applicable
     const total = subtotal + deliveryFee + tax;
     

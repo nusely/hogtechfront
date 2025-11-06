@@ -352,11 +352,12 @@ export default function AdminProductsPage() {
                                 <p className="font-medium text-gray-900 flex items-center gap-2">
                                   {product.name}
                                   {productsInFlashDeals.has(product.id) && (
-                                    <Zap 
-                                      size={16} 
-                                      className="text-[#FF7A19] fill-[#FF7A19]" 
-                                      title="In Flash Deal"
-                                    />
+                                    <span title="In Flash Deal">
+                                      <Zap 
+                                        size={16} 
+                                        className="text-[#FF7A19] fill-[#FF7A19]" 
+                                      />
+                                    </span>
                                   )}
                                 </p>
                                 <p className="text-sm text-gray-500">{product.brand}</p>
