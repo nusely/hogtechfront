@@ -65,20 +65,25 @@ export default function TransactionsPage() {
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
-            const formattedTransactions: Transaction[] = (result.data || []).map((tx: any) => ({
-              id: tx.id,
-              order_number: tx.order?.order_number || tx.metadata?.order_number || 'N/A',
-              order_id: tx.order_id || tx.order?.id,
-              customer_name: tx.customer_name || tx.user 
-                ? `${tx.user?.first_name || ''} ${tx.user?.last_name || ''}`.trim() || tx.customer_email || 'Unknown'
-                : tx.customer_email || 'Guest',
-              customer_email: tx.customer_email || tx.user?.email || 'No email',
-              amount: typeof tx.amount === 'string' ? parseFloat(tx.amount) || 0 : (tx.amount || 0),
-              status: tx.payment_status === 'paid' ? 'completed' : tx.payment_status === 'pending' ? 'pending' : tx.payment_status === 'failed' ? 'failed' : 'refunded',
-              payment_method: tx.payment_method || 'paystack',
-              date: new Date(tx.paid_at || tx.created_at).toLocaleDateString(),
-              created_at: tx.created_at,
-            }));
+            const formattedTransactions: Transaction[] = (result.data || []).map((tx: any) => {
+              // Get payment_status from transaction, order, or default to 'pending'
+              const paymentStatus = tx.payment_status || tx.order?.payment_status || 'pending';
+              
+              return {
+                id: tx.id,
+                order_number: tx.order?.order_number || tx.metadata?.order_number || 'N/A',
+                order_id: tx.order_id || tx.order?.id,
+                customer_name: tx.customer_name || tx.metadata?.customer_name || tx.user 
+                  ? `${tx.user?.first_name || ''} ${tx.user?.last_name || ''}`.trim() || tx.customer_email || 'Unknown'
+                  : tx.customer_email || 'Guest',
+                customer_email: tx.customer_email || tx.user?.email || 'No email',
+                amount: typeof tx.amount === 'string' ? parseFloat(tx.amount) || 0 : (tx.amount || 0),
+                status: paymentStatus === 'paid' ? 'completed' : paymentStatus === 'pending' ? 'pending' : paymentStatus === 'failed' ? 'failed' : 'refunded',
+                payment_method: tx.payment_method || 'paystack',
+                date: new Date(tx.paid_at || tx.created_at).toLocaleDateString(),
+                created_at: tx.created_at,
+              };
+            });
             setTransactions(formattedTransactions);
             return;
           }
@@ -92,7 +97,7 @@ export default function TransactionsPage() {
         .from('transactions')
         .select(`
           *,
-          order:orders!transactions_order_id_fkey(id, order_number),
+          order:orders!transactions_order_id_fkey(id, order_number, payment_status),
           user:users!transactions_user_id_fkey(id, first_name, last_name, email)
         `)
         .order('created_at', { ascending: false });
@@ -121,20 +126,25 @@ export default function TransactionsPage() {
       }
 
       // Format transactions for display
-      const formattedTransactions: Transaction[] = (data || []).map((tx: any) => ({
-        id: tx.id,
-        order_number: tx.order?.order_number || tx.metadata?.order_number || 'N/A',
-        order_id: tx.order_id || tx.order?.id,
-        customer_name: tx.metadata?.customer_name || tx.user 
-          ? `${tx.user.first_name || ''} ${tx.user.last_name || ''}`.trim() || tx.customer_email || 'Unknown'
-          : tx.customer_email || 'Guest',
-        customer_email: tx.customer_email || tx.user?.email || 'No email',
-        amount: typeof tx.amount === 'string' ? parseFloat(tx.amount) || 0 : (tx.amount || 0),
-        status: tx.payment_status === 'paid' ? 'completed' : tx.payment_status === 'pending' ? 'pending' : tx.payment_status === 'failed' ? 'failed' : 'refunded',
-        payment_method: tx.payment_method || 'paystack',
-        date: new Date(tx.paid_at || tx.created_at).toLocaleDateString(),
-        created_at: tx.created_at,
-      }));
+      const formattedTransactions: Transaction[] = (data || []).map((tx: any) => {
+        // Get payment_status from transaction, order, or default to 'pending'
+        const paymentStatus = tx.payment_status || tx.order?.payment_status || 'pending';
+        
+        return {
+          id: tx.id,
+          order_number: tx.order?.order_number || tx.metadata?.order_number || 'N/A',
+          order_id: tx.order_id || tx.order?.id,
+          customer_name: tx.customer_name || tx.metadata?.customer_name || tx.user 
+            ? `${tx.user.first_name || ''} ${tx.user.last_name || ''}`.trim() || tx.customer_email || 'Unknown'
+            : tx.customer_email || 'Guest',
+          customer_email: tx.customer_email || tx.user?.email || 'No email',
+          amount: typeof tx.amount === 'string' ? parseFloat(tx.amount) || 0 : (tx.amount || 0),
+          status: paymentStatus === 'paid' ? 'completed' : paymentStatus === 'pending' ? 'pending' : paymentStatus === 'failed' ? 'failed' : 'refunded',
+          payment_method: tx.payment_method || 'paystack',
+          date: new Date(tx.paid_at || tx.created_at).toLocaleDateString(),
+          created_at: tx.created_at,
+        };
+      });
 
       setTransactions(formattedTransactions);
     } catch (error) {

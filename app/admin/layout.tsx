@@ -244,9 +244,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: Image,
       label: 'Marketing',
       children: [
+        { icon: Package, label: 'Deals', href: '/admin/deals' },
         { icon: Image, label: 'Banners', href: '/admin/banners' },
         { icon: Image, label: 'Sidebar Ads', href: '/admin/sidebar-ads' },
-        { icon: Zap, label: 'Flash Deals', href: '/admin/flash-deals' },
         { icon: Tag, label: 'Coupons', href: '/admin/coupons' },
       ],
     },

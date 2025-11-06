@@ -405,6 +405,7 @@ export function HomeContent() {
               type="email"
               placeholder="Enter your email"
               className="w-full px-4 py-3 rounded-lg text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-white"
+              suppressHydrationWarning
             />
             <Button variant="secondary" size="lg" type="submit" className="w-full sm:w-auto sm:mx-auto">
               Subscribe

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
-import { formatTimeRemainingWithDays } from '@/services/flashDeal.service';
+import { formatTimeRemainingWithDays } from '@/lib/timeUtils';
 
 interface CountdownTimerProps {
   endTime: string;

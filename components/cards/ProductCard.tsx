@@ -28,24 +28,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   const isInCart = items.some(item => item.id === product.id);
   const isWishlisted = isInWishlist(product.id);
 
-  // Check for flash deal price first (highest priority)
-  const flashDealPrice = (product as any).flash_deal_price;
-  const flashDealDiscount = (product as any).flash_deal_discount;
+  // Check for deal price first (highest priority)
+  const dealPrice = (product as any).deal_price;
+  const dealDiscount = (product as any).deal_discount;
   
-  // Calculate flash deal price if not explicitly set but discount is available
-  let calculatedFlashDealPrice: number | null = null;
-  if (flashDealDiscount && !flashDealPrice && product.original_price) {
-    calculatedFlashDealPrice = product.original_price * (1 - flashDealDiscount / 100);
+  // Calculate deal price if not explicitly set but discount is available
+  let calculatedDealPrice: number | null = null;
+  if (dealDiscount && !dealPrice && product.original_price) {
+    calculatedDealPrice = product.original_price * (1 - dealDiscount / 100);
   }
   
-  // Use flash deal price if available, otherwise use regular discount price
-  const finalPrice = flashDealPrice || calculatedFlashDealPrice || product.discount_price || product.original_price || 0;
+  // Use deal price if available, otherwise use regular discount price
+  const finalPrice = dealPrice || calculatedDealPrice || product.discount_price || product.original_price || 0;
   
   // Determine discount percentage
-  const hasFlashDeal = !!(flashDealPrice || calculatedFlashDealPrice);
-  const hasDiscount = !hasFlashDeal && product.discount_price && product.discount_price < product.original_price;
-  const discountPercentage = hasFlashDeal 
-    ? flashDealDiscount || (product.original_price ? calculateDiscountPercentage(product.original_price, finalPrice) : 0)
+  const hasDeal = !!(dealPrice || calculatedDealPrice);
+  const hasDiscount = !hasDeal && product.discount_price && product.discount_price < product.original_price;
+  const discountPercentage = hasDeal 
+    ? dealDiscount || (product.original_price ? calculateDiscountPercentage(product.original_price, finalPrice) : 0)
     : hasDiscount
     ? calculateDiscountPercentage(product.original_price, product.discount_price!)
     : 0;
@@ -54,15 +54,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
     e.preventDefault();
     e.stopPropagation();
 
-    // Use flash deal price if available, otherwise use regular discount/original price
-    const itemPrice = flashDealPrice || calculatedFlashDealPrice || product.discount_price || product.original_price || 0;
+    // Use deal price if available, otherwise use regular discount/original price
+    const itemPrice = dealPrice || calculatedDealPrice || product.discount_price || product.original_price || 0;
 
     const cartItem = {
       ...product,
       quantity: 1,
       selected_variants: {},
-      // Override discount_price with flash deal price so cart uses the discounted price
-      discount_price: hasFlashDeal ? itemPrice : product.discount_price,
+      // Override discount_price with deal price so cart uses the discounted price
+      discount_price: hasDeal ? itemPrice : product.discount_price,
       original_price: product.original_price,
       subtotal: itemPrice,
     };
@@ -121,7 +121,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {(hasFlashDeal || hasDiscount) && discountPercentage > 0 && (
+            {(hasDeal || hasDiscount) && discountPercentage > 0 && (
               <Badge variant="error" size="sm">
                 -{Math.round(discountPercentage)}%
               </Badge>
@@ -141,7 +141,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           {/* Rating - Fixed position on bottom left corner */}
           <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1">
             <Star size={10} className="fill-yellow-400 text-yellow-400" />
-            <span className="text-xs font-medium text-[#1A1A1A]">{product.rating.toFixed(1)}</span>
+            <span className="text-xs font-medium text-[#1A1A1A]">{(product.rating || 0).toFixed(1)}</span>
           </div>
 
           {/* Cart Icon - Top right (opposite of rating), mobile only */}
@@ -243,7 +243,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                 <span className="text-xs sm:text-sm text-[#FF7A19]">
                   {formatCurrency(finalPrice)}
                 </span>
-                {(hasFlashDeal || hasDiscount) && product.original_price && (
+                {(hasDeal || hasDiscount) && product.original_price && (
                   <span className="text-[10px] sm:text-xs text-[#3A3A3A] line-through">
                     {formatCurrency(product.original_price)}
                   </span>

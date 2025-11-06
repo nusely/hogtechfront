@@ -16,11 +16,11 @@ import {
   Download,
   Zap
 } from 'lucide-react';
-import { AddProductToDealModal } from '@/components/admin/AddProductToDealModal';
+import { AddProductToDealFromProductModal } from '@/components/admin/AddProductToDealFromProductModal';
 import { Product } from '@/types/product';
 import { productService } from '@/services/product.service';
 import { formatCurrency } from '@/lib/helpers';
-import { getProductsInFlashDeals } from '@/services/flashDeal.service';
+import { getActiveDealProducts } from '@/services/deal.service';
 import { useAppSelector } from '@/store';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -39,7 +39,7 @@ export default function AdminProductsPage() {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showAddToDealModal, setShowAddToDealModal] = useState(false);
   const [selectedProductForDeal, setSelectedProductForDeal] = useState<Product | null>(null);
-  const [productsInFlashDeals, setProductsInFlashDeals] = useState<Set<string>>(new Set());
+  const [productsInDeals, setProductsInDeals] = useState<Set<string>>(new Set());
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -61,16 +61,17 @@ export default function AdminProductsPage() {
   }, [isAuthenticated, user, pagination.page, searchQuery]);
 
   useEffect(() => {
-    // Fetch products in flash deals
-    const fetchFlashDealProducts = async () => {
+    // Fetch products in deals
+    const fetchDealProducts = async () => {
       try {
-        const productIds = await getProductsInFlashDeals();
-        setProductsInFlashDeals(productIds);
+        const dealProducts = await getActiveDealProducts();
+        const productIds = new Set(dealProducts.map(dp => dp.product_id).filter(Boolean));
+        setProductsInDeals(productIds);
       } catch (error) {
-        console.error('Error fetching flash deal products:', error);
+        console.error('Error fetching deal products:', error);
       }
     };
-    fetchFlashDealProducts();
+    fetchDealProducts();
   }, [products]); // Re-fetch when products change
 
   const fetchProducts = async () => {
@@ -351,8 +352,8 @@ export default function AdminProductsPage() {
                               <div>
                                 <p className="font-medium text-gray-900 flex items-center gap-2">
                                   {product.name}
-                                  {productsInFlashDeals.has(product.id) && (
-                                    <span title="In Flash Deal">
+                                  {productsInDeals.has(product.id) && (
+                                    <span title="In Deal">
                                       <Zap 
                                         size={16} 
                                         className="text-[#FF7A19] fill-[#FF7A19]" 
@@ -493,7 +494,7 @@ export default function AdminProductsPage() {
 
       {/* Add Product to Deal Modal */}
       {selectedProductForDeal && (
-        <AddProductToDealModal
+        <AddProductToDealFromProductModal
           isOpen={showAddToDealModal}
           onClose={() => {
             setShowAddToDealModal(false);
@@ -504,9 +505,10 @@ export default function AdminProductsPage() {
           productPrice={selectedProductForDeal.original_price || selectedProductForDeal.discount_price || (selectedProductForDeal as any).price || 0}
           onSuccess={async () => {
             fetchProducts();
-            // Refresh flash deals list
-            const productIds = await getProductsInFlashDeals();
-            setProductsInFlashDeals(productIds);
+            // Refresh deals list
+            const dealProducts = await getActiveDealProducts();
+            const productIds = new Set(dealProducts.map(dp => dp.product_id).filter(Boolean));
+            setProductsInDeals(productIds);
           }}
         />
       )}
