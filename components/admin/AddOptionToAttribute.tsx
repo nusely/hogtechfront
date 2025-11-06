@@ -19,8 +19,10 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
   const [priceModifier, setPriceModifier] = useState('0');
   const [adding, setAdding] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     
     if (!value.trim() || !label.trim()) {
       toast.error('Please enter both value and label');
@@ -70,13 +72,19 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
           <X size={16} />
         </button>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="space-y-3">
         <div>
           <input
             type="text"
             placeholder="Value (e.g., 32GB, Red, 2 Years)"
             value={value}
             onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
             required
           />
@@ -87,6 +95,12 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
             placeholder="Label (e.g., 32GB RAM, Red Color, 2 Years Warranty)"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
             required
           />
@@ -98,6 +112,12 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
             placeholder="Price Adjustment (e.g., 50.00 for +GHS 50)"
             value={priceModifier}
             onChange={(e) => setPriceModifier(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
           />
           <p className="text-xs text-[#3A3A3A] mt-1">
@@ -106,10 +126,11 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
         </div>
         <div className="flex gap-2">
           <Button
-            type="submit"
+            type="button"
             variant="primary"
             size="sm"
             disabled={adding}
+            onClick={handleSubmit}
             className="flex-1"
           >
             {adding ? 'Adding...' : 'Add Value'}
@@ -128,7 +149,7 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
             Cancel
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

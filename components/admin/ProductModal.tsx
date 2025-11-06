@@ -365,7 +365,13 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
 
       // Save product variants/attributes
       if (productId) {
-        // Delete existing mappings
+        // Delete existing option mappings first
+        await supabase
+          .from('product_attribute_option_mappings')
+          .delete()
+          .eq('product_id', productId);
+
+        // Delete existing attribute mappings
         await supabase
           .from('product_attribute_mappings')
           .delete()
@@ -385,6 +391,36 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
             .insert(mappings);
 
           if (mappingError) throw mappingError;
+
+          // Save selected options for each attribute
+          // Use stock from variant.option_stock if available, otherwise fetch from product_attribute_options
+          const optionMappings: any[] = [];
+          for (const variant of productVariants) {
+            if (variant.selected_options && variant.selected_options.length > 0) {
+              for (const optionId of variant.selected_options) {
+                // If variant is checked/selected in admin, save it to product_attribute_option_mappings
+                // Existence in mappings = variant is available and will show on product page
+                optionMappings.push({
+                  product_id: productId,
+                  attribute_id: variant.attribute_id,
+                  option_id: optionId,
+                  stock_quantity: 0, // Default to 0 (stock tracking removed for now)
+                  is_available: true, // If checked, it's available
+                });
+              }
+            }
+          }
+
+          if (optionMappings.length > 0) {
+            const { error: optionMappingError } = await supabase
+              .from('product_attribute_option_mappings')
+              .insert(optionMappings);
+
+            if (optionMappingError) {
+              // If table doesn't exist, log warning but don't fail
+              console.warn('Failed to save option mappings (table may not exist):', optionMappingError);
+            }
+          }
         }
       }
 

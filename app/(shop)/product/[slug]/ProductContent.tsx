@@ -98,6 +98,16 @@ export function ProductContent({ product }: ProductContentProps) {
   const handleVariantChange = (variants: { [key: string]: any }, totalPrice: number) => {
     setSelectedVariants(variants);
     setVariantPrice(totalPrice);
+    
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Variant change:', {
+        variants,
+        totalPrice,
+        basePrice: product.discount_price || product.original_price,
+        finalPrice: (product.discount_price || product.original_price) + totalPrice
+      });
+    }
   };
 
   const handleQuantityChange = (delta: number) => {

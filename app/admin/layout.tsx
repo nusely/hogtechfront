@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   Percent,
   Star,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from '@/services/auth.service';
@@ -245,6 +246,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       children: [
         { icon: Image, label: 'Banners', href: '/admin/banners' },
         { icon: Image, label: 'Sidebar Ads', href: '/admin/sidebar-ads' },
+        { icon: Zap, label: 'Flash Deals', href: '/admin/flash-deals' },
         { icon: Tag, label: 'Coupons', href: '/admin/coupons' },
       ],
     },

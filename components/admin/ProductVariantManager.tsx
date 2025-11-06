@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronUp, Edit2, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/helpers';
 import toast from 'react-hot-toast';
@@ -50,6 +51,8 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
   const [newAttributeName, setNewAttributeName] = useState('');
   const [newAttributeType, setNewAttributeType] = useState<'select' | 'radio'>('select');
   const [showAddAttribute, setShowAddAttribute] = useState(false);
+  // Track which option's price is being edited: { attributeId: { optionId: price } }
+  const [editingPrices, setEditingPrices] = useState<{ [key: string]: { [key: string]: string } }>({});
 
   useEffect(() => {
     fetchAttributes();
@@ -174,15 +177,24 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
         (mappings || []).map(async (mapping: any) => {
           const attr = attributes.find(a => a.id === mapping.attribute_id);
           
-          // Get options for this attribute
-          const { data: options } = await supabase
-            .from('product_attribute_options')
-            .select('id')
-            .eq('attribute_id', mapping.attribute_id)
-            .eq('is_available', true);
+          // Get saved selected options for this product-attribute combination
+          // Check if there's a selected_options column in mapping, or fetch from a separate table
+          let selectedOptionIds: string[] = [];
           
-          // Select all available options by default
-          const selectedOptionIds = options?.map(opt => opt.id) || [];
+          // Try to get selected options from product_attribute_option_mappings table
+          const { data: optionMappings } = await supabase
+            .from('product_attribute_option_mappings')
+            .select('option_id, stock_quantity, is_available')
+            .eq('product_id', productId)
+            .eq('attribute_id', mapping.attribute_id);
+          
+          if (optionMappings && optionMappings.length > 0) {
+            // Use saved selected options (if variant is in mappings, it's selected/available)
+            selectedOptionIds = optionMappings.map((om: any) => om.option_id);
+          } else {
+            // If no saved options, start with empty array (user must select manually)
+            selectedOptionIds = [];
+          }
 
           return {
             attribute_id: mapping.attribute_id,
@@ -230,30 +242,157 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
     setProductVariants(productVariants.map(variant => {
       if (variant.attribute_id === attributeId) {
         const hasOption = variant.selected_options.includes(optionId);
+        const newSelectedOptions = hasOption
+          ? variant.selected_options.filter(id => id !== optionId)
+          : [...variant.selected_options, optionId];
+        
         return {
           ...variant,
-          selected_options: hasOption
-            ? variant.selected_options.filter(id => id !== optionId)
-            : [...variant.selected_options, optionId],
+          selected_options: newSelectedOptions,
         };
       }
       return variant;
     }));
   };
 
-  const updateOptionPriceModifier = (attributeId: string, optionId: string, priceModifier: number) => {
-    // This updates the price modifier for a specific option in the variant
-    // For now, we'll store this in the variant data structure
-    setProductVariants(productVariants.map(variant => {
-      if (variant.attribute_id === attributeId) {
-        // Store price modifiers per option (we'll need to extend the variant structure)
-        return {
-          ...variant,
-          // We'll handle price modifiers in the save function
-        };
-      }
-      return variant;
+
+  const startEditingPrice = (attributeId: string, optionId: string, currentPrice: number) => {
+    setEditingPrices(prev => ({
+      ...prev,
+      [attributeId]: {
+        ...(prev[attributeId] || {}),
+        [optionId]: currentPrice.toString(),
+      },
     }));
+  };
+
+  const cancelEditingPrice = (attributeId: string, optionId: string) => {
+    setEditingPrices(prev => {
+      const newEditing = { ...prev };
+      if (newEditing[attributeId]) {
+        delete newEditing[attributeId][optionId];
+        if (Object.keys(newEditing[attributeId]).length === 0) {
+          delete newEditing[attributeId];
+        }
+      }
+      return newEditing;
+    });
+  };
+
+  const saveOptionPrice = async (attributeId: string, optionId: string) => {
+    const priceStr = editingPrices[attributeId]?.[optionId];
+    if (priceStr === undefined) return;
+
+    const priceModifier = parseFloat(priceStr);
+    if (isNaN(priceModifier)) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('product_attribute_options')
+        .update({ price_modifier: priceModifier })
+        .eq('id', optionId);
+
+      if (error) throw error;
+
+      toast.success('Price updated successfully');
+      cancelEditingPrice(attributeId, optionId);
+      await fetchAttributes(); // Refresh to show updated price
+    } catch (error: any) {
+      console.error('Error updating option price:', error);
+      toast.error(error.message || 'Failed to update price');
+    }
+  };
+
+  const deleteOption = async (attributeId: string, optionId: string) => {
+    if (!confirm('Are you sure you want to delete this option? This will remove it from all products using it.')) {
+      return;
+    }
+
+    try {
+      // First, remove from product mappings if this product is using it
+      if (productId) {
+        await supabase
+          .from('product_attribute_option_mappings')
+          .delete()
+          .eq('product_id', productId)
+          .eq('option_id', optionId);
+      }
+
+      // Then delete the option itself
+      const { error } = await supabase
+        .from('product_attribute_options')
+        .delete()
+        .eq('id', optionId);
+
+      if (error) throw error;
+
+      toast.success('Option deleted successfully');
+      await fetchAttributes(); // Refresh attributes
+      
+      // Remove from selected options if it was selected
+      setProductVariants(productVariants.map(variant => {
+        if (variant.attribute_id === attributeId) {
+          return {
+            ...variant,
+            selected_options: variant.selected_options.filter(id => id !== optionId),
+          };
+        }
+        return variant;
+      }));
+    } catch (error: any) {
+      console.error('Error deleting option:', error);
+      toast.error(error.message || 'Failed to delete option');
+    }
+  };
+
+  const deleteAttribute = async (attributeId: string) => {
+    if (!confirm('Are you sure you want to delete this attribute? This will remove it and all its options from the system.')) {
+      return;
+    }
+
+    try {
+      // First, remove from product mappings if this product is using it
+      if (productId) {
+        await supabase
+          .from('product_attribute_option_mappings')
+          .delete()
+          .eq('product_id', productId)
+          .eq('attribute_id', attributeId);
+        
+        await supabase
+          .from('product_attribute_mappings')
+          .delete()
+          .eq('product_id', productId)
+          .eq('attribute_id', attributeId);
+      }
+
+      // Delete all options for this attribute
+      await supabase
+        .from('product_attribute_options')
+        .delete()
+        .eq('attribute_id', attributeId);
+
+      // Then delete the attribute itself
+      const { error } = await supabase
+        .from('product_attributes')
+        .delete()
+        .eq('id', attributeId);
+
+      if (error) throw error;
+
+      toast.success('Attribute deleted successfully');
+      await fetchAttributes(); // Refresh attributes
+      
+      // Remove from product variants
+      setProductVariants(productVariants.filter(v => v.attribute_id !== attributeId));
+      setExpandedAttributes(expandedAttributes.filter(id => id !== attributeId));
+    } catch (error: any) {
+      console.error('Error deleting attribute:', error);
+      toast.error(error.message || 'Failed to delete attribute');
+    }
   };
 
   const toggleExpand = (attributeId: string) => {
@@ -354,26 +493,36 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
               {/* Attribute Header */}
               <div className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleAttribute(attr.id)}
                       className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
                     />
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold text-[#1A1A1A]">{attr.name}</p>
                       <p className="text-xs text-[#3A3A3A] capitalize">{attr.type}</p>
                     </div>
                   </div>
-                  {isSelected && (
+                  <div className="flex items-center gap-2">
+                    {isSelected && (
+                      <button
+                        onClick={() => toggleExpand(attr.id)}
+                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                        title={isExpanded ? 'Collapse' : 'Expand'}
+                      >
+                        {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </button>
+                    )}
                     <button
-                      onClick={() => toggleExpand(attr.id)}
-                      className="p-1 hover:bg-gray-200 rounded transition-colors"
+                      onClick={() => deleteAttribute(attr.id)}
+                      className="p-1 hover:bg-red-100 rounded transition-colors text-red-600"
+                      title="Delete attribute"
                     >
-                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      <Trash2 size={18} />
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
 
@@ -387,6 +536,9 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
                     {attr.options && attr.options.length > 0 ? (
                       attr.options.map((option) => {
                         const isOptionSelected = variant?.selected_options.includes(option.id);
+                        const isEditingPrice = editingPrices[attr.id]?.[option.id] !== undefined;
+                        const editingPriceValue = editingPrices[attr.id]?.[option.id] || '';
+
                         return (
                           <div
                             key={option.id}
@@ -409,17 +561,66 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
                                 </div>
                               </div>
                               <div className="flex items-center gap-3">
-                                <div className="text-right">
-                                  <p className="text-sm font-semibold text-[#1A1A1A]">
-                                    {option.price_modifier > 0 
-                                      ? `+${formatCurrency(option.price_modifier)}`
-                                      : option.price_modifier < 0
-                                      ? formatCurrency(option.price_modifier)
-                                      : 'No change'
-                                    }
-                                  </p>
-                                  <p className="text-xs text-[#3A3A3A]">Price adjustment</p>
-                                </div>
+                                {isEditingPrice ? (
+                                  <div className="flex items-center gap-2">
+                                    <Input
+                                      type="number"
+                                      value={editingPriceValue}
+                                      onChange={(e) => setEditingPrices(prev => ({
+                                        ...prev,
+                                        [attr.id]: {
+                                          ...(prev[attr.id] || {}),
+                                          [option.id]: e.target.value,
+                                        },
+                                      }))}
+                                      className="w-24 px-2 py-1 text-sm"
+                                      placeholder="0.00"
+                                      step="0.01"
+                                    />
+                                    <button
+                                      onClick={() => saveOptionPrice(attr.id, option.id)}
+                                      className="p-1 hover:bg-green-100 rounded transition-colors text-green-600"
+                                      title="Save price"
+                                    >
+                                      <Check size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => cancelEditingPrice(attr.id, option.id)}
+                                      className="p-1 hover:bg-red-100 rounded transition-colors text-red-600"
+                                      title="Cancel"
+                                    >
+                                      <X size={16} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="text-right">
+                                      <p className="text-sm font-semibold text-[#1A1A1A]">
+                                        {option.price_modifier > 0 
+                                          ? `+${formatCurrency(option.price_modifier)}`
+                                          : option.price_modifier < 0
+                                          ? formatCurrency(option.price_modifier)
+                                          : 'No change'
+                                        }
+                                      </p>
+                                      <p className="text-xs text-[#3A3A3A]">Price adjustment</p>
+                                    </div>
+                                    <button
+                                      onClick={() => startEditingPrice(attr.id, option.id, option.price_modifier)}
+                                      className="p-1 hover:bg-blue-100 rounded transition-colors text-blue-600"
+                                      title="Edit price"
+                                    >
+                                      <Edit2 size={16} />
+                                    </button>
+                                    <button
+                                      onClick={() => deleteOption(attr.id, option.id)}
+                                      className="p-1 hover:bg-red-100 rounded transition-colors text-red-600"
+                                      title="Delete option"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -436,6 +637,7 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
                       onRefresh={fetchAttributes}
                     />
                   </div>
+                  
                 </div>
               )}
             </div>

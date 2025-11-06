@@ -9,44 +9,46 @@ import { Badge } from '@/components/ui/Badge';
 import { ArrowRight, Clock, Zap } from 'lucide-react';
 import { Product } from '@/types/product';
 import { FlashDeal } from '@/services/flashDeal.service';
-import { getActiveFlashDeals, getFlashDealProductsList, formatTimeRemaining } from '@/services/flashDeal.service';
+import { getActiveFlashDeals, getProductsForFlashDeal } from '@/services/flashDeal.service';
+import { CountdownTimer } from './CountdownTimer';
 
 interface FlashDealsProps {
   limit?: number;
 }
 
-export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 8 }) => {
+export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 4 }) => {
   const [flashDeals, setFlashDeals] = useState<FlashDeal[]>([]);
   const [flashDealProducts, setFlashDealProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [timeRemaining, setTimeRemaining] = useState<string>('00:00:00');
 
   useEffect(() => {
     fetchFlashDeals();
-  }, []);
-
-  // Update countdown every second
-  useEffect(() => {
-    if (flashDeals.length > 0) {
-      const interval = setInterval(() => {
-        const time = formatTimeRemaining(flashDeals[0].end_time);
-        setTimeRemaining(time);
-      }, 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, [flashDeals]);
+  }, [limit]);
 
   const fetchFlashDeals = async () => {
     try {
       setIsLoading(true);
-      const [deals, products] = await Promise.all([
-        getActiveFlashDeals(),
-        getFlashDealProductsList()
-      ]);
-      
+      const deals = await getActiveFlashDeals();
       setFlashDeals(deals);
-      setFlashDealProducts(products.slice(0, limit));
+      
+      // Get products from the first active flash deal (or all deals)
+      if (deals.length > 0) {
+        // Fetch products from all active deals and combine them
+        const allProducts = await Promise.all(
+          deals.map(deal => getProductsForFlashDeal(deal.id))
+        );
+        
+        // Flatten and deduplicate products by ID
+        const uniqueProducts = Array.from(
+          new Map(
+            allProducts.flat().map(product => [product.id, product])
+          ).values()
+        );
+        
+        setFlashDealProducts(uniqueProducts.slice(0, limit));
+      } else {
+        setFlashDealProducts([]);
+      }
     } catch (error) {
       console.error('Error fetching flash deals:', error);
     } finally {
@@ -66,8 +68,18 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 8 }) => {
                 <p className="text-white/90 text-xs">Loading deals...</p>
               </div>
             </div>
+            <Link href="/deals">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white/20 hover:bg-white/30 border-white text-white"
+                icon={<ArrowRight size={16} />}
+              >
+                View All
+              </Button>
+            </Link>
           </div>
-          <div className="bg-white rounded-xl p-8">
+          <div className="bg-white rounded-xl p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="bg-gray-200 rounded-lg h-48 animate-pulse" />
@@ -94,11 +106,24 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 8 }) => {
               <p className="text-white/90 text-xs">Limited time offers</p>
             </div>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-            <div className="flex items-center gap-2 text-white">
-              <Clock size={16} />
-              <span className="font-bold text-sm">Ends in: {timeRemaining}</span>
-            </div>
+          <div className="flex items-center gap-4">
+            {flashDeals.length > 0 && (
+              <CountdownTimer 
+                endTime={flashDeals[0].end_time} 
+                variant="default"
+                className="text-white"
+              />
+            )}
+            <Link href="/deals">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white/20 hover:bg-white/30 border-white text-white"
+                icon={<ArrowRight size={16} />}
+              >
+                View All
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -120,14 +145,6 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 8 }) => {
                     </div>
                   </div>
                 ))}
-              </div>
-              
-              <div className="text-center mt-6">
-                <Link href="/deals">
-                  <Button variant="outline" size="md" icon={<ArrowRight size={16} />}>
-                    View All Flash Deals
-                  </Button>
-                </Link>
               </div>
             </>
           )}

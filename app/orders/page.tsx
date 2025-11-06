@@ -163,6 +163,42 @@ export default function OrdersPage() {
                 </div>
 
                 <div className="border-t border-gray-200 pt-4 mt-4">
+                  {/* Order Items List */}
+                  <div className="space-y-3 mb-4">
+                    {(order.items || []).slice(0, 3).map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {item.product_image ? (
+                            <img
+                              src={item.product_image}
+                              alt={item.product_name || 'Product'}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Package className="w-6 h-6 text-gray-400 m-auto mt-3" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-[#1A1A1A] truncate">
+                            {item.product_name || 'Product'}
+                          </p>
+                          <p className="text-xs text-[#3A3A3A]">Qty: {item.quantity}</p>
+                        </div>
+                        {(item as any).is_flash_deal && (
+                          <div className="flex-shrink-0">
+                            <Badge variant="error" size="sm">
+                              <span className="text-xs">⚡ Deal</span>
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {(order.items || []).length > 3 && (
+                      <p className="text-xs text-[#3A3A3A] text-center">
+                        +{(order.items || []).length - 3} more item(s)
+                      </p>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-[#3A3A3A]">
                       <span className="font-medium">{(order.items || []).length} item(s)</span>

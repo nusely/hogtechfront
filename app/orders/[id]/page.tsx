@@ -3,15 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/loaders/Spinner';
-import { ChevronLeft, Package, MapPin, CreditCard, FileText } from 'lucide-react';
+import { ChevronLeft, Package, MapPin, CreditCard, FileText, Zap } from 'lucide-react';
 import { Order } from '@/types/order';
 import { orderService } from '@/services/order.service';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { clearCart } from '@/store/cartSlice';
 import { formatCurrency, formatDate, getOrderStatusColor } from '@/lib/helpers';
+import { formatOrderVariants } from '@/lib/variantFormatter';
 import toast from 'react-hot-toast';
 
 export default function OrderDetailPage() {
@@ -22,6 +24,7 @@ export default function OrderDetailPage() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [formattedVariants, setFormattedVariants] = useState<{ [key: number]: any[] }>({});
 
   useEffect(() => {
     // Check for payment success callback
@@ -132,32 +135,60 @@ export default function OrderDetailPage() {
                 Order Items
               </h2>
               <div className="space-y-4">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex gap-4 py-4 border-b border-gray-100 last:border-b-0">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <Package className="text-gray-400" size={32} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 mb-1">{item.product_name}</p>
-                      <p className="text-sm text-gray-600 mb-2">Quantity: {item.quantity}</p>
-                      {item.selected_variants && Object.keys(item.selected_variants).length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {Object.values(item.selected_variants).map((variant: any, idx) => (
-                            <span key={idx} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                              {variant.name}: {variant.value}
-                            </span>
-                          ))}
+                {order.items.map((item, index) => {
+                  const itemVariants = formattedVariants[index] || [];
+                  const isFlashDeal = (item as any).is_flash_deal;
+                  
+                  return (
+                    <div key={index} className="flex gap-4 py-4 border-b border-gray-100 last:border-b-0">
+                      <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
+                        {item.product_image ? (
+                          <Image
+                            src={item.product_image}
+                            alt={item.product_name || 'Product'}
+                            width={80}
+                            height={80}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Package className="text-gray-400 m-auto mt-4" size={32} />
+                        )}
+                        {isFlashDeal && (
+                          <div className="absolute top-1 right-1 bg-[#FF7A19] text-white rounded-full p-1">
+                            <Zap size={12} className="fill-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2 mb-1">
+                          <p className="font-semibold text-gray-900">{item.product_name}</p>
+                          {isFlashDeal && (
+                            <Badge variant="error" size="sm">
+                              <Zap size={10} className="mr-1" />
+                              Flash Deal
+                            </Badge>
+                          )}
                         </div>
-                      )}
+                        <p className="text-sm text-gray-600 mb-2">Quantity: {item.quantity}</p>
+                        {itemVariants.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {itemVariants.map((variant, idx) => (
+                              <span key={idx} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                {variant.attribute_name}: {variant.option_label}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-bold text-gray-900">
+                          {formatCurrency((item as any).total_price || item.subtotal || (item.unit_price * item.quantity))}
+                        </p>
+                        <p className="text-sm text-gray-600">{formatCurrency(item.unit_price)} each</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900">
-                        {formatCurrency((item as any).total_price || item.subtotal || (item.unit_price * item.quantity))}
-                      </p>
-                      <p className="text-sm text-gray-600">{formatCurrency(item.unit_price)} each</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

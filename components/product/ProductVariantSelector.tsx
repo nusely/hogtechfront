@@ -46,6 +46,7 @@ export function ProductVariantSelector({
   useEffect(() => {
     const totalPrice = calculateTotalPrice();
     onVariantChange(selectedVariants, totalPrice);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedVariants]);
 
   const fetchProductAttributes = async () => {
@@ -77,17 +78,66 @@ export function ProductVariantSelector({
 
       if (attributesError) throw attributesError;
 
-      // Get options for each attribute
+      // Get selected options for this product from product_attribute_option_mappings
+      // If variant is in mappings, it's available and should show on product page
+      // If variant is NOT in mappings, it's not available and should NOT show
+      const { data: selectedOptionMappings, error: optionMappingError } = await supabase
+        .from('product_attribute_option_mappings')
+        .select('option_id, attribute_id')
+        .eq('product_id', productId);
+
+      if (optionMappingError) {
+        console.warn('Error fetching option mappings (table may not exist):', optionMappingError);
+      }
+
+      const selectedOptionIds = new Set(selectedOptionMappings?.map((m: any) => m.option_id) || []);
+
+      // Get options for each attribute - only show selected options
       const attributesWithOptions = await Promise.all(
         attributesData.map(async (attr: any) => {
-          const { data: options, error: optionsError } = await supabase
-            .from('product_attribute_options')
-            .select('*')
-            .eq('attribute_id', attr.id)
-            .eq('is_available', true)
-            .order('display_order');
+          // First, get all selected option mappings for this attribute
+          const attrSelectedMappings = selectedOptionMappings
+            ?.filter((m: any) => m.attribute_id === attr.id) || [];
 
-          if (optionsError) throw optionsError;
+          const attrSelectedOptionIds = attrSelectedMappings.map((m: any) => m.option_id);
+
+          // Fetch only the selected options for this product-attribute combination
+          let options: any[] = [];
+          if (attrSelectedOptionIds.length > 0) {
+            const { data: selectedOptions, error: optionsError } = await supabase
+              .from('product_attribute_options')
+              .select('*')
+              .eq('attribute_id', attr.id)
+              .in('id', attrSelectedOptionIds)
+              .order('display_order');
+
+            if (optionsError) {
+              console.error('Error fetching selected options:', optionsError);
+            } else {
+              // Only show options that are in product_attribute_option_mappings (checked in admin)
+              // If variant is in mappings, it's available. If not, it's not available.
+              options = (selectedOptions || []).map((option: any) => {
+                // Ensure price_modifier is properly parsed and included
+                let priceModifier = 0;
+                if (option.price_modifier !== undefined && option.price_modifier !== null) {
+                  priceModifier = typeof option.price_modifier === 'number' 
+                    ? option.price_modifier 
+                    : parseFloat(option.price_modifier) || 0;
+                }
+                
+                return {
+                  ...option,
+                  // Ensure price_modifier is included (from product_attribute_options table)
+                  price_modifier: priceModifier,
+                  // Variant is available if it exists in mappings (checked in admin)
+                  is_available: true, // If it's in mappings, it's available
+                };
+              });
+            }
+          }
+          
+          // If no selected options found, don't show any options (don't fallback to all options)
+          // This ensures only explicitly selected options are shown
 
           const mapping = mappings.find((m: any) => m.attribute_id === attr.id);
 
@@ -118,10 +168,34 @@ export function ProductVariantSelector({
   };
 
   const calculateTotalPrice = (): number => {
-    let total = basePrice;
+    // Return only the sum of price modifiers (adjustments)
+    // The base price will be added in ProductContent
+    let total = 0;
     Object.values(selectedVariants).forEach((variant) => {
-      total += variant.price_modifier;
+      // Ensure price_modifier exists and is a number
+      const modifier = typeof variant?.price_modifier === 'number' ? variant.price_modifier : (parseFloat(variant?.price_modifier) || 0);
+      total += modifier;
     });
+    
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      const variantDetails = Object.values(selectedVariants).map(v => ({ 
+        id: v.id, 
+        label: v.label, 
+        value: v.value,
+        price_modifier: v.price_modifier,
+        price_modifier_type: typeof v.price_modifier,
+        all_keys: Object.keys(v),
+        full_variant: v
+      }));
+      console.log('Variant price calculation:', {
+        selectedVariants,
+        total,
+        variantCount: Object.keys(selectedVariants).length,
+        variants: variantDetails
+      });
+    }
+    
     return total;
   };
 
@@ -196,20 +270,22 @@ export function ProductVariantSelector({
               <div className="p-3 space-y-2 bg-white border-t border-gray-200">
                 {attribute.options.map((option) => {
                   const isSelected = selectedVariants[attribute.id]?.id === option.id;
-                  const isOutOfStock = option.stock_quantity === 0;
+                  // Availability: If variant is in product_attribute_option_mappings (checked in admin), it's available
+                  // If variant is not in mappings (not checked), it won't even show up in the options list
+                  const isAvailable = true; // All variants shown here are available (they're in mappings)
 
                   return (
                     <button
                       key={option.id}
-                      onClick={() => !isOutOfStock && handleVariantSelect(attribute.id, option)}
-                      disabled={isOutOfStock}
+                      onClick={() => isAvailable && handleVariantSelect(attribute.id, option)}
+                      disabled={!isAvailable}
                       className={`
                         w-full px-3 py-2 flex items-center justify-between rounded-lg text-left transition-all
                         ${isSelected
                           ? 'bg-orange-50 border-2 border-[#FF7A19]'
                           : 'bg-gray-50 border-2 border-transparent hover:border-gray-300'
                         }
-                        ${isOutOfStock
+                        ${!isAvailable
                           ? 'opacity-50 cursor-not-allowed'
                           : 'cursor-pointer'
                         }
@@ -228,9 +304,6 @@ export function ProductVariantSelector({
                         </div>
                         <div>
                           <p className="text-sm font-medium text-[#1A1A1A]">{option.label}</p>
-                          {isOutOfStock && (
-                            <p className="text-xs text-red-500">Out of Stock</p>
-                          )}
                         </div>
                       </div>
                       {option.price_modifier !== 0 && (
@@ -253,7 +326,7 @@ export function ProductVariantSelector({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-[#3A3A3A]">Total Price:</span>
             <span className="text-lg font-bold text-[#FF7A19]">
-              GHS {calculateTotalPrice().toLocaleString()}
+              GHS {(basePrice + calculateTotalPrice()).toLocaleString()}
             </span>
           </div>
         </div>

@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Download, Mail, Package, User, MapPin, Calendar, CreditCard } from 'lucide-react';
+import Image from 'next/image';
+import { X, Download, Mail, Package, User, MapPin, Calendar, CreditCard, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { supabase } from '@/lib/supabase';
+import { formatOrderVariants } from '@/lib/variantFormatter';
 import toast from 'react-hot-toast';
 
 interface OrderItem {
@@ -51,6 +53,7 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [formattedVariants, setFormattedVariants] = useState<{ [key: string]: any[] }>({});
 
   useEffect(() => {
     if (isOpen && orderId && orderId.trim() !== '') {
@@ -101,6 +104,25 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
             });
 
             setOrder(formattedOrder);
+
+            // Format variants for all items
+            if (orderItems.length > 0) {
+              const variantPromises = orderItems.map(async (item: any) => {
+                if (item.selected_variants) {
+                  const formatted = await formatOrderVariants(item.selected_variants);
+                  return { itemId: item.id, formatted };
+                }
+                return { itemId: item.id, formatted: [] };
+              });
+              
+              const results = await Promise.all(variantPromises);
+              const variantsMap: { [key: string]: any[] } = {};
+              results.forEach(({ itemId, formatted }) => {
+                variantsMap[itemId] = formatted;
+              });
+              setFormattedVariants(variantsMap);
+            }
+
             return;
           }
         }
@@ -413,34 +435,62 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
                     </thead>
                     <tbody className="divide-y">
                       {order.items && order.items.length > 0 ? (
-                        order.items.map((item) => (
-                          <tr key={item.id}>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={item.product_image || '/placeholder-product.webp'}
-                                  alt={item.product_name}
-                                  className="w-12 h-12 object-cover rounded"
-                                />
-                                <div>
-                                  <p className="text-sm font-medium text-[#1A1A1A]">{item.product_name}</p>
-                                  {item.selected_variants && (
-                                    <p className="text-xs text-[#3A3A3A]">
-                                      {Object.entries(item.selected_variants).map(([key, value]) => `${key}: ${value}`).join(', ')}
-                                    </p>
-                                  )}
+                        order.items.map((item) => {
+                          const itemVariants = formattedVariants[item.id] || [];
+                          const isFlashDeal = (item as any).is_flash_deal;
+                          
+                          return (
+                            <tr key={item.id}>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="relative w-12 h-12 flex-shrink-0">
+                                    {item.product_image ? (
+                                      <Image
+                                        src={item.product_image}
+                                        alt={item.product_name}
+                                        width={48}
+                                        height={48}
+                                        className="w-full h-full object-cover rounded"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-gray-100 rounded flex items-center justify-center">
+                                        <Package size={20} className="text-gray-400" />
+                                      </div>
+                                    )}
+                                    {isFlashDeal && (
+                                      <div className="absolute -top-1 -right-1 bg-[#FF7A19] text-white rounded-full p-0.5">
+                                        <Zap size={10} className="fill-white" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-start gap-2">
+                                      <p className="text-sm font-medium text-[#1A1A1A]">{item.product_name}</p>
+                                      {isFlashDeal && (
+                                        <Badge variant="error" size="sm">
+                                          <Zap size={8} className="mr-1" />
+                                          Deal
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {itemVariants.length > 0 && (
+                                      <p className="text-xs text-[#3A3A3A] mt-1">
+                                        {itemVariants.map(v => `${v.attribute_name}: ${v.option_label}`).join(', ')}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-[#3A3A3A]">{item.quantity}</td>
-                            <td className="px-4 py-3 text-sm text-right text-[#3A3A3A]">
-                              GHS {(item.unit_price || 0).toFixed(2)}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-right font-semibold text-[#1A1A1A]">
-                              GHS {((item.total_price || (item as any).subtotal || (item.unit_price || 0) * (item.quantity || 0))).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))
+                              </td>
+                              <td className="px-4 py-3 text-sm text-[#3A3A3A]">{item.quantity}</td>
+                              <td className="px-4 py-3 text-sm text-right text-[#3A3A3A]">
+                                GHS {(item.unit_price || 0).toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-right font-semibold text-[#1A1A1A]">
+                                GHS {((item.total_price || (item as any).subtotal || (item.unit_price || 0) * (item.quantity || 0))).toFixed(2)}
+                              </td>
+                            </tr>
+                          );
+                        })
                       ) : (
                         <tr>
                           <td colSpan={4} className="px-4 py-8 text-center text-[#3A3A3A]">

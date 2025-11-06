@@ -34,11 +34,12 @@ const cartSlice = createSlice({
       const { product, quantity, variants = {} } = action.payload;
       
       // Calculate price with variant adjustments
-      const basePrice = product.discount_price || product.original_price;
-      const variantAdjustments = Object.values(variants).reduce(
-        (sum, variant) => sum + variant.price_adjustment,
-        0
-      );
+      const basePrice = product.discount_price || product.original_price || 0;
+      const variantAdjustments = Object.values(variants).reduce((sum, variant: any) => {
+        // Support both price_modifier (from VariantOption) and price_adjustment (from ProductVariant)
+        const adjustment = variant.price_modifier ?? variant.price_adjustment ?? 0;
+        return sum + (typeof adjustment === 'number' ? adjustment : parseFloat(adjustment) || 0);
+      }, 0);
       const finalPrice = basePrice + variantAdjustments;
 
       // Check if item already exists
@@ -84,11 +85,12 @@ const cartSlice = createSlice({
       
       if (item) {
         item.quantity = quantity;
-        const basePrice = item.discount_price || item.original_price;
-        const variantAdjustments = Object.values(item.selected_variants).reduce(
-          (sum, variant) => sum + variant.price_adjustment,
-          0
-        );
+        const basePrice = item.discount_price || item.original_price || 0;
+        const variantAdjustments = Object.values(item.selected_variants || {}).reduce((sum: number, variant: any) => {
+          // Support both price_modifier (from VariantOption) and price_adjustment (from ProductVariant)
+          const adjustment = variant.price_modifier ?? variant.price_adjustment ?? 0;
+          return sum + (typeof adjustment === 'number' ? adjustment : parseFloat(adjustment) || 0);
+        }, 0);
         item.subtotal = quantity * (basePrice + variantAdjustments);
       }
 

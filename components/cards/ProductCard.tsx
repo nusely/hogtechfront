@@ -28,8 +28,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   const isInCart = items.some(item => item.id === product.id);
   const isWishlisted = isInWishlist(product.id);
 
-  const hasDiscount = product.discount_price && product.discount_price < product.original_price;
-  const discountPercentage = hasDiscount
+  // Check for flash deal price first (highest priority)
+  const flashDealPrice = (product as any).flash_deal_price;
+  const flashDealDiscount = (product as any).flash_deal_discount;
+  
+  // Calculate flash deal price if not explicitly set but discount is available
+  let calculatedFlashDealPrice: number | null = null;
+  if (flashDealDiscount && !flashDealPrice && product.original_price) {
+    calculatedFlashDealPrice = product.original_price * (1 - flashDealDiscount / 100);
+  }
+  
+  // Use flash deal price if available, otherwise use regular discount price
+  const finalPrice = flashDealPrice || calculatedFlashDealPrice || product.discount_price || product.original_price || 0;
+  
+  // Determine discount percentage
+  const hasFlashDeal = !!(flashDealPrice || calculatedFlashDealPrice);
+  const hasDiscount = !hasFlashDeal && product.discount_price && product.discount_price < product.original_price;
+  const discountPercentage = hasFlashDeal 
+    ? flashDealDiscount || (product.original_price ? calculateDiscountPercentage(product.original_price, finalPrice) : 0)
+    : hasDiscount
     ? calculateDiscountPercentage(product.original_price, product.discount_price!)
     : 0;
 
@@ -37,11 +54,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
     e.preventDefault();
     e.stopPropagation();
 
+    // Use flash deal price if available, otherwise use regular discount/original price
+    const itemPrice = flashDealPrice || calculatedFlashDealPrice || product.discount_price || product.original_price || 0;
+
     const cartItem = {
       ...product,
       quantity: 1,
       selected_variants: {},
-      subtotal: product.discount_price || product.original_price,
+      // Override discount_price with flash deal price so cart uses the discounted price
+      discount_price: hasFlashDeal ? itemPrice : product.discount_price,
+      original_price: product.original_price,
+      subtotal: itemPrice,
     };
 
     dispatch(
@@ -98,9 +121,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
 
           {/* Badges */}
           <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {hasDiscount && (
+            {(hasFlashDeal || hasDiscount) && discountPercentage > 0 && (
               <Badge variant="error" size="sm">
-                -{discountPercentage}%
+                -{Math.round(discountPercentage)}%
               </Badge>
             )}
             {product.featured && (
@@ -218,9 +241,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             ) : (
               <>
                 <span className="text-xs sm:text-sm text-[#FF7A19]">
-                  {formatCurrency(product.discount_price || product.original_price)}
+                  {formatCurrency(finalPrice)}
                 </span>
-                {hasDiscount && (
+                {(hasFlashDeal || hasDiscount) && product.original_price && (
                   <span className="text-[10px] sm:text-xs text-[#3A3A3A] line-through">
                     {formatCurrency(product.original_price)}
                   </span>

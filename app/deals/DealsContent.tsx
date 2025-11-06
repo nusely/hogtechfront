@@ -2,30 +2,51 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ProductCard } from '@/components/cards/ProductCard';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { Zap, TrendingDown, Clock, ArrowRight } from 'lucide-react';
 import { getCategories } from '@/services/category.service';
 import { Category } from '@/types/product';
 import { FlashDeals } from '@/components/shop/FlashDeals';
 import { productService } from '@/services/product.service';
 import { Product } from '@/types/product';
+import { 
+  getActiveFlashDeals, 
+  getProductsForFlashDeal,
+  FlashDeal 
+} from '@/services/flashDeal.service';
+import { CountdownTimer } from '@/components/shop/CountdownTimer';
 
 export function DealsContent() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [deals, setDeals] = useState<Product[]>([]);
+  const [flashDealCampaigns, setFlashDealCampaigns] = useState<Array<{
+    deal: FlashDeal;
+    products: Product[];
+  }>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
         setIsLoading(true);
-        const [categoriesData, dealsData] = await Promise.all([
+        const [categoriesData, activeDeals] = await Promise.all([
           getCategories(),
-          productService.getProducts({ limit: 20 }),
+          getActiveFlashDeals(),
         ]);
+        
         setCategories(categoriesData.slice(0, 8));
-        setDeals(dealsData);
+
+        // Fetch products for each active flash deal campaign
+        const campaignsWithProducts = await Promise.all(
+          activeDeals.map(async (deal) => {
+            const products = await getProductsForFlashDeal(deal.id);
+            return { deal, products };
+          })
+        );
+
+        setFlashDealCampaigns(campaignsWithProducts);
       } catch (error) {
         console.error('Error fetching deals page data:', error);
       } finally {
@@ -52,16 +73,75 @@ export function DealsContent() {
         </div>
       </section>
 
-      {/* Flash Deals Section */}
+      {/* Flash Deals Campaigns Section */}
+      {flashDealCampaigns.length > 0 && (
+        <section className="container mx-auto px-4 py-12">
+          {flashDealCampaigns.map((campaign) => (
+            <div key={campaign.deal.id} className="mb-12">
+              {/* Campaign Header */}
+              <div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-xl p-6 md:p-8 mb-6">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4">
+                      <Zap className="text-white" size={18} />
+                      <span className="text-sm font-semibold text-white">FLASH DEAL</span>
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                      {campaign.deal.title}
+                    </h2>
+                    {campaign.deal.description && (
+                      <p className="text-white/90 text-sm md:text-base mb-4">
+                        {campaign.deal.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex-shrink-0">
+                    <div className="text-white mb-2 text-sm font-medium">Ends in:</div>
+                    <CountdownTimer 
+                      endTime={campaign.deal.end_time} 
+                      variant="large"
+                      showDays={true}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Campaign Products */}
+              {campaign.products.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {campaign.products.map((product) => (
+                    <div key={product.id} className="relative">
+                      <ProductCard product={product} />
+                      {(product as any).flash_deal_discount && (
+                        <div className="absolute -top-2 -right-2 z-10">
+                          <Badge variant="error" size="sm">
+                            {(product as any).flash_deal_discount || 0}% OFF
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-white rounded-xl">
+                  <p className="text-[#3A3A3A]">No products in this deal yet</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* Flash Deals Section (Homepage style) */}
       <section className="container mx-auto px-4 py-12">
         <FlashDeals limit={12} />
       </section>
 
-      {/* Daily Deals */}
+      {/* All Deals Products */}
       <section className="container mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1A1A1A] mb-2">Daily Deals</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#1A1A1A] mb-2">All Deals</h2>
             <p className="text-[#3A3A3A] text-sm">Limited time offers - Shop before they&apos;re gone!</p>
           </div>
           <Link href="/shop?on_sale=true">
@@ -81,19 +161,30 @@ export function DealsContent() {
               </div>
             ))}
           </div>
-        ) : deals.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {deals.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
+        ) : flashDealCampaigns.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl">
             <TrendingDown className="mx-auto mb-4 text-gray-400" size={48} />
             <p className="text-[#3A3A3A] mb-4">No deals available at the moment</p>
             <Link href="/shop">
               <Button variant="outline">Browse All Products</Button>
             </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {flashDealCampaigns.flatMap((campaign) =>
+              campaign.products.map((product) => (
+                <div key={product.id} className="relative">
+                  <ProductCard product={product} />
+                  {(product as any).flash_deal_discount && (
+                    <div className="absolute -top-2 -right-2 z-10">
+                      <Badge variant="error" size="sm">
+                        {(product as any).flash_deal_discount || 0}% OFF
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         )}
       </section>
