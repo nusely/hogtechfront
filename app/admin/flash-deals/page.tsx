@@ -27,9 +27,9 @@ import {
   deleteFlashDeal,
   getProductsForFlashDeal,
   removeProductFromFlashDeal,
-  FlashDeal,
-  Product
+  FlashDeal
 } from '@/services/flashDeal.service';
+import { Product } from '@/types/product';
 import { productService } from '@/services/product.service';
 import { CountdownTimer } from '@/components/shop/CountdownTimer';
 import { formatCurrency } from '@/lib/helpers';
