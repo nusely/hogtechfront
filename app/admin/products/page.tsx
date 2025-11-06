@@ -65,7 +65,11 @@ export default function AdminProductsPage() {
     const fetchDealProducts = async () => {
       try {
         const dealProducts = await getActiveDealProducts();
-        const productIds = new Set(dealProducts.map(dp => dp.product_id).filter(Boolean));
+        const productIds = new Set<string>(
+          dealProducts
+            .map(dp => dp.product_id)
+            .filter((id): id is string => typeof id === 'string' && id.length > 0)
+        );
         setProductsInDeals(productIds);
       } catch (error) {
         console.error('Error fetching deal products:', error);
@@ -507,7 +511,11 @@ export default function AdminProductsPage() {
             fetchProducts();
             // Refresh deals list
             const dealProducts = await getActiveDealProducts();
-            const productIds = new Set(dealProducts.map(dp => dp.product_id).filter(Boolean));
+            const productIds = new Set<string>(
+              dealProducts
+                .map(dp => dp.product_id)
+                .filter((id): id is string => typeof id === 'string' && id.length > 0)
+            );
             setProductsInDeals(productIds);
           }}
         />

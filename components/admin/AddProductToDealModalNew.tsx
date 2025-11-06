@@ -79,8 +79,8 @@ export function AddProductToDealModal({
           setSelectedProduct(editingProduct.product);
         } else if (editingProduct.product_id) {
           // Fetch the product details
-          fetchProducts().then(() => {
-            const product = products.find(p => p.id === editingProduct.product_id);
+          fetchProducts().then((fetchedProducts) => {
+            const product = fetchedProducts.find((p) => p.id === editingProduct.product_id);
             if (product) {
               setSelectedProduct(product);
             }
@@ -154,25 +154,26 @@ export function AddProductToDealModal({
     }
   }, [searchQuery, products, mode]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (): Promise<Product[]> => {
     try {
       setLoading(true);
-      const result = await productService.getProducts({});
-      const fetchedProducts = result.data || [];
+      const fetchedProducts = await productService.getProducts({});
       setProducts(fetchedProducts);
       // Initialize filtered products based on current search query
       if (searchQuery.trim()) {
         const query = searchQuery.trim().toLowerCase();
-        const filtered = fetchedProducts.filter(p =>
+        const filtered = fetchedProducts.filter((p) =>
           p.name && p.name.toLowerCase().includes(query)
         );
         setFilteredProducts(filtered);
       } else {
         setFilteredProducts(fetchedProducts);
       }
+      return fetchedProducts;
     } catch (error: any) {
       console.error('Error fetching products:', error);
       toast.error('Failed to load products');
+      return [];
     } finally {
       setLoading(false);
     }

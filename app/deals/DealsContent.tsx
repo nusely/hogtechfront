@@ -14,7 +14,12 @@ import {
   DealProduct
 } from '@/services/deal.service';
 import { CountdownTimer } from '@/components/shop/CountdownTimer';
-import { formatCurrency } from '@/lib/helpers';
+import { Product } from '@/types/product';
+
+type DealDisplayProduct = Product & {
+  deal_price: number;
+  deal_discount: number;
+};
 
 export function DealsContent() {
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -49,7 +54,7 @@ export function DealsContent() {
     const dealProductsForDeal = dealProducts.filter(dp => dp.deal_id === deal.id);
     console.log(`Deal ${deal.id} (${deal.title}): ${dealProductsForDeal.length} deal products`);
     
-    const products = dealProductsForDeal.map(dp => {
+    const products = dealProductsForDeal.reduce<DealDisplayProduct[]>((acc, dp) => {
       // Handle existing products (with product_id)
       if (dp.product) {
         const product = dp.product;
@@ -63,11 +68,13 @@ export function DealsContent() {
           dealPrice = product.original_price * (1 - deal.discount_percentage / 100);
         }
         
-        return {
+        const dealDiscount = dp.discount_percentage || deal.discount_percentage || 0;
+
+        acc.push({
           ...product,
           deal_price: dealPrice,
-          deal_discount: dp.discount_percentage || deal.discount_percentage || 0,
-        };
+          deal_discount: dealDiscount,
+        });
       } 
       // Handle standalone products (without product_id)
       else if (dp.product_name) {
@@ -81,30 +88,79 @@ export function DealsContent() {
           dealPrice = dp.original_price * (1 - deal.discount_percentage / 100);
         }
         
-        return {
+        const dealDiscount = dp.discount_percentage || deal.discount_percentage || 0;
+        const images = dp.product_images && dp.product_images.length > 0
+          ? dp.product_images
+          : dp.product_image_url
+            ? [dp.product_image_url]
+            : ['/placeholders/placeholder-product.webp'];
+
+        const keyFeatures =
+          Array.isArray(dp.product_key_features) || typeof dp.product_key_features === 'string'
+            ? dp.product_key_features
+            : [];
+
+        let parsedSpecifications: unknown = dp.product_specifications;
+        if (typeof parsedSpecifications === 'string') {
+          try {
+            parsedSpecifications = JSON.parse(parsedSpecifications);
+          } catch (error) {
+            console.warn('Failed to parse product specifications for deal product:', dp.id, error);
+          }
+        }
+        let specificationValue: Product['specifications'] = {};
+        let specsObject: Product['specs'] = {};
+        if (typeof parsedSpecifications === 'string') {
+          specificationValue = parsedSpecifications;
+        } else if (parsedSpecifications && typeof parsedSpecifications === 'object' && !Array.isArray(parsedSpecifications)) {
+          specificationValue = parsedSpecifications;
+          specsObject = parsedSpecifications as Product['specs'];
+        }
+
+        const timestamps = dp.created_at || new Date().toISOString();
+
+        const standaloneProduct: Product = {
           id: dp.id, // Use deal_product id as product id
           name: dp.product_name,
-          description: dp.product_description || '',
-          thumbnail: dp.product_image_url || (dp.product_images && dp.product_images[0]) || '',
-          images: dp.product_images || (dp.product_image_url ? [dp.product_image_url] : []),
-          original_price: dp.original_price || 0,
-          discount_price: 0,
-          deal_price: dealPrice,
-          deal_discount: dp.discount_percentage || deal.discount_percentage || 0,
           slug: `deal-${dp.id}`, // Generate a slug for standalone products
-          category_id: null,
-          brand_id: null,
-          sku: `DEAL-${dp.id}`,
-          stock_quantity: 0,
+          description: dp.product_description || '',
+          key_features: keyFeatures,
+          specifications: specificationValue,
+          category_id: 'standalone',
+          brand: 'VENTECH Deals',
+          brand_id: undefined,
+          original_price: dp.original_price || dealPrice,
+          discount_price: null,
           in_stock: true,
-          is_featured: false,
-          key_features: dp.product_key_features || [],
-          specifications: dp.product_specifications || {},
+          stock_quantity: 0,
+          images,
+          thumbnail: images[0] || '/placeholders/placeholder-product.webp',
+          featured: false,
           rating: 0, // Default rating for standalone products
+          review_count: 0,
+          specs: specsObject,
+          variants: [],
+          created_at: timestamps,
+          updated_at: timestamps,
+          category_name: null,
+          category_slug: null,
+          brand_name: 'VENTECH Deals',
+          brand_slug: null,
+          price_range: {
+            min: dealPrice || 0,
+            max: dp.original_price || dealPrice || 0,
+            hasRange: false,
+          },
         };
+
+        acc.push({
+          ...standaloneProduct,
+          deal_price: dealPrice,
+          deal_discount: dealDiscount,
+        });
       }
-      return null;
-    }).filter(p => p !== null);
+      return acc;
+    }, []);
     
     return {
       deal,

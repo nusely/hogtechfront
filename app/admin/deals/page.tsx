@@ -91,7 +91,7 @@ export default function DealsPage() {
   const fetchAllProducts = async () => {
     try {
       const products = await productService.getProducts({});
-      setAllProducts(products.data || []);
+      setAllProducts(products);
     } catch (error) {
       console.error('Error fetching products:', error);
     }
@@ -665,7 +665,6 @@ export default function DealsPage() {
             isOpen={showMediaPicker}
             onClose={() => setShowMediaPicker(false)}
             onSelect={handleImageSelect}
-            title="Select Banner Image"
           />
         )}
 
