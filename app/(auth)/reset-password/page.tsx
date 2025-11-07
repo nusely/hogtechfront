@@ -142,7 +142,9 @@ export default function ResetPasswordPage() {
       
       // Redirect to login after a short delay
       setTimeout(() => {
-        router.push('/login');
+        supabase.auth.signOut().finally(() => {
+          router.push('/login');
+        });
       }, 1500);
     } catch (error: any) {
       console.error('Password update error:', error);

@@ -178,7 +178,7 @@ export const NavBar = () => {
                       <Heart size={16} />
                       <span>Wishlist</span>
                     </Link>
-                    {user?.role === 'admin' && (
+                    {user && (user.role === 'admin' || user.role === 'superadmin') && (
                       <Link href="/admin" className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 text-[#FF7A19] text-sm">
                         <Settings size={16} />
                         <span>Admin Panel</span>
@@ -366,7 +366,7 @@ export const NavBar = () => {
                   <Package size={16} className="inline mr-2" />
                   My Orders
                 </Link>
-                {user?.role === 'admin' && (
+                {user && (user.role === 'admin' || user.role === 'superadmin') && (
                   <Link
                     href="/admin"
                     onClick={() => setIsMobileMenuOpen(false)}

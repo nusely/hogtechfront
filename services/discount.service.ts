@@ -1,4 +1,39 @@
 import { supabase } from '@/lib/supabase';
+import { buildApiUrl } from '@/lib/api';
+
+export interface DiscountApplyPayload {
+  code: string;
+  subtotal: number;
+  deliveryFee: number;
+  items: Array<{
+    product_id?: string | null;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    subtotal: number;
+  }>;
+}
+
+export interface DiscountApplyResult {
+  discountId: string;
+  code: string;
+  type: 'percentage' | 'fixed_amount' | 'free_shipping';
+  appliesTo: 'all' | 'products' | 'shipping' | 'total';
+  discountAmount: number;
+  adjustedDeliveryFee: number;
+}
+
+const getAuthHeaders = async (): Promise<Record<string, string>> => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  return session?.access_token
+    ? {
+        Authorization: `Bearer ${session.access_token}`,
+      }
+    : {};
+};
 
 export interface Discount {
   id: string;
@@ -19,6 +54,28 @@ export interface Discount {
 }
 
 export const discountService = {
+  async applyDiscount(payload: DiscountApplyPayload): Promise<DiscountApplyResult> {
+    const authHeaders = await getAuthHeaders();
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...authHeaders,
+    };
+
+    const response = await fetch(buildApiUrl('/api/discounts/apply'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Failed to apply discount');
+    }
+
+    const result = await response.json();
+    return result.data as DiscountApplyResult;
+  },
+
   // Get all discounts
   async getDiscounts(): Promise<Discount[]> {
     try {
@@ -135,3 +192,5 @@ export const discountService = {
     }
   },
 };
+
+export default discountService;

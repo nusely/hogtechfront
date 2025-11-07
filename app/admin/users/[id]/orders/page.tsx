@@ -19,6 +19,7 @@ import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate, getOrderStatusColor } from '@/lib/helpers';
 import toast from 'react-hot-toast';
 import { Spinner } from '@/components/loaders/Spinner';
+import { buildApiUrl } from '@/lib/api';
 
 interface Order {
   id: string;
@@ -78,12 +79,18 @@ export default function UserOrdersPage() {
       setLoading(true);
       
       // Try backend API first (bypasses RLS)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const API_URL = buildApiUrl('/api/orders');
       try {
-        const response = await fetch(`${API_URL}/api/orders?user_id=${userId}`, {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        const response = await fetch(`${API_URL}?user_id=${userId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
 

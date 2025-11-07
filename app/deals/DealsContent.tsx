@@ -95,10 +95,33 @@ export function DealsContent() {
             ? [dp.product_image_url]
             : ['/placeholders/placeholder-product.webp'];
 
-        const keyFeatures =
-          Array.isArray(dp.product_key_features) || typeof dp.product_key_features === 'string'
-            ? dp.product_key_features
-            : [];
+        const keyFeatures = (() => {
+          const raw = dp.product_key_features;
+          if (Array.isArray(raw)) {
+            return raw;
+          }
+          if (typeof raw === 'string') {
+            try {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                return parsed;
+              }
+              // Fallback: split by newline or commas after removing quotes
+              return raw
+                .replace(/\r/g, '')
+                .split(/\n|,/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+            } catch (error) {
+              return raw
+                .replace(/\r/g, '')
+                .split(/\n|,/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+            }
+          }
+          return [];
+        })();
 
         let parsedSpecifications: unknown = dp.product_specifications;
         if (typeof parsedSpecifications === 'string') {

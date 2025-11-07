@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import { buildApiUrl } from '@/lib/api';
 
 interface RevenueData {
   total: number;
@@ -68,14 +69,19 @@ export default function RevenueAnalyticsPage() {
       let transactionCount = 0;
       let averageOrder = 0;
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const ordersEndpoint = buildApiUrl('/api/orders');
+
       // Try backend API first (bypasses RLS)
       try {
-        const response = await fetch(`${API_URL}/api/orders`, {
+        const response = await fetch(ordersEndpoint, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
 
@@ -139,10 +145,11 @@ export default function RevenueAnalyticsPage() {
       
       // Try backend API first
       try {
-        const response = await fetch(`${API_URL}/api/orders`, {
+        const response = await fetch(ordersEndpoint, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
 

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { clearCart } from '@/store/cartSlice';
-import { Check, Banknote, ChevronLeft } from 'lucide-react';
+import { Check, Banknote, ChevronLeft, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/helpers';
 import { orderService } from '@/services/order.service';
 import { deliveryOptionsService } from '@/services/deliveryOptions.service';
@@ -16,16 +16,27 @@ import { deliveryOptionsService } from '@/services/deliveryOptions.service';
 import { DeliveryOption } from '@/types/order';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import { discountService } from '@/services/discount.service';
+import { settingsService } from '@/lib/settings.service';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { items, total } = useAppSelector((state) => state.cart);
+  const { items } = useAppSelector((state) => state.cart);
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   const [step, setStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountState, setDiscountState] = useState<{
+    code: string;
+    amount: number;
+    adjustedDeliveryFee: number;
+  } | null>(null);
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
+  const [discountMessage, setDiscountMessage] = useState<string | null>(null);
+  const [taxRate, setTaxRate] = useState(0);
 
   // Delivery Information - Auto-fill from user if logged in
   const [deliveryInfo, setDeliveryInfo] = useState({
@@ -84,12 +95,39 @@ export default function CheckoutPage() {
     }
   }, [user, isAuthenticated]);
 
+  const [selectedDelivery, setSelectedDelivery] = useState<DeliveryOption | null>(null);
+
+  useEffect(() => {
+    if (discountState && selectedDelivery) {
+      setDiscountState(null);
+      setDiscountMessage('Delivery option changed. Re-apply discount to confirm pricing.');
+    }
+  }, [selectedDelivery?.id, discountState]);
+
+  useEffect(() => {
+    const fetchTaxRate = async () => {
+      try {
+        const storedRate = await settingsService.getSetting('pricing_global_tax_rate');
+        const parsedRate = storedRate ? parseFloat(storedRate) : 0;
+        if (!Number.isNaN(parsedRate) && parsedRate >= 0) {
+          setTaxRate(parsedRate);
+        } else {
+          setTaxRate(0);
+        }
+      } catch (error) {
+        console.error('Error fetching tax rate setting:', error);
+        setTaxRate(0);
+      }
+    };
+
+    fetchTaxRate();
+  }, []);
+
   // Delivery Options
   const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>([]);
   const [isLoadingDeliveryOptions, setIsLoadingDeliveryOptions] = useState(true);
   
   // Selected Options
-  const [selectedDelivery, setSelectedDelivery] = useState<DeliveryOption | null>(null);
   const [paymentMethod] = useState<'cash_on_delivery'>('cash_on_delivery'); // Only Cash on Delivery enabled
   const [notes, setNotes] = useState('');
 
@@ -106,9 +144,11 @@ export default function CheckoutPage() {
       
       if (options && options.length > 0) {
         setDeliveryOptions(options);
-        if (!selectedDelivery) {
-          setSelectedDelivery(options[0]);
-        }
+        setSelectedDelivery((prev) => {
+          if (!prev) return null;
+          const stillExists = options.find((opt) => opt.id === prev.id);
+          return stillExists || null;
+        });
       } else {
         // If no options returned, show error
         console.warn('No delivery options returned from database');
@@ -158,6 +198,8 @@ export default function CheckoutPage() {
     });
   };
 
+  const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
+
   const validateDeliveryInfo = () => {
     const required = ['full_name', 'email', 'phone', 'street_address', 'city', 'region'];
     for (const field of required) {
@@ -178,10 +220,70 @@ export default function CheckoutPage() {
   };
 
   const handleNextStep = () => {
-    if (step === 1 && !validateDeliveryInfo()) {
-      return;
+    if (step === 1) {
+      if (!validateDeliveryInfo()) {
+        return;
+      }
+
+      if (!selectedDelivery) {
+        toast.error('Please select a delivery or pickup option');
+        return;
+      }
     }
     setStep(step + 1);
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      toast.error('Enter a discount code');
+      return;
+    }
+
+    if (!selectedDelivery) {
+      toast.error('Select a delivery option before applying a discount');
+      return;
+    }
+
+    setIsApplyingDiscount(true);
+    setDiscountMessage(null);
+
+    try {
+      const payload = {
+        code: discountCode.trim().toUpperCase(),
+        subtotal,
+        deliveryFee: selectedDelivery.price,
+        items: items.map((item) => ({
+          product_id: item.id,
+          product_name: item.name,
+          quantity: item.quantity,
+          unit_price: item.discount_price || item.original_price,
+          subtotal: item.subtotal,
+        })),
+      };
+
+      const result = await discountService.applyDiscount(payload);
+
+      setDiscountState({
+        code: result.code,
+        amount: Number(result.discountAmount.toFixed(2)),
+        adjustedDeliveryFee: Number(result.adjustedDeliveryFee.toFixed(2)),
+      });
+      setDiscountCode(result.code);
+      setDiscountMessage(`Discount ${result.code} applied`);
+      toast.success('Discount applied successfully!');
+    } catch (error: any) {
+      console.error('Apply discount error:', error);
+      setDiscountState(null);
+      setDiscountMessage(error?.message || 'Failed to apply discount');
+      toast.error(error?.message || 'Failed to apply discount');
+    } finally {
+      setIsApplyingDiscount(false);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setDiscountState(null);
+    setDiscountMessage('Discount removed');
   };
 
   const handlePlaceOrder = async () => {
@@ -197,7 +299,13 @@ export default function CheckoutPage() {
     }
 
     // Validate delivery option is selected
-    const finalDeliveryOption = selectedDelivery || deliveryOptions[0];
+    const finalDeliveryOption = selectedDelivery
+      ? {
+          ...selectedDelivery,
+          price: discountState ? discountState.adjustedDeliveryFee : selectedDelivery.price,
+        }
+      : null;
+
     if (!finalDeliveryOption) {
       toast.error('Please select a delivery option');
       setStep(1); // Go back to step 1 to select delivery option
@@ -218,6 +326,11 @@ export default function CheckoutPage() {
         delivery_option: finalDeliveryOption,
         payment_method: paymentMethod,
         notes,
+        discount_code: discountState?.code,
+        discount_amount: discountState?.amount,
+        adjusted_delivery_fee: finalDeliveryOption.price,
+        tax_amount: tax,
+        tax_rate: taxRate,
       };
 
       // Only Cash on Delivery is enabled - create order directly
@@ -263,9 +376,11 @@ export default function CheckoutPage() {
   };
 
   // Calculate delivery/pickup fee (no free delivery - all options have a price)
-  const deliveryFee = selectedDelivery?.price || deliveryOptions[0]?.price || 0;
-  const tax = 0;
-  const grandTotal = total + deliveryFee + tax;
+  const discountAmount = discountState?.amount ?? 0;
+  const deliveryFee = discountState ? discountState.adjustedDeliveryFee : selectedDelivery?.price ?? 0;
+  const taxableAmount = Math.max(subtotal - discountAmount, 0);
+  const tax = parseFloat(((taxableAmount * taxRate) / 100).toFixed(2));
+  const grandTotal = Math.max(taxableAmount + deliveryFee + tax, 0);
 
   // Handle empty cart on client-side only to avoid hydration mismatch
   if (!isMounted) {
@@ -641,15 +756,55 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
 
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Discount Code</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    placeholder="ENTER CODE"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleApplyDiscount}
+                    disabled={!discountCode.trim() || isApplyingDiscount || !selectedDelivery}
+                    isLoading={isApplyingDiscount}
+                  >
+                    Apply
+                  </Button>
+                </div>
+                {discountState && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveDiscount}
+                    className="text-xs text-red-600 mt-2 hover:underline"
+                  >
+                    Remove discount
+                  </button>
+                )}
+                {discountMessage && (
+                  <p className="text-xs text-gray-500 mt-2">{discountMessage}</p>
+                )}
+              </div>
+
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span>{formatCurrency(total)}</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
                   <span>{formatCurrency(deliveryFee)}</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>Discount</span>
+                    <span>-{formatCurrency(discountAmount)}</span>
+                  </div>
+                )}
                 {tax > 0 && (
                   <div className="flex justify-between text-gray-600">
                     <span>Tax</span>

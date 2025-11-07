@@ -67,7 +67,7 @@ export default function DealsPage() {
   });
 
   useEffect(() => {
-    if (isAuthenticated && user?.role !== 'admin') {
+    if (isAuthenticated && user && user.role !== 'admin' && user.role !== 'superadmin') {
       router.push('/');
       return;
     }

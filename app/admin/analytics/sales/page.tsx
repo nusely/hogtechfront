@@ -5,6 +5,7 @@ import { TrendingUp, Package, ShoppingBag, Star, Download } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import { buildApiUrl } from '@/lib/api';
 
 interface SalesData {
   totalOrders: number;
@@ -53,12 +54,17 @@ export default function SalesAnalyticsPage() {
       let totalOrders = 0;
 
       // Try backend API first (bypasses RLS)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const ordersEndpoint = buildApiUrl('/api/orders');
       try {
-        const response = await fetch(`${API_URL}/api/orders`, {
+        const response = await fetch(ordersEndpoint, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
 
@@ -113,10 +119,11 @@ export default function SalesAnalyticsPage() {
             try {
               for (const orderId of orderIds) {
                 try {
-                  const itemsResponse = await fetch(`${API_URL}/api/orders/${orderId}/items`, {
+                  const itemsResponse = await fetch(`${ordersEndpoint}/${orderId}/items`, {
                     method: 'GET',
                     headers: {
                       'Content-Type': 'application/json',
+                      ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     },
                   });
 

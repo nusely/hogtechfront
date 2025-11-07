@@ -4,16 +4,16 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Edit,
+  Trash2,
   Eye,
   EyeOff,
   ArrowUp,
   ArrowDown,
   Save,
-  X
+  X,
 } from 'lucide-react';
 import { deliveryOptionsService } from '@/services/deliveryOptions.service';
 import { formatCurrency } from '@/lib/helpers';
@@ -33,7 +33,7 @@ interface DeliveryOption {
   updated_at?: string;
 }
 
-export default function AdminSettingsPage() {
+export const DeliveryOptionsSettings: React.FC = () => {
   const router = useRouter();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -53,7 +53,7 @@ export default function AdminSettingsPage() {
   });
 
   useEffect(() => {
-    if (isAuthenticated && user?.role !== 'admin') {
+    if (isAuthenticated && user && user.role !== 'admin' && user.role !== 'superadmin') {
       router.push('/');
       return;
     }
@@ -156,23 +156,22 @@ export default function AdminSettingsPage() {
   };
 
   const moveOrder = async (option: DeliveryOption, direction: 'up' | 'down') => {
-    const currentIndex = deliveryOptions.findIndex(o => o.id === option.id);
+    const currentIndex = deliveryOptions.findIndex((o) => o.id === option.id);
     if (currentIndex === -1) return;
 
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
     if (targetIndex < 0 || targetIndex >= deliveryOptions.length) return;
 
     const targetOption = deliveryOptions[targetIndex];
-    
+
     try {
-      // Swap display orders
       await deliveryOptionsService.updateDeliveryOption(option.id, {
         display_order: targetOption.display_order,
       });
       await deliveryOptionsService.updateDeliveryOption(targetOption.id, {
         display_order: option.display_order,
       });
-      
+
       fetchDeliveryOptions();
     } catch (error: any) {
       console.error('Move error:', error);
@@ -185,7 +184,7 @@ export default function AdminSettingsPage() {
       name: '',
       description: '',
       price: '',
-      type: 'delivery' as 'delivery' | 'pickup',
+      type: 'delivery',
       estimated_days: '',
       is_active: true,
       display_order: deliveryOptions.length,
@@ -205,11 +204,11 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Delivery Options Settings</h1>
-          <p className="text-sm text-gray-600 mt-1">Manage delivery options for checkout</p>
+          <h2 className="text-xl font-bold text-gray-900">Delivery Options</h2>
+          <p className="text-sm text-gray-600 mt-1">Manage delivery options available during checkout.</p>
         </div>
         <Button
           variant="primary"
@@ -224,11 +223,11 @@ export default function AdminSettingsPage() {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-900">
               {editingOption ? 'Edit Delivery Option' : 'Add New Delivery Option'}
-            </h2>
+            </h3>
             <Button
               variant="outline"
               size="sm"
@@ -263,9 +262,7 @@ export default function AdminSettingsPage() {
                 required
               />
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value as 'delivery' | 'pickup' })}
@@ -335,36 +332,19 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      {/* Delivery Options List */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Order
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Days
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -382,70 +362,64 @@ export default function AdminSettingsPage() {
                         <button
                           onClick={() => moveOrder(option, 'up')}
                           className="text-gray-400 hover:text-gray-600"
-                          disabled={deliveryOptions.findIndex(o => o.id === option.id) === 0}
+                          disabled={deliveryOptions.findIndex((o) => o.id === option.id) === 0}
                         >
                           <ArrowUp size={16} />
                         </button>
-                        <span className="text-sm font-medium text-gray-900">
-                          {option.display_order}
-                        </span>
+                        <span className="text-sm font-medium text-gray-900">{option.display_order}</span>
                         <button
                           onClick={() => moveOrder(option, 'down')}
                           className="text-gray-400 hover:text-gray-600"
-                          disabled={deliveryOptions.findIndex(o => o.id === option.id) === deliveryOptions.length - 1}
+                          disabled={deliveryOptions.findIndex((o) => o.id === option.id) === deliveryOptions.length - 1}
                         >
                           <ArrowDown size={16} />
                         </button>
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{option.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{option.description || '—'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500 capitalize">{option.type}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{formatCurrency(option.price)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{option.estimated_days || '—'}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{option.name}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-500">{option.description || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`text-sm font-medium px-2 py-1 rounded ${
-                        option.type === 'pickup' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-green-100 text-green-800'
-                      }`}>
-                        {option.type === 'pickup' ? 'Pickup' : 'Delivery'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {formatCurrency(option.price)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
-                        {option.estimated_days ? `${option.estimated_days} days` : '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => toggleActive(option)}
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      <span
+                        className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium ${
                           option.is_active
                             ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            : 'bg-gray-100 text-gray-500'
                         }`}
                       >
-                        {option.is_active ? 'Active' : 'Inactive'}
-                      </button>
+                        {option.is_active ? (
+                          <>
+                            <Eye size={14} /> Active
+                          </>
+                        ) : (
+                          <>
+                            <EyeOff size={14} /> Inactive
+                          </>
+                        )}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleEdit(option)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Edit"
                         >
                           <Edit size={18} />
                         </button>
                         <button
+                          onClick={() => toggleActive(option)}
+                          className="text-gray-500 hover:text-gray-700"
+                          title={option.is_active ? 'Deactivate' : 'Activate'}
+                        >
+                          {option.is_active ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                        <button
                           onClick={() => handleDelete(option.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-800"
+                          title="Delete"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -460,4 +434,5 @@ export default function AdminSettingsPage() {
       </div>
     </div>
   );
-}
+};
+

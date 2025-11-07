@@ -45,7 +45,7 @@ export default function AdminReviewsPage() {
   const [filterApproved, setFilterApproved] = useState<'all' | 'approved' | 'unapproved'>('all');
 
   useEffect(() => {
-    if (isAuthenticated && user?.role !== 'admin') {
+    if (isAuthenticated && user && user.role !== 'admin' && user.role !== 'superadmin') {
       router.push('/');
       return;
     }

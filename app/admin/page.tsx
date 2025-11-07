@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   DollarSign,
   ShoppingCart,
@@ -15,7 +16,11 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { settingsService as clientSettingsService } from '@/lib/settings.service';
+import { buildApiUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
+import { Modal } from '@/components/ui/Modal';
+import { formatCurrency } from '@/lib/helpers';
 
 interface DashboardStats {
   totalRevenue: number;
@@ -62,6 +67,10 @@ export default function AdminDashboard() {
     lowStockProducts: 0,
     pendingOrders: 0,
   });
+  const [lowStockThreshold, setLowStockThreshold] = useState<number>(3);
+  const [isLowStockModalOpen, setIsLowStockModalOpen] = useState(false);
+  const [isLoadingLowStock, setIsLoadingLowStock] = useState(false);
+  const [lowStockProducts, setLowStockProducts] = useState<Array<any>>([]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -70,6 +79,23 @@ export default function AdminDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const authToken = session?.access_token || null;
+
+      let threshold = 3;
+      try {
+        const thresholdSetting = await clientSettingsService.getSetting('inventory_low_stock_threshold');
+        const parsed = parseInt(thresholdSetting || '', 10);
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          threshold = parsed;
+        }
+      } catch (error) {
+        // Ignore and use default
+      }
+      setLowStockThreshold(threshold);
 
       // Calculate date ranges for comparison
       const now = new Date();
@@ -310,12 +336,16 @@ export default function AdminDashboard() {
       let orderItems: any[] = [];
       
       // Try backend API first (bypasses RLS)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       try {
-        const response = await fetch(`${API_URL}/api/orders`, {
+        if (!authToken) {
+          throw new Error('Missing authentication token');
+        }
+
+        const response = await fetch(buildApiUrl('/api/orders'), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
           },
         });
 
@@ -340,8 +370,12 @@ export default function AdminDashboard() {
             }
           }
         }
-      } catch (apiError) {
-        console.warn('Backend API failed, trying Supabase:', apiError);
+      } catch (apiError: any) {
+        if (apiError?.message === 'Missing authentication token') {
+          console.warn('Skipping backend dashboard orders fetch: no auth token available yet.');
+        } else {
+          console.warn('Backend API failed, trying Supabase:', apiError);
+        }
       }
 
       // Fallback to Supabase if API didn't return data
@@ -448,7 +482,7 @@ export default function AdminDashboard() {
         const { count, error: lowStockError } = await supabase
         .from('products')
         .select('*', { count: 'exact', head: true })
-        .lt('stock_quantity', 10)
+        .lte('stock_quantity', threshold)
         .eq('in_stock', true);
 
         if (!lowStockError) {
@@ -527,7 +561,50 @@ export default function AdminDashboard() {
     },
   ];
 
-  const insightCards = [
+  const handleOpenLowStockModal = async () => {
+    setIsLowStockModalOpen(true);
+    setIsLoadingLowStock(true);
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const response = await fetch(buildApiUrl('/api/products/low-stock'), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch low stock products');
+      }
+
+      const result = await response.json();
+      setLowStockThreshold(result.data?.threshold ?? lowStockThreshold);
+      setLowStockProducts(result.data?.products || []);
+    } catch (error) {
+      console.error('Error fetching low stock products list:', error);
+      toast.error('Failed to load low stock products');
+      setLowStockProducts([]);
+    } finally {
+      setIsLoadingLowStock(false);
+    }
+  };
+
+  const insightCards: Array<{
+    title: string;
+    count: number;
+    subtitle: string;
+    icon: typeof Heart;
+    color: string;
+    bgColor: string;
+    link?: string;
+    onClick?: () => void;
+  }> = [
     {
       title: 'Wishlist But No Purchase',
       count: insights.wishlistUsers,
@@ -553,7 +630,7 @@ export default function AdminDashboard() {
       icon: AlertCircle,
       color: 'text-red-600',
       bgColor: 'bg-red-50',
-      link: '/admin/products?filter=low-stock',
+      onClick: handleOpenLowStockModal,
     },
     {
       title: 'Pending Orders',
@@ -612,21 +689,41 @@ export default function AdminDashboard() {
 
       {/* Insights Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {insightCards.map((card) => (
-          <Link
-            key={card.title}
-            href={card.link}
-            className={`${card.bgColor} rounded-xl p-6 border-2 border-transparent hover:border-[#FF7A19] transition-all cursor-pointer`}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <card.icon className={card.color} size={32} />
-              <Eye size={16} className="text-gray-400" />
-            </div>
-            <p className="text-3xl font-bold text-[#1A1A1A] mb-1">{card.count}</p>
-            <p className="text-sm font-semibold text-[#1A1A1A] mb-1">{card.title}</p>
-            <p className="text-xs text-[#3A3A3A]">{card.subtitle}</p>
-          </Link>
-        ))}
+        {insightCards.map((card) => {
+          const CardInner = (
+            <>
+              <div className="flex items-start justify-between mb-3">
+                <card.icon className={card.color} size={32} />
+                <Eye size={16} className="text-gray-400" />
+              </div>
+              <p className="text-3xl font-bold text-[#1A1A1A] mb-1">{card.count}</p>
+              <p className="text-sm font-semibold text-[#1A1A1A] mb-1">{card.title}</p>
+              <p className="text-xs text-[#3A3A3A]">{card.subtitle}</p>
+            </>
+          );
+
+          if (card.onClick) {
+            return (
+              <button
+                key={card.title}
+                onClick={card.onClick}
+                className={`${card.bgColor} rounded-xl p-6 border-2 border-transparent hover:border-[#FF7A19] transition-all text-left cursor-pointer`}
+              >
+                {CardInner}
+              </button>
+            );
+          }
+
+          return (
+            <Link
+              key={card.title}
+              href={card.link ?? '#'}
+              className={`${card.bgColor} rounded-xl p-6 border-2 border-transparent hover:border-[#FF7A19] transition-all cursor-pointer`}
+            >
+              {CardInner}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Recent Transactions & Top Products */}
@@ -719,6 +816,94 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+      <Modal
+        isOpen={isLowStockModalOpen}
+        onClose={() => setIsLowStockModalOpen(false)}
+        title="Low Stock Products"
+        size="xl"
+      >
+        <LowStockModalContent
+          isLoading={isLoadingLowStock}
+          products={lowStockProducts}
+          threshold={lowStockThreshold}
+        />
+      </Modal>
     </div>
   );
 }
+
+const LowStockModalContent = ({
+  isLoading,
+  products,
+  threshold,
+}: {
+  isLoading: boolean;
+  products: Array<any>;
+  threshold: number;
+}) => {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#FF7A19] mx-auto mb-3"></div>
+          <p className="text-sm text-[#3A3A3A]">Fetching low stock products...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!products || products.length === 0) {
+    return (
+      <div className="py-8 text-center text-[#3A3A3A]">
+        <p className="text-base font-medium mb-2">No low stock products 🎉</p>
+        <p className="text-sm">All products are above the current threshold ({threshold}).</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-h-[60vh] overflow-y-auto divide-y divide-gray-200">
+      {products.map((product) => {
+        const imageUrl = product.thumbnail || (product.images && product.images[0]) || '/placeholders/placeholder-product.webp';
+        const price = product.discount_price ?? product.original_price ?? 0;
+
+        return (
+          <div key={product.id} className="flex items-start gap-4 py-4">
+            <div className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+              <Image
+                src={imageUrl}
+                alt={product.name}
+                fill
+                sizes="64px"
+                className="object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-[#1A1A1A] truncate" title={product.name}>
+                  {product.name}
+                </p>
+                <span className="text-xs font-medium text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
+                  Stock: {product.stock_quantity ?? 0}
+                </span>
+              </div>
+              {product.category?.name && (
+                <p className="text-xs text-[#3A3A3A] mt-1">Category: {product.category.name}</p>
+              )}
+              <div className="text-sm text-[#3A3A3A] mt-2 flex flex-wrap gap-4">
+                <span>Price: {formatCurrency(price)}</span>
+                {product.sku && <span>SKU: {product.sku}</span>}
+              </div>
+            </div>
+            <Link
+              href={`/admin/products?productId=${product.id}`}
+              className="text-sm font-medium text-[#FF7A19] hover:underline"
+            >
+              Manage
+            </Link>
+          </div>
+        );
+      })}
+    </div>
+  );
+};

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
 import { MediaPicker } from '@/components/admin/MediaPicker';
+import { buildApiUrl } from '@/lib/api';
 
 interface Banner {
   id: string;
@@ -49,8 +50,7 @@ export default function BannersPage() {
         return;
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/banners`, {
+      const response = await fetch(buildApiUrl('/api/banners'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -176,11 +176,11 @@ export default function BannersPage() {
         return;
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       const isEditing = !!editingBanner;
+      const baseEndpoint = buildApiUrl('/api/banners');
       
       const response = await fetch(
-        isEditing ? `${apiUrl}/api/banners/${editingBanner!.id}` : `${apiUrl}/api/banners`,
+        isEditing ? `${baseEndpoint}/${editingBanner!.id}` : baseEndpoint,
         {
           method: isEditing ? 'PUT' : 'POST',
           headers: {
@@ -227,8 +227,7 @@ export default function BannersPage() {
         return;
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/banners/${id}`, {
+      const response = await fetch(`${buildApiUrl('/api/banners')}/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
@@ -262,8 +261,7 @@ export default function BannersPage() {
       const banner = banners.find(b => b.id === id);
       if (!banner) return;
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/banners/${id}`, {
+      const response = await fetch(`${buildApiUrl('/api/banners')}/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

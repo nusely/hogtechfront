@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Upload, Trash2, Search, Grid, List, Image as ImageIcon, X, Loader2, Check, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { mediaService, MediaFile } from '@/services/media.service';
 import toast from 'react-hot-toast';
+import { useAppSelector } from '@/store';
 
 type ViewMode = 'grid' | 'list';
 type FolderFilter = 'all' | 'products' | 'categories' | 'banners' | 'brands' | 'uploads';
 
 export default function MediaLibraryPage() {
+  const { isAuthenticated, isLoading: authLoading } = useAppSelector((state) => state.auth);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -21,10 +23,6 @@ export default function MediaLibraryPage() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    fetchFiles();
-  }, [folderFilter]);
 
   useEffect(() => {
     // Filter files based on search query
@@ -40,8 +38,13 @@ export default function MediaLibraryPage() {
     setFilteredFiles(filtered);
   }, [searchQuery, files]);
 
-  const fetchFiles = async (isSync: boolean = false) => {
+  const fetchFiles = useCallback(async (isSync: boolean = false) => {
     try {
+      if (!isAuthenticated) {
+        setLoading(false);
+        return;
+      }
+
       if (isSync) {
         setSyncing(true);
       } else {
@@ -65,7 +68,22 @@ export default function MediaLibraryPage() {
       setLoading(false);
       setSyncing(false);
     }
-  };
+  }, [folderFilter, isAuthenticated]);
+
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setFiles([]);
+      setFilteredFiles([]);
+      setLoading(false);
+      return;
+    }
+
+    fetchFiles();
+  }, [fetchFiles, authLoading, isAuthenticated]);
 
   const handleSyncFromR2 = async () => {
     await fetchFiles(true);

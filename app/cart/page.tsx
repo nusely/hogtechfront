@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
@@ -21,6 +21,11 @@ export default function CartPage() {
   const [taxAmount, setTaxAmount] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const handleRemoveItem = (productId: string) => {
     dispatch(removeFromCart(productId));
@@ -47,7 +52,11 @@ export default function CartPage() {
   };
 
   // Calculate taxes and discounts when cart changes
-  React.useEffect(() => {
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
     const calculateTaxesAndDiscounts = async () => {
       if (total === 0) {
         setTaxAmount(0);
@@ -72,7 +81,11 @@ export default function CartPage() {
     };
 
     calculateTaxesAndDiscounts();
-  }, [total]);
+  }, [total, isHydrated]);
+
+  if (!isHydrated) {
+    return <div className="min-h-screen bg-gray-50" />;
+  }
 
   if (items.length === 0) {
     return (

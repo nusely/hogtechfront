@@ -26,6 +26,8 @@ import {
   Percent,
   Star,
   Zap,
+  SlidersHorizontal,
+  ScrollText,
 } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from '@/services/auth.service';
@@ -56,8 +58,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   // Fetch badge counts
+  const hasAdminPrivileges = (role?: string | null) =>
+    role === 'admin' || role === 'superadmin';
+
   useEffect(() => {
-    if (!isAuthenticated || !user || user.role !== 'admin') return;
+    if (!isAuthenticated || !user || !hasAdminPrivileges(user.role)) return;
 
     const fetchBadgeCounts = async () => {
       try {
@@ -146,7 +151,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return;
       }
       
-      if (user.role !== 'admin') {
+      if (!hasAdminPrivileges(user.role)) {
         // User is authenticated but not admin
         if (pathname !== '/') {
           router.replace('/');
@@ -257,15 +262,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       badge: unreadNotificationsCount !== undefined ? (unreadNotificationsCount > 0 ? unreadNotificationsCount : undefined) : undefined,
     },
     {
-      icon: Settings,
-      label: 'Settings',
-      children: [
-        { icon: Settings, label: 'Delivery Options', href: '/admin/settings' },
-        { icon: DollarSign, label: 'Taxes', href: '/admin/taxes' },
-        { icon: Percent, label: 'Discounts', href: '/admin/discounts' },
-      ],
+      icon: SlidersHorizontal,
+      label: 'Main Settings',
+      href: '/admin/main-settings',
     },
   ];
+
+  if (user?.role === 'superadmin') {
+    menuItems.splice(1, 0, {
+      icon: ScrollText,
+      label: 'Audit Logs',
+      href: '/admin/logs',
+    });
+  }
 
   const isActive = (href?: string) => {
     if (!href) return false;
@@ -300,7 +309,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // After loading is complete, check if user is authenticated and is admin
   // Only render if authenticated as admin, otherwise useEffect will handle redirect
-  if (!isAuthenticated || !user || user.role !== 'admin') {
+  if (!isAuthenticated || !user || !hasAdminPrivileges(user.role)) {
     // Don't render anything while redirect is happening
     // This prevents flash of content
     return null;

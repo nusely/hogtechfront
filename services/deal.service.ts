@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types/product';
+import { buildApiUrl } from '@/lib/api';
 
 // Helper function to get auth token
 const getAuthToken = async (): Promise<string | null> => {
@@ -48,12 +49,11 @@ export interface DealProduct {
   deal?: Deal;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
 // Get all deals (public - active, admin - all)
 export const getAllDeals = async (includeInactive: boolean = false): Promise<Deal[]> => {
   try {
-    const url = `${API_URL}/api/deals${includeInactive ? '?includeInactive=true' : ''}`;
+    const base = buildApiUrl('/api/deals');
+    const url = includeInactive ? `${base}?includeInactive=true` : base;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -96,7 +96,7 @@ export const getAllDeals = async (includeInactive: boolean = false): Promise<Dea
 // Get deal by ID
 export const getDealById = async (id: string): Promise<Deal | null> => {
   try {
-    const response = await fetch(`${API_URL}/api/deals/${id}`, {
+    const response = await fetch(`${buildApiUrl('/api/deals')}/${id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ export const getDealById = async (id: string): Promise<Deal | null> => {
 // Get products for a deal
 export const getDealProducts = async (dealId: string): Promise<DealProduct[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/deals/${dealId}/products`, {
+    const response = await fetch(`${buildApiUrl('/api/deals')}/${dealId}/products`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -167,7 +167,7 @@ export const getDealProducts = async (dealId: string): Promise<DealProduct[]> =>
 // Get all products in active deals (for deals page)
 export const getActiveDealProducts = async (): Promise<DealProduct[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/deals/active/products`, {
+    const response = await fetch(`${buildApiUrl('/api/deals')}/active/products`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -223,7 +223,7 @@ export const createDeal = async (dealData: Partial<Deal>): Promise<Deal> => {
     throw new Error('Authentication required. Please log in.');
   }
 
-  const response = await fetch(`${API_URL}/api/deals`, {
+  const response = await fetch(buildApiUrl('/api/deals'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -251,7 +251,7 @@ export const updateDeal = async (id: string, updates: Partial<Deal>): Promise<De
     throw new Error('Authentication required. Please log in.');
   }
 
-  const response = await fetch(`${API_URL}/api/deals/${id}`, {
+  const response = await fetch(`${buildApiUrl('/api/deals')}/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -279,7 +279,7 @@ export const deleteDeal = async (id: string): Promise<void> => {
     throw new Error('Authentication required. Please log in.');
   }
 
-  const response = await fetch(`${API_URL}/api/deals/${id}`, {
+  const response = await fetch(`${buildApiUrl('/api/deals')}/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -313,7 +313,7 @@ export const addProductToDeal = async (dealId: string, productData: {
     throw new Error('Authentication required. Please log in.');
   }
 
-  const response = await fetch(`${API_URL}/api/deals/${dealId}/products`, {
+  const response = await fetch(`${buildApiUrl('/api/deals')}/${dealId}/products`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -341,7 +341,7 @@ export const updateDealProduct = async (dealId: string, productId: string, updat
     throw new Error('Authentication required. Please log in.');
   }
 
-  const response = await fetch(`${API_URL}/api/deals/${dealId}/products/${productId}`, {
+  const response = await fetch(`${buildApiUrl('/api/deals')}/${dealId}/products/${productId}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ export const removeProductFromDeal = async (dealId: string, productId: string): 
     throw new Error('Authentication required. Please log in.');
   }
 
-  const response = await fetch(`${API_URL}/api/deals/${dealId}/products/${productId}`, {
+  const response = await fetch(`${buildApiUrl('/api/deals')}/${dealId}/products/${productId}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -386,7 +386,10 @@ export const removeProductFromDeal = async (dealId: string, productId: string): 
 // Get flash deal products (for homepage)
 export const getFlashDealProducts = async (limit: number = 4): Promise<DealProduct[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/deals/flash/products?limit=${limit}`, {
+    const url = new URL(buildApiUrl('/api/deals/flash/products'));
+    url.searchParams.set('limit', String(limit));
+
+    const response = await fetch(url.toString(), {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

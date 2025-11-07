@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import { buildApiUrl } from '@/lib/api';
 
 interface Transaction {
   id: string;
@@ -44,9 +45,18 @@ export default function TransactionsPage() {
       setLoading(true);
       
       // Try backend API first (bypasses RLS)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const baseEndpoint = buildApiUrl('/api/transactions');
       try {
-        let apiUrl = `${API_URL}/api/transactions`;
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        if (!token) {
+          throw new Error('Missing authentication token');
+        }
+
+        let apiUrl = baseEndpoint;
         if (statusFilter !== 'all') {
           const dbStatus = statusFilter === 'completed' ? 'paid' : 
                           statusFilter === 'pending' ? 'pending' : 
@@ -59,6 +69,7 @@ export default function TransactionsPage() {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -88,8 +99,12 @@ export default function TransactionsPage() {
             return;
           }
         }
-      } catch (apiError) {
-        console.warn('Backend API failed, trying Supabase:', apiError);
+      } catch (apiError: any) {
+        if (apiError?.message === 'Missing authentication token') {
+          console.warn('Skipping backend transactions fetch: no auth token available yet.');
+        } else {
+          console.warn('Backend API failed, trying Supabase:', apiError);
+        }
       }
 
       // Fallback: Fetch transactions from Supabase

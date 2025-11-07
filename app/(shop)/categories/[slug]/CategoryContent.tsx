@@ -11,13 +11,17 @@ import { Category } from '@/types/product';
 import { Product } from '@/types/product';
 import { productService } from '@/services/product.service';
 import { getFilterBrands } from '@/services/brand.service';
-import { getFilterCategories } from '@/services/category.service';
+import { getCategories, getCategoryBySlug, getFilterCategories } from '@/services/category.service';
 
 interface CategoryContentProps {
-  category: Category;
+  initialCategory: Category | null;
+  slug: string;
 }
 
-export function CategoryContent({ category }: CategoryContentProps) {
+export function CategoryContent({ initialCategory, slug }: CategoryContentProps) {
+  const [category, setCategory] = useState<Category | null>(initialCategory);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(!initialCategory);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -50,7 +54,64 @@ export function CategoryContent({ category }: CategoryContentProps) {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const resolveCategory = async () => {
+      if (initialCategory) {
+        setCategory(initialCategory);
+        setIsCategoryLoading(false);
+        setCategoryError(null);
+        return;
+      }
+
+      setIsCategoryLoading(true);
+      setCategoryError(null);
+
+      try {
+        const directMatch = await getCategoryBySlug(slug);
+
+        if (isMounted && directMatch) {
+          setCategory(directMatch);
+          setIsCategoryLoading(false);
+          return;
+        }
+
+        const allCategories = await getCategories();
+        const fallback = allCategories.find((cat) => cat.slug?.toLowerCase() === slug.toLowerCase());
+
+        if (isMounted && fallback) {
+          setCategory(fallback);
+        } else if (isMounted) {
+          setCategory(null);
+          setCategoryError('Category not found');
+        }
+      } catch (error) {
+        console.error('Error resolving category:', error);
+        if (isMounted) {
+          setCategory(null);
+          setCategoryError('Unable to load this category right now. Please try again later.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsCategoryLoading(false);
+        }
+      }
+    };
+
+    resolveCategory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialCategory, slug]);
+
+  useEffect(() => {
     const fetchProducts = async () => {
+      if (!category) {
+        setProducts([]);
+        return;
+      }
+
       try {
         setIsLoading(true);
         const productsData = await productService.getProducts({
@@ -69,7 +130,7 @@ export function CategoryContent({ category }: CategoryContentProps) {
     };
 
     fetchProducts();
-  }, [category.id, selectedBrand, inStockOnly, sortBy]);
+  }, [category, selectedBrand, inStockOnly, sortBy]);
 
   // Filter products by price range
   const filteredProducts = products.filter((product) => {
@@ -86,18 +147,37 @@ export function CategoryContent({ category }: CategoryContentProps) {
             <ArrowLeft size={18} />
             <span className="text-sm font-medium">Back to Categories</span>
           </Link>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-2">
-            {category.name}
-          </h1>
-          {category.description && (
-            <p className="text-[#3A3A3A] text-sm sm:text-base">{category.description}</p>
+          {isCategoryLoading ? (
+            <div className="space-y-3">
+              <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-72 bg-gray-200 rounded animate-pulse" />
+            </div>
+          ) : category ? (
+            <>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-2">
+                {category.name}
+              </h1>
+              {category.description && (
+                <p className="text-[#3A3A3A] text-sm sm:text-base">{category.description}</p>
+              )}
+            </>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm p-6 text-center">
+              <h2 className="text-xl font-semibold text-[#1A1A1A] mb-2">Category not found</h2>
+              <p className="text-[#3A3A3A] text-sm mb-4">
+                {categoryError || 'We could not locate this category. It might have been moved or renamed.'}
+              </p>
+              <Link href="/shop">
+                <Button variant="outline">Browse All Products</Button>
+              </Link>
+            </div>
           )}
         </div>
 
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <p className="text-sm text-[#3A3A3A]">
-            {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+            {isCategoryLoading ? 'Loading products...' : `${filteredProducts.length} ${filteredProducts.length === 1 ? 'product' : 'products'} found`}
           </p>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -282,7 +362,9 @@ export function CategoryContent({ category }: CategoryContentProps) {
 
           {/* Products Grid/List */}
           <div className="lg:col-span-3">
-            {isLoading ? (
+            {isCategoryLoading ? (
+              <ProductListSkeleton count={12} />
+            ) : isLoading ? (
               <ProductListSkeleton count={12} />
             ) : filteredProducts.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm p-12 text-center">

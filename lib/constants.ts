@@ -72,6 +72,7 @@ export const PRODUCT_CATEGORIES = [
 // User Roles
 export const USER_ROLES = {
   ADMIN: 'admin',
+  SUPERADMIN: 'superadmin',
   CUSTOMER: 'customer',
 };
 

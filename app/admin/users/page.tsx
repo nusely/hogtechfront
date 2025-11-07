@@ -42,7 +42,7 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
 
   useEffect(() => {
-    if (isAuthenticated && user?.role !== 'admin') {
+    if (isAuthenticated && user && user.role !== 'admin' && user.role !== 'superadmin') {
       router.push('/');
       return;
     }
@@ -203,12 +203,25 @@ export default function AdminUsersPage() {
   };
 
   const getRoleBadge = (role: string) => {
-    return role === 'admin' ? (
-      <Badge variant="error" className="flex items-center gap-1">
-        <Shield size={12} />
-        Admin
-      </Badge>
-    ) : (
+    if (role === 'superadmin') {
+      return (
+        <Badge variant="error" className="flex items-center gap-1">
+          <Shield size={12} />
+          Super Admin
+        </Badge>
+      );
+    }
+
+    if (role === 'admin') {
+      return (
+        <Badge variant="error" className="flex items-center gap-1">
+          <Shield size={12} />
+          Admin
+        </Badge>
+      );
+    }
+
+    return (
       <Badge variant="default" className="flex items-center gap-1">
         <User size={12} />
         Customer

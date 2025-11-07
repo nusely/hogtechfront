@@ -28,6 +28,7 @@ import { getCategories } from '@/services/category.service';
 import { supabasePublic } from '@/lib/supabase';
 import { CategoryCarousel } from '@/components/categories/CategoryCarousel';
 import { seoConfig } from '@/lib/seo.config';
+import { buildApiUrl } from '@/lib/api';
 
 export function HomeContent() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -40,9 +41,8 @@ export function HomeContent() {
   const fetchBanners = useCallback(async () => {
     try {
       // Try backend API first (bypasses RLS) - use public endpoint /api/banners/hero
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       try {
-        const response = await fetch(`${API_URL}/api/banners/hero`, {
+        const response = await fetch(buildApiUrl('/api/banners/hero'), {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -404,7 +404,7 @@ export function HomeContent() {
             <input
               type="email"
               placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-lg text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-white"
+              className="w-full px-4 py-3 rounded-lg text-[#1A1A1A] border border-white focus:outline-none focus:ring-2 focus:ring-white"
               suppressHydrationWarning
             />
             <Button variant="secondary" size="lg" type="submit" className="w-full sm:w-auto sm:mx-auto">
@@ -417,10 +417,10 @@ export function HomeContent() {
       {/* Call to Action Section */}
       <section className="bg-[#1A1A1A] py-12">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white !text-white">
             Ready to Upgrade Your Tech?
           </h2>
-          <p className="text-base text-white mb-6">
+          <p className="text-base text-white mb-6 !text-white">
             Explore our collection of the latest gadgets and electronics
           </p>
           <Link href="/categories">

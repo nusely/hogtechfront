@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ProductCard } from '@/components/cards/ProductCard';
 import { QuickView } from '@/components/shop/QuickView';
 import { Product, Category } from '@/types/product';
@@ -16,6 +16,7 @@ import { SidebarAds } from '@/components/navigation/SidebarAds';
 import { productService } from '@/services/product.service';
 import { getCategories } from '@/services/category.service';
 import { getFilterBrands, Brand } from '@/services/brand.service';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 interface ProductFilters {
   category?: string;
@@ -27,6 +28,10 @@ interface ProductFilters {
 }
 
 export function ShopContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false); // For mobile only
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -40,6 +45,60 @@ export function ShopContent() {
   const [filters, setFilters] = useState<ProductFilters>({
     sortBy: 'newest'
   });
+
+  const searchParamsString = useMemo(() => searchParams.toString(), [searchParams]);
+
+  const categoryIdToSlugMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    categories.forEach((category) => {
+      if (category.id && category.slug) {
+        map[category.id] = category.slug;
+      }
+    });
+    return map;
+  }, [categories]);
+
+  const brandIdToSlugMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    brands.forEach((brand) => {
+      if (brand.id && brand.slug) {
+        map[brand.id] = brand.slug;
+      }
+    });
+    return map;
+  }, [brands]);
+
+  const updateUrlWithFilters = (nextFilters: ProductFilters) => {
+    if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(searchParamsString);
+
+    if (nextFilters.category) {
+      const categorySlug = categoryIdToSlugMap[nextFilters.category];
+      if (categorySlug) {
+        params.set('category', categorySlug);
+      } else {
+        params.delete('category');
+      }
+    } else {
+      params.delete('category');
+    }
+
+    if (nextFilters.brand) {
+      const brandSlug = brandIdToSlugMap[nextFilters.brand];
+      if (brandSlug) {
+        params.set('brand', brandSlug);
+      } else {
+        params.delete('brand');
+      }
+    } else {
+      params.delete('brand');
+    }
+
+    const queryString = params.toString();
+    const url = queryString ? `${pathname}?${queryString}` : pathname;
+    router.replace(url, { scroll: false });
+  };
 
   const productsPerPage = 20;
 
@@ -59,6 +118,44 @@ export function ShopContent() {
     };
     fetchFilterData();
   }, []);
+
+  useEffect(() => {
+    if (!categories.length) {
+      return;
+    }
+
+    const currentParams = new URLSearchParams(searchParamsString);
+    const categorySlugParam = currentParams.get('category');
+    const brandSlugParam = currentParams.get('brand');
+
+    const categoryMatch = categorySlugParam
+      ? categories.find((cat) => cat.slug?.toLowerCase() === categorySlugParam.toLowerCase())
+      : undefined;
+
+    const brandMatch = brandSlugParam
+      ? brands.find((brand) => brand.slug?.toLowerCase() === brandSlugParam.toLowerCase())
+      : undefined;
+
+    const categoryId = categoryMatch?.id;
+    const brandId = brandMatch?.id;
+
+    setFilters((prev) => {
+      const nextFilters: ProductFilters = {
+        ...prev,
+        category: categoryId,
+        brand: brandId,
+      };
+
+      const changed = nextFilters.category !== prev.category || nextFilters.brand !== prev.brand;
+
+      if (changed) {
+        setCurrentPage(1);
+        return nextFilters;
+      }
+
+      return prev;
+    });
+  }, [categories, brands, searchParamsString]);
 
   // Fetch products
   useEffect(() => {
@@ -145,10 +242,15 @@ export function ShopContent() {
   }, [products, filters]);
 
   const handleFilterChange = (key: keyof ProductFilters, value: any) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value || undefined
-    }));
+    setFilters(prev => {
+      const nextFilters = {
+        ...prev,
+        [key]: value || undefined,
+      } as ProductFilters;
+
+      updateUrlWithFilters(nextFilters);
+      return nextFilters;
+    });
     setCurrentPage(1); // Reset to first page when filter changes
   };
 
@@ -159,7 +261,9 @@ export function ShopContent() {
   };
 
   const clearFilters = () => {
-    setFilters({ sortBy: 'newest' });
+    const resetFilters: ProductFilters = { sortBy: 'newest' };
+    setFilters(resetFilters);
+    updateUrlWithFilters(resetFilters);
     setCurrentPage(1);
   };
 

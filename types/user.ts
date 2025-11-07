@@ -4,7 +4,7 @@ export interface User {
   full_name: string;
   phone: string;
   avatar_url?: string;
-  role: 'admin' | 'customer';
+  role: 'admin' | 'customer' | 'superadmin';
   email_verified: boolean;
   created_at: string;
   updated_at: string;

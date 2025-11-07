@@ -20,8 +20,8 @@ export default function AdminDashboardPage() {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    // Redirect if not admin
-    if (isAuthenticated && user?.role !== 'admin') {
+    // Redirect if not admin or superadmin
+    if (isAuthenticated && user && user.role !== 'admin' && user.role !== 'superadmin') {
       router.push('/');
     }
   }, [isAuthenticated, user, router]);

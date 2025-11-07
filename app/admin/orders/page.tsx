@@ -23,6 +23,7 @@ import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { CSVExporter, OrderColumns } from '@/lib/csvExport';
 import { OrderDetailModal } from '@/components/admin/OrderDetailModal';
+import { buildApiUrl } from '@/lib/api';
 
 interface Order {
   id: string;
@@ -50,7 +51,11 @@ export default function AdminOrdersPage() {
   const [isSelectMode, setIsSelectMode] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated && user?.role !== 'admin') {
+    if (!isAuthenticated || !user) {
+      return;
+    }
+
+    if (user.role !== 'admin' && user.role !== 'superadmin') {
       router.push('/');
       return;
     }
@@ -75,23 +80,39 @@ export default function AdminOrdersPage() {
     
     clearPendingOrdersNotification();
     
-    // Debounce search
+    // Debounce search (only when authenticated admin user is present)
     const timeoutId = setTimeout(() => {
       fetchOrders();
     }, searchQuery ? 300 : 0);
     
     return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, user, statusFilter, searchQuery]);
+  }, [isAuthenticated, user, statusFilter, searchQuery, router]);
 
   const fetchOrders = async () => {
     try {
+      if (!isAuthenticated || !user) {
+        setOrders([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       
       // Try backend API first (bypasses RLS)
       // Handle both cases: NEXT_PUBLIC_API_URL with or without /api
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const baseUrl = buildApiUrl('/api');
       const API_URL = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
       try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        if (!token) {
+          console.warn('No auth token available for admin orders fetch; skipping backend API call.');
+          throw new Error('Missing authentication token');
+        }
+
         const params = new URLSearchParams();
         if (statusFilter !== 'all') {
           params.append('status', statusFilter);
@@ -102,6 +123,7 @@ export default function AdminOrdersPage() {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
 
@@ -180,7 +202,14 @@ export default function AdminOrdersPage() {
             return; // Success - exit early
           }
         }
-      } catch (apiError) {
+      } catch (apiError: any) {
+        if (apiError?.message === 'Missing authentication token') {
+          console.warn('Skipped backend admin orders fetch due to missing auth token.');
+          setOrders([]);
+          setIsLoading(false);
+          return;
+        }
+
         console.warn('Backend API failed, trying Supabase:', apiError);
         // Fall through to Supabase fallback
       }
@@ -321,10 +350,12 @@ export default function AdminOrdersPage() {
   const updateOrderStatus = async (orderId: string, newStatus: string, trackingNumber?: string) => {
     try {
       // Update order status via backend API (handles emails automatically)
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/status`, {
+      const token = await supabase.auth.getSession().then(({ data }) => data.session?.access_token || null);
+      const response = await fetch(`${buildApiUrl('/api/orders')}/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           status: newStatus,
@@ -353,10 +384,12 @@ export default function AdminOrdersPage() {
   const updatePaymentStatus = async (orderId: string, newPaymentStatus: string) => {
     try {
       // Update payment status via backend API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/payment-status`, {
+      const token = await supabase.auth.getSession().then(({ data }) => data.session?.access_token || null);
+      const response = await fetch(`${buildApiUrl('/api/orders')}/${orderId}/payment-status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           payment_status: newPaymentStatus,
@@ -449,7 +482,12 @@ export default function AdminOrdersPage() {
 
   const downloadOrderPDF = async (orderId: string, orderNumber: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/pdf`);
+      const token = await supabase.auth.getSession().then(({ data }) => data.session?.access_token || null);
+      const response = await fetch(`${buildApiUrl('/api/orders')}/${orderId}/pdf`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
       
       if (!response.ok) {
         throw new Error('Failed to generate PDF');

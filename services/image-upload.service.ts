@@ -10,6 +10,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { buildApiUrl } from '@/lib/api';
 
 interface MediaLibraryItem {
   id: string;
@@ -149,9 +150,14 @@ async function uploadToR2(
     const formData = new FormData();
     formData.append('file', file);
     
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    const response = await fetch(`${apiUrl}/api/upload?folder=${encodeURIComponent(folder)}`, {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    const response = await fetch(`${buildApiUrl('/api/upload')}?folder=${encodeURIComponent(folder)}`, {
       method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: formData,
     });
 

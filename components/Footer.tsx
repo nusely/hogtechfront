@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { settingsService } from '@/lib/settings.service';
 import Link from 'next/link';
+import { Facebook, Twitter, Instagram, Linkedin, MessageCircle } from 'lucide-react';
 
 export function Footer() {
   const [settings, setSettings] = useState<Record<string, string | null>>({});
@@ -47,6 +48,34 @@ export function Footer() {
   const linkedinUrl = settings.store_linkedin_url || '';
   const whatsappNumber = settings.store_whatsapp_number || '';
 
+  const socialLinks = [
+    {
+      url: facebookUrl,
+      label: 'Facebook',
+      Icon: Facebook,
+    },
+    {
+      url: twitterUrl,
+      label: 'Twitter',
+      Icon: Twitter,
+    },
+    {
+      url: instagramUrl,
+      label: 'Instagram',
+      Icon: Instagram,
+    },
+    {
+      url: linkedinUrl,
+      label: 'LinkedIn',
+      Icon: Linkedin,
+    },
+    {
+      url: whatsappNumber ? `https://wa.me/${whatsappNumber.replace(/\D/g, '')}` : '',
+      label: 'WhatsApp',
+      Icon: MessageCircle,
+    },
+  ];
+
   if (loading) {
     return null; // Don't show footer while loading
   }
@@ -57,8 +86,8 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6">
           {/* Store Info */}
           <div>
-            <h3 className="font-bold text-lg mb-3 text-white">{storeName}</h3>
-            <p className="text-sm text-white mb-4">{storeTagline}</p>
+            <h3 className="font-bold text-lg mb-3 text-white !text-white">{storeName}</h3>
+            <p className="text-sm text-white mb-4 !text-white">{storeTagline}</p>
             <div className="space-y-2 text-sm text-gray-400">
               {storePhone && (
                 <a href={`tel:${storePhone.replace(/\s/g, '')}`} className="block hover:text-[#FF7A19] transition-colors">
@@ -149,31 +178,20 @@ export function Footer() {
               <div className="mt-4">
                 <h4 className="font-semibold text-sm mb-3">Follow Us</h4>
                 <div className="flex gap-3">
-                  {facebookUrl && (
-                    <a href={facebookUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7A19] transition-colors">
-                      Facebook
-                    </a>
-                  )}
-                  {twitterUrl && (
-                    <a href={twitterUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7A19] transition-colors">
-                      Twitter
-                    </a>
-                  )}
-                  {instagramUrl && (
-                    <a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7A19] transition-colors">
-                      Instagram
-                    </a>
-                  )}
-                  {linkedinUrl && (
-                    <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7A19] transition-colors">
-                      LinkedIn
-                    </a>
-                  )}
-                  {whatsappNumber && (
-                    <a href={`https://wa.me/${whatsappNumber.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#FF7A19] transition-colors">
-                      WhatsApp
-                    </a>
-                  )}
+                  {socialLinks
+                    .filter(({ url }) => !!url)
+                    .map(({ url, label, Icon }) => (
+                      <a
+                        key={label}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-full border border-white/20 hover:border-[#FF7A19] hover:text-[#FF7A19] transition-colors"
+                        aria-label={label}
+                      >
+                        <Icon size={18} />
+                      </a>
+                    ))}
                 </div>
               </div>
             )}
@@ -181,8 +199,8 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 pt-6 text-center">
-          <p className="text-sm text-gray-400">
-            &copy; {new Date().getFullYear()} {storeName}. All rights reserved.
+          <p className="text-sm text-[#FF7A19]">
+            &copy; {new Date().getFullYear()} {storeName}. All rights reserved. Powered by Cimons.
           </p>
         </div>
       </div>

@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase';
+import { buildApiUrl } from '@/lib/api';
+import { settingsService } from '@/lib/settings.service';
 
 export interface Notification {
   id: string;
@@ -11,7 +13,19 @@ export interface Notification {
   read_at?: string;
 }
 
-const LOW_STOCK_THRESHOLD = 10; // Products with stock < 10 are considered low
+const getLowStockThreshold = async (): Promise<number> => {
+  try {
+    const value = await settingsService.getSetting('inventory_low_stock_threshold');
+    const parsed = parseInt(value || '', 10);
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      return parsed;
+    }
+  } catch (error) {
+    // Ignore and fallback
+  }
+
+  return 3;
+};
 
 export const notificationService = {
   // Create a notification
@@ -77,7 +91,9 @@ export const notificationService = {
 
   // Check for low stock and create notification
   async checkLowStock(productId: string, stockQuantity: number, productName: string): Promise<void> {
-    if (stockQuantity < LOW_STOCK_THRESHOLD && stockQuantity > 0) {
+    const threshold = await getLowStockThreshold();
+
+    if (stockQuantity <= threshold && stockQuantity > 0) {
       // Check if we already have a recent notification for this product
       const { data: existingNotifications } = await supabase
         .from('notifications')
@@ -120,10 +136,16 @@ export const notificationService = {
   // Send low stock email to admin
   async sendLowStockEmail(productName: string, stockQuantity: number): Promise<void> {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/send-email`, {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch(buildApiUrl('/api/admin/send-email'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           type: 'low_stock',
@@ -150,10 +172,16 @@ export const notificationService = {
   // Send out of stock email to admin
   async sendOutOfStockEmail(productName: string): Promise<void> {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/send-email`, {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch(buildApiUrl('/api/admin/send-email'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           type: 'out_of_stock',

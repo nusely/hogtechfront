@@ -60,6 +60,6 @@ export const isAdmin = async () => {
     return false;
   }
 
-  return data?.role === 'admin';
+  return data?.role === 'admin' || data?.role === 'superadmin';
 };
 

@@ -18,6 +18,8 @@ export interface Order {
   shipping_address?: Address | any; // Database column name (for backward compatibility)
   delivery_option?: DeliveryOption;
   shipping_fee?: number; // Database column name (alias for delivery_fee)
+  contains_deal_items?: boolean;
+  discount_code?: string | null;
   tracking_number?: string;
   notes?: string;
   created_at: string;
@@ -28,7 +30,7 @@ export interface Order {
 export interface OrderItem {
   id: string;
   order_id: string;
-  product_id: string;
+  product_id: string | null;
   product_name: string;
   product_image: string;
   quantity: number;
@@ -43,6 +45,7 @@ export interface OrderItem {
       price_adjustment: number;
     };
   };
+  standalone_source_id?: string | null;
 }
 
 export type OrderStatus =
@@ -93,6 +96,11 @@ export interface CheckoutData {
   payment_method: PaymentMethod;
   notes?: string;
   payment_reference?: string;
+  discount_code?: string;
+  discount_amount?: number;
+  adjusted_delivery_fee?: number;
+  tax_amount?: number;
+  tax_rate?: number;
 }
 
 

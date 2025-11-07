@@ -13,18 +13,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CategoryProductsPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const category = await getCategoryBySlug(resolvedParams.slug);
-  
-  if (!category) {
-    return <div>Category not found</div>;
-  }
 
-  const breadcrumbData = {
-    items: [
-      { name: 'Home', url: '/' },
-      { name: 'Categories', url: '/categories' },
-      { name: category.name, url: `/categories/${category.slug}` },
-    ],
-  };
+  const breadcrumbData = category
+    ? {
+        items: [
+          { name: 'Home', url: '/' },
+          { name: 'Categories', url: '/categories' },
+          { name: category.name, url: `/categories/${category.slug}` },
+        ],
+      }
+    : {
+        items: [
+          { name: 'Home', url: '/' },
+          { name: 'Categories', url: '/categories' },
+          { name: resolvedParams.slug.replace(/-/g, ' '), url: `/categories/${resolvedParams.slug}` },
+        ],
+      };
   const breadcrumbSchema = generateStructuredData('BreadcrumbList', breadcrumbData);
 
   return (
@@ -38,7 +42,7 @@ export default async function CategoryProductsPage({ params }: { params: Promise
           }}
         />
       )}
-      <CategoryContent category={category} />
+      <CategoryContent initialCategory={category} slug={resolvedParams.slug} />
     </>
   );
 }

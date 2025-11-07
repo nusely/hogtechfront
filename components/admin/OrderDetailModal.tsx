@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { supabase } from '@/lib/supabase';
 import { formatOrderVariants } from '@/lib/variantFormatter';
 import toast from 'react-hot-toast';
+import { buildApiUrl } from '@/lib/api';
 
 interface OrderItem {
   id: string;
@@ -73,12 +74,17 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
       setLoading(true);
       
       // Try fetching via backend API first (bypasses RLS)
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       try {
-        const response = await fetch(`${API_URL}/api/orders/${orderId}`, {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const token = session?.access_token;
+
+        const response = await fetch(`${buildApiUrl('/api/orders')}/${orderId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         });
 
@@ -157,10 +163,16 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
         if (itemsError.message?.includes('policy') || itemsError.message?.includes('permission')) {
           console.warn('RLS policy blocking order_items, trying backend API...');
           try {
-            const itemsResponse = await fetch(`${API_URL}/api/orders/${orderId}/items`, {
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+            const token = session?.access_token;
+
+            const itemsResponse = await fetch(`${buildApiUrl('/api/orders')}/${orderId}/items`, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
               },
             });
             if (itemsResponse.ok) {
@@ -224,11 +236,16 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
     try {
       setUpdatingStatus(true);
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_URL}/api/orders/${orderId}/status`, {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch(`${buildApiUrl('/api/orders')}/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -261,9 +278,14 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
     if (!order) return;
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_URL}/api/orders/${orderId}/pdf`, {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const response = await fetch(`${buildApiUrl('/api/orders')}/${orderId}/pdf`, {
         method: 'GET',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
 
       if (!response.ok) {

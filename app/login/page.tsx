@@ -131,7 +131,7 @@ export default function LoginPage() {
           toast.success(`Welcome back, ${firstName || fullName.split(' ')[0] || 'User'}!`);
           
           // Redirect based on role
-          if (profileData.role === 'admin') {
+          if (profileData.role === 'admin' || profileData.role === 'superadmin') {
             router.push('/admin');
           } else {
             router.push('/');

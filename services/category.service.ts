@@ -83,8 +83,13 @@ export const getCategoryBySlug = async (slug: string): Promise<Category | null> 
       .maybeSingle();
 
     if (error) {
-      // Only log non-404 errors
-      if ((error as any)?.code !== 'PGRST116' && (error as any)?.code !== '42P01') {
+      const errorCode = (error as any)?.code ?? (error as any)?.status;
+      const errorMessage = (error as any)?.message;
+      const hasMeaningfulInfo = Boolean(errorCode || errorMessage || (error as any)?.details);
+      const isEmptyError = !hasMeaningfulInfo && Object.keys(error as any).length === 0;
+
+      // Ignore "not found" (PGRST116/404) and empty Supabase errors to avoid noisy logs
+      if (!isEmptyError && hasMeaningfulInfo && errorCode !== 'PGRST116' && errorCode !== '42P01' && errorCode !== 404) {
         console.error('Error fetching category:', error);
       }
       return null;

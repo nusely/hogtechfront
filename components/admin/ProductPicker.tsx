@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import Image from 'next/image';
+import { buildApiUrl } from '@/lib/api';
 
 interface ProductPickerProps {
   isOpen: boolean;
@@ -31,11 +32,10 @@ export function ProductPicker({ isOpen, onClose, onSelect }: ProductPickerProps)
       
       // Try fetching via product service first (uses backend API)
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          const response = await fetch(`${apiUrl}/api/products?limit=100`, {
+          const response = await fetch(`${buildApiUrl('/api/products')}?limit=100`, {
             headers: {
               'Authorization': `Bearer ${session.access_token}`,
             },

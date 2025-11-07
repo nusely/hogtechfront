@@ -1,18 +1,33 @@
 import { supabase } from '@/lib/supabase';
 import { CheckoutData, Order } from '@/types/order';
+import { buildApiUrl } from '@/lib/api';
+
+const getAuthToken = async (): Promise<string | null> => {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
+};
 
 export const orderService = {
   // Create new order (supports guest checkout with null userId)
   // Uses backend API to handle emails and notifications
   async createOrder(checkoutData: CheckoutData, userId: string | null) {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const API_URL = buildApiUrl('/api');
     
     // Calculate totals
     const subtotal = checkoutData.items.reduce((sum, item) => sum + item.subtotal, 0);
     // Handle missing delivery_option gracefully
-    const deliveryFee = checkoutData.delivery_option?.price || 0;
-    const tax = subtotal * 0.0; // Ghana VAT if applicable
-    const total = subtotal + deliveryFee + tax;
+    const baseDeliveryFee = checkoutData.adjusted_delivery_fee ?? checkoutData.delivery_option?.price ?? 0;
+    const deliveryFee = Math.max(baseDeliveryFee, 0);
+    const discountAmount = Math.max(checkoutData.discount_amount || 0, 0);
+    const tax = Math.max(checkoutData.tax_amount ?? 0, 0);
+    const total = subtotal - discountAmount + deliveryFee + tax;
     
     // Log warning if delivery_option is missing
     if (!checkoutData.delivery_option) {
@@ -23,197 +38,96 @@ export const orderService = {
     // Frontend should not generate order number - backend handles it
 
     // Map items for backend
-    const order_items = checkoutData.items.map((item) => ({
-      product_id: item.id,
-      product_name: item.name,
-      product_image: item.thumbnail,
-      quantity: item.quantity,
-      unit_price: item.discount_price || item.original_price,
-      subtotal: item.subtotal,
-      selected_variants: item.selected_variants,
-    }));
-
-    // Try to call backend API first, fallback to Supabase if it fails
-    try {
-      const orderPayload = {
-          user_id: userId,
-        // order_number not provided - backend will generate sequential number
-          subtotal,
-          discount: 0,
-          tax,
-          delivery_fee: deliveryFee,
-          total,
-          payment_method: checkoutData.payment_method,
-        delivery_address: checkoutData.delivery_address, // Backend will map this to shipping_address
-          delivery_option: checkoutData.delivery_option,
-          notes: checkoutData.notes || null,
-          payment_reference: checkoutData.payment_reference || null, // Include payment reference for transaction linking
-          order_items,
-      };
-      
-      console.log('Creating order via backend API:', {
-        API_URL,
-        endpoint: `${API_URL}/api/orders`,
-        payload: {
-          ...orderPayload,
-          order_items: orderPayload.order_items.map(item => ({
-            product_id: item.product_id,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-          })),
-        },
-      });
-      
-      const response = await fetch(`${API_URL}/api/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderPayload),
-      });
-      
-      console.log('Backend API response:', {
-        ok: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-        return result.data;
-      } else {
-          throw new Error(result.message || 'Order creation failed');
-        }
-      } else {
-        // Try to parse error response
-        let errorMessage = 'Backend API failed';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || errorMessage;
-          console.error('Backend API error response:', {
-            status: response.status,
-            statusText: response.statusText,
-            error: errorData,
-          });
-        } catch (parseError) {
-          errorMessage = `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`;
-          console.error('Backend API error (non-JSON):', {
-            status: response.status,
-            statusText: response.statusText,
-          });
-        }
-        throw new Error(errorMessage);
-      }
-    } catch (apiError: any) {
-      // Fallback to direct Supabase insert if backend API fails
-      console.warn('Backend API failed, using Supabase fallback:', {
-        error: apiError,
-        message: apiError?.message,
-        stack: apiError?.stack,
-      });
-      
-      const { supabase } = await import('@/lib/supabase');
-      
-      // Generate sequential order number for fallback (same format as backend: ORD-XXXDDMMYY)
-      // This should rarely be used - backend API should always work
-      const now = new Date();
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateStr = `${day}${month}${year}`;
-      
-      // Get last order number for today to generate sequential number
-      try {
-        const { data: lastOrder } = await supabase
-          .from('orders')
-          .select('order_number')
-          .gte('created_at', new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString())
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        
-        let sequence = 1;
-        if (lastOrder && lastOrder.order_number) {
-          // Extract sequence from last order number (ORD-XXXDDMMYY)
-          const match = lastOrder.order_number.match(/ORD-(\d{3})/);
-          if (match) {
-            sequence = parseInt(match[1]) + 1;
-            // Reset to 1 if sequence exceeds 999
-            if (sequence > 999) sequence = 1;
-          }
-        }
-        
-        const sequenceStr = String(sequence).padStart(3, '0');
-        var orderNumber = `ORD-${sequenceStr}${dateStr}`;
-      } catch (orderNumError) {
-        // Fallback to timestamp-based number if query fails
-        const sequenceStr = String(Date.now()).slice(-3);
-        var orderNumber = `ORD-${sequenceStr}${dateStr}`;
-      }
-      
-      // Create order directly in Supabase (fallback - backend API should be used)
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert([
-          {
-            user_id: userId,
-            order_number: orderNumber, // Sequential order number (same format as backend)
-            status: 'pending',
-            subtotal,
-            discount: 0,
-            shipping_fee: deliveryFee || 0, // Use shipping_fee instead of delivery_fee
-            tax,
-            total,
-            payment_method: checkoutData.payment_method || 'cash_on_delivery',
-            payment_status: 'pending',
-            shipping_address: checkoutData.delivery_address, // Map to shipping_address
-            notes: checkoutData.notes || null,
-          },
-        ])
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error('Supabase order creation error:', {
-          error: orderError,
-          message: orderError.message,
-          code: orderError.code,
-          details: orderError.details,
-          hint: orderError.hint,
-        });
-        throw new Error(orderError.message || 'Failed to create order');
-      }
-
-      // Create order items
-      const orderItems = checkoutData.items.map((item) => ({
-        order_id: order.id,
-        product_id: item.id,
+    const order_items = checkoutData.items.map((item) => {
+      const isStandalone = item.category_id === 'standalone';
+      return {
+        product_id: isStandalone ? null : item.id,
         product_name: item.name,
         product_image: item.thumbnail,
         quantity: item.quantity,
         unit_price: item.discount_price || item.original_price,
-        total_price: item.subtotal, // Use total_price as per schema
+        subtotal: item.subtotal,
         selected_variants: item.selected_variants,
-      }));
+        standalone_source_id: isStandalone ? item.id : null,
+      };
+    });
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+    // Try to call backend API first, fallback to Supabase if it fails
+    const orderPayload = {
+      user_id: userId,
+      subtotal,
+      discount: discountAmount,
+      discount_code: checkoutData.discount_code || null,
+      tax,
+      delivery_fee: deliveryFee,
+      total,
+      payment_method: checkoutData.payment_method,
+      delivery_address: checkoutData.delivery_address,
+      delivery_option: checkoutData.delivery_option
+        ? { ...checkoutData.delivery_option, price: deliveryFee }
+        : undefined,
+      notes: checkoutData.notes || null,
+      payment_reference: checkoutData.payment_reference || null,
+      order_items,
+      tax_rate: checkoutData.tax_rate ?? null,
+    };
 
-      if (itemsError) {
-        console.error('Supabase order items creation error:', {
-          error: itemsError,
-          message: itemsError.message,
-          code: itemsError.code,
-          details: itemsError.details,
-          hint: itemsError.hint,
+    console.log('Creating order via backend API:', {
+      API_URL,
+      endpoint: `${API_URL}/orders`,
+      payload: {
+        ...orderPayload,
+        order_items: orderPayload.order_items.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+        })),
+      },
+    });
+
+    const authToken = await getAuthToken();
+
+    const response = await fetch(`${API_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+      body: JSON.stringify(orderPayload),
+    });
+
+    console.log('Backend API response:', {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    if (!response.ok) {
+      let errorMessage = 'Backend API failed';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+        console.error('Backend API error response:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
         });
-        throw new Error(itemsError.message || 'Failed to create order items');
+      } catch (parseError) {
+        errorMessage = `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`;
+        console.error('Backend API error (non-JSON):', {
+          status: response.status,
+          statusText: response.statusText,
+        });
       }
-
-      return order;
+      throw new Error(errorMessage);
     }
+
+    const result = await response.json();
+    if (result.success && result.data) {
+      return result.data as Order;
+    }
+
+    throw new Error(result.message || 'Order creation failed');
   },
 
   // Get user orders
