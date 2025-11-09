@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { ProductCard } from '@/components/cards/ProductCard';
 import { QuickView } from '@/components/shop/QuickView';
 import { Product, Category } from '@/types/product';
@@ -8,7 +8,6 @@ import {
   SlidersHorizontal,
   Grid3x3,
   List,
-  ChevronDown,
   X
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -45,6 +44,7 @@ export function ShopContent() {
   const [filters, setFilters] = useState<ProductFilters>({
     sortBy: 'newest'
   });
+  const productsPerPage = 20;
 
   const searchParamsString = useMemo(() => searchParams.toString(), [searchParams]);
 
@@ -68,9 +68,7 @@ export function ShopContent() {
     return map;
   }, [brands]);
 
-  const updateUrlWithFilters = (nextFilters: ProductFilters) => {
-    if (typeof window === 'undefined') return;
-
+  const buildUrlFromFilters = useCallback((nextFilters: ProductFilters) => {
     const params = new URLSearchParams(searchParamsString);
 
     if (nextFilters.category) {
@@ -95,12 +93,10 @@ export function ShopContent() {
       params.delete('brand');
     }
 
-    const queryString = params.toString();
-    const url = queryString ? `${pathname}?${queryString}` : pathname;
-    router.replace(url, { scroll: false });
-  };
+    return params.toString();
+  }, [brandIdToSlugMap, categoryIdToSlugMap, searchParamsString]);
 
-  const productsPerPage = 20;
+  const skipSyncRef = useRef(true);
 
   // Fetch categories and brands for filters
   useEffect(() => {
@@ -241,16 +237,11 @@ export function ShopContent() {
     setFilteredProducts(filtered);
   }, [products, filters]);
 
-  const handleFilterChange = (key: keyof ProductFilters, value: any) => {
-    setFilters(prev => {
-      const nextFilters = {
-        ...prev,
-        [key]: value || undefined,
-      } as ProductFilters;
-
-      updateUrlWithFilters(nextFilters);
-      return nextFilters;
-    });
+  const handleFilterChange = <K extends keyof ProductFilters>(key: K, value: ProductFilters[K] | undefined) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value ?? undefined,
+    }));
     setCurrentPage(1); // Reset to first page when filter changes
   };
 
@@ -263,9 +254,24 @@ export function ShopContent() {
   const clearFilters = () => {
     const resetFilters: ProductFilters = { sortBy: 'newest' };
     setFilters(resetFilters);
-    updateUrlWithFilters(resetFilters);
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (skipSyncRef.current) {
+      skipSyncRef.current = false;
+      return;
+    }
+
+    const nextQueryString = buildUrlFromFilters(filters);
+    if (nextQueryString === searchParamsString) {
+      return;
+    }
+
+    const url = nextQueryString ? `${pathname}?${nextQueryString}` : pathname;
+    router.replace(url, { scroll: false });
+  }, [filters, buildUrlFromFilters, pathname, router, searchParamsString]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
