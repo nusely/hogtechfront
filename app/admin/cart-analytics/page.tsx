@@ -123,6 +123,11 @@ useEffect(() => {
         .filter((item) => (item.quantity ?? 0) > 0 && item.product)
         .map((item) => {
           const user = item.user as any;
+          const productRecord = Array.isArray((item as any).product)
+            ? (item as any).product[0]
+            : (item as any).product;
+          const productName = productRecord?.name ?? 'Unknown Product';
+
           const userName = user
             ? (user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown')
             : 'Guest';
@@ -144,7 +149,7 @@ useEffect(() => {
             cart_value: calculateItemSubtotal(item),
             abandoned_at: item.updated_at || item.created_at,
             time_elapsed: formatTimeElapsed(item.updated_at || item.created_at),
-            products: [item.product?.name || 'Unknown Product'],
+            products: [productName],
             recovery_sent: false,
           } as AbandonedCart;
         });
