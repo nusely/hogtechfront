@@ -28,8 +28,16 @@ export const MegaMenu: React.FC = () => {
         const allCategories = await getCategories();
         const topLevelCategories = allCategories.filter(cat => !cat.parent_id);
 
+        const hasMegaMenuFlag = (item: unknown): boolean => {
+          if (!item || typeof item !== 'object') {
+            return false;
+          }
+          const flag = (item as { show_in_mega_menu?: boolean }).show_in_mega_menu;
+          return flag === true;
+        };
+
         const prioritized = topLevelCategories
-          .filter(cat => cat.show_in_mega_menu)
+          .filter(cat => hasMegaMenuFlag(cat))
           .sort((a, b) => {
             const orderA = typeof (a as any).display_order === 'number' ? (a as any).display_order : Number.MAX_SAFE_INTEGER;
             const orderB = typeof (b as any).display_order === 'number' ? (b as any).display_order : Number.MAX_SAFE_INTEGER;
@@ -40,7 +48,7 @@ export const MegaMenu: React.FC = () => {
           });
 
         const fallback = topLevelCategories
-          .filter(cat => !cat.show_in_mega_menu)
+          .filter(cat => !hasMegaMenuFlag(cat))
           .sort((a, b) => a.name.localeCompare(b.name));
 
         const selectedCategories = [...prioritized, ...fallback].slice(0, 4);
@@ -69,7 +77,7 @@ export const MegaMenu: React.FC = () => {
               const brandIds = [...new Set(productsData.map(p => p.brand_id).filter(Boolean))];
               const allBrands = await getBrands();
               const categoryBrands = allBrands
-                .filter(b => brandIds.includes(b.id) && b.show_in_mega_menu === true)
+                .filter(b => brandIds.includes(b.id) && hasMegaMenuFlag(b))
                 .slice(0, 4); // Limit to 4 brands
               brands[category.id] = categoryBrands;
             } else {
