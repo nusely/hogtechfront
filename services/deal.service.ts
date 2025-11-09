@@ -32,10 +32,12 @@ export interface DealProduct {
   id: string;
   deal_id: string;
   product_id?: string | null; // Nullable for standalone products
-  deal_price?: number;
+  deal_price?: number | null;
   discount_percentage: number;
   sort_order: number;
   is_flash_deal?: boolean;
+  stock_quantity?: number | null;
+  original_stock?: number | null;
   created_at: string;
   // Standalone product fields
   product_name?: string;
@@ -44,7 +46,7 @@ export interface DealProduct {
   product_images?: string[];
   product_key_features?: string | string[];
   product_specifications?: any;
-  original_price?: number;
+  original_price?: number | null;
   product?: Product;
   deal?: Deal;
 }
@@ -299,6 +301,7 @@ export const addProductToDeal = async (dealId: string, productData: {
   discount_percentage?: number; 
   sort_order?: number; 
   is_flash_deal?: boolean;
+  stock_quantity?: number;
   // Standalone product fields
   product_name?: string;
   product_description?: string;

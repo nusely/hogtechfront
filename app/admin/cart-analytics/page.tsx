@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 
 interface AbandonedCart {
   id: string;
+  user_id?: string;
   customer_name: string;
   customer_email: string;
   items_count: number;
@@ -31,68 +32,163 @@ export default function CartAnalyticsPage() {
   const [carts, setCarts] = useState<AbandonedCart[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
+useEffect(() => {
     fetchAbandonedCarts();
   }, []);
+
+  const formatTimeElapsed = (timestamp: string) => {
+    const abandonedDate = new Date(timestamp);
+    const now = new Date();
+    const diffHours = Math.floor((now.getTime() - abandonedDate.getTime()) / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 24) {
+      const hours = Math.max(diffHours, 1);
+      return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    }
+
+    if (diffDays === 1) {
+      return '1 day ago';
+    }
+
+    return `${diffDays} days ago`;
+  };
+
+  const calculateItemSubtotal = (item: any) => {
+    const quantity = Number(item.quantity) || 0;
+    if (!item.product) return 0;
+
+    const basePrice =
+      typeof item.product.discount_price === 'number' && !Number.isNaN(item.product.discount_price)
+        ? item.product.discount_price
+        : typeof item.product.original_price === 'number'
+          ? item.product.original_price
+          : 0;
+
+    const selectedVariants = item.selected_variants || {};
+    const variantAdjustments = Object.values(selectedVariants).reduce((sum, variant: any) => {
+      if (!variant || typeof variant !== 'object') return sum;
+      const adjustmentRaw = variant.price_modifier ?? variant.price_adjustment ?? 0;
+      const adjustment = typeof adjustmentRaw === 'number'
+        ? adjustmentRaw
+        : parseFloat(adjustmentRaw);
+
+      if (Number.isNaN(adjustment)) {
+        return sum;
+      }
+
+      return sum + adjustment;
+    }, 0);
+
+    const finalPrice = basePrice + variantAdjustments;
+    return quantity * finalPrice;
+  };
 
   const fetchAbandonedCarts = async () => {
     try {
       setLoading(true);
       
-      // Fetch pending orders older than 24 hours (abandoned carts)
+      // Fetch cart items that haven't been updated in over 24 hours (abandoned carts)
       const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       
-      const { data: abandonedOrders, error: ordersError } = await supabase
-        .from('orders')
+      const { data: abandonedItems, error } = await supabase
+        .from('cart_items')
         .select(`
           id,
-          total,
+          user_id,
+          quantity,
+          selected_variants,
           created_at,
-          order_items(*),
-          user:users!orders_user_id_fkey(first_name, last_name, email)
+          updated_at,
+          product:products(
+            id,
+            name,
+            original_price,
+            discount_price
+          ),
+          user:users!cart_items_user_id_fkey(
+            id,
+            first_name,
+            last_name,
+            full_name,
+            email
+          )
         `)
-        .eq('status', 'pending')
-        .lt('created_at', twentyFourHoursAgo)
-        .order('created_at', { ascending: false });
+        .lt('updated_at', twentyFourHoursAgo)
+        .order('updated_at', { ascending: false });
 
-      if (ordersError) throw ordersError;
+      if (error) throw error;
 
-      const formattedCarts: AbandonedCart[] = (abandonedOrders || [])
-        .map(order => {
-        const user = order.user as any;
-        const userName = user 
-          ? (user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown')
-          : 'Guest';
-        
-        const items = order.order_items || [];
-        const products = items.map((item: any) => item.product_name || 'Unknown Product');
-        const itemsCount = items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
-        
-        const abandonedDate = new Date(order.created_at);
-        const now = new Date();
-        const diffHours = Math.floor((now.getTime() - abandonedDate.getTime()) / (1000 * 60 * 60));
-        const diffDays = Math.floor(diffHours / 24);
-        
-        let timeElapsed = '';
-        if (diffHours < 24) timeElapsed = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        else if (diffDays === 1) timeElapsed = '1 day ago';
-        else timeElapsed = `${diffDays} days ago`;
+      const rawCarts = (abandonedItems || [])
+        .filter((item) => (item.quantity ?? 0) > 0 && item.product)
+        .map((item) => {
+          const user = item.user as any;
+          const userName = user
+            ? (user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown')
+            : 'Guest';
 
-        return {
-          id: order.id,
-          customer_name: userName,
-          customer_email: (user && !Array.isArray(user) && user.email) ? user.email : 'No email',
-          items_count: itemsCount,
-          cart_value: parseFloat(order.total) || 0,
-          abandoned_at: order.created_at,
-          time_elapsed: timeElapsed,
-          products,
-          recovery_sent: false, // This would need to be tracked in the database
-        };
-        })
-        .filter((cart) => cart.items_count > 0);
+          const key =
+            (user && !Array.isArray(user) && user.email)
+              ? user.email.toLowerCase()
+              : item.user_id || item.id;
 
-      setCarts(formattedCarts);
+          const cartId = typeof key === 'string' ? key : item.id;
+
+          return {
+            id: cartId,
+            user_id: item.user_id || (user && !Array.isArray(user) ? user.id : undefined),
+            customer_name: userName,
+            customer_email:
+              user && !Array.isArray(user) && user.email ? user.email : 'No email',
+            items_count: Number(item.quantity) || 0,
+            cart_value: calculateItemSubtotal(item),
+            abandoned_at: item.updated_at || item.created_at,
+            time_elapsed: formatTimeElapsed(item.updated_at || item.created_at),
+            products: [item.product?.name || 'Unknown Product'],
+            recovery_sent: false,
+          } as AbandonedCart;
+        });
+
+      const mergedCartsMap = rawCarts.reduce<Map<string, AbandonedCart>>((acc, cart) => {
+        const key = cart.customer_email !== 'No email'
+          ? cart.customer_email.toLowerCase()
+          : cart.user_id || cart.id; // Keep guests separate by cart entry
+
+        const existing = acc.get(key);
+
+        if (!existing) {
+          acc.set(key, cart);
+          return acc;
+        }
+
+        const newerAbandonedAt =
+          new Date(existing.abandoned_at) > new Date(cart.abandoned_at)
+            ? existing.abandoned_at
+            : cart.abandoned_at;
+
+        const combinedProducts = Array.from(
+          new Set([...existing.products, ...cart.products])
+        );
+
+        acc.set(key, {
+          ...existing,
+          items_count: existing.items_count + cart.items_count,
+          cart_value: parseFloat((existing.cart_value + cart.cart_value).toFixed(2)),
+          abandoned_at: newerAbandonedAt,
+          time_elapsed: formatTimeElapsed(newerAbandonedAt),
+          products: combinedProducts,
+          recovery_sent: existing.recovery_sent || cart.recovery_sent,
+        });
+
+        return acc;
+      }, new Map());
+
+      const mergedCarts = Array.from(mergedCartsMap.values()).sort(
+        (a, b) =>
+          new Date(b.abandoned_at).getTime() - new Date(a.abandoned_at).getTime()
+      );
+
+      setCarts(mergedCarts);
     } catch (error) {
       console.error('Error fetching abandoned carts:', error);
       setCarts([]);

@@ -15,7 +15,6 @@ import { DiscountsManager } from '@/components/admin/DiscountsManager';
 type TabKey =
   | 'general'
   | 'inventory'
-  | 'pricing'
   | 'taxes'
   | 'discounts'
   | 'payments'
@@ -25,7 +24,6 @@ type TabKey =
 const tabs: Array<{ key: TabKey; label: string; disabled?: boolean }> = [
   { key: 'general', label: 'General Store Settings' },
   { key: 'inventory', label: 'Inventory Settings' },
-  { key: 'pricing', label: 'Pricing Defaults' },
   { key: 'taxes', label: 'Tax Rules' },
   { key: 'discounts', label: 'Discount Rules' },
   { key: 'payments', label: 'Payments & Checkout', disabled: true },
@@ -47,7 +45,6 @@ export default function MainSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [savingGeneral, setSavingGeneral] = useState(false);
   const [savingInventory, setSavingInventory] = useState(false);
-  const [savingPricing, setSavingPricing] = useState(false);
   const [savingAutomation, setSavingAutomation] = useState(false);
 
   const [generalSettings, setGeneralSettings] = useState({
@@ -70,10 +67,6 @@ export default function MainSettingsPage() {
     outOfStockBehavior: 'hide' as 'hide' | 'show' | 'backorder',
   });
 
-  const [pricingSettings, setPricingSettings] = useState({
-    taxRate: '',
-  });
-
   const [automationSettings, setAutomationSettings] = useState({
     allowBackorders: false,
     allowAdminManualOrders: false,
@@ -91,10 +84,9 @@ export default function MainSettingsPage() {
     try {
       setLoading(true);
 
-      const [store, inventory, pricing, automation] = await Promise.all([
+      const [store, inventory, automation] = await Promise.all([
         adminSettingsService.getSettings({ category: 'store' }),
         adminSettingsService.getSettings({ category: 'inventory' }),
-        adminSettingsService.getSettings({ category: 'pricing' }),
         adminSettingsService.getSettings({ category: 'automation' }),
       ]);
 
@@ -127,10 +119,6 @@ export default function MainSettingsPage() {
       setInventorySettings({
         lowStockThreshold: !Number.isNaN(thresholdValue) && thresholdValue > 0 ? thresholdValue : 3,
         outOfStockBehavior,
-      });
-
-      setPricingSettings({
-        taxRate: getValue(pricing, 'pricing_tax_rate') || '',
       });
 
       setAutomationSettings({
@@ -197,27 +185,6 @@ export default function MainSettingsPage() {
       toast.error(error.message || 'Failed to update inventory settings');
     } finally {
       setSavingInventory(false);
-    }
-  };
-
-  const savePricingSettings = async () => {
-    try {
-      setSavingPricing(true);
-      await adminSettingsService.updateSettings([
-        {
-          key: 'pricing_tax_rate',
-          value: pricingSettings.taxRate,
-          category: 'pricing',
-        },
-      ]);
-
-      clientSettingsService.clearCache();
-      toast.success('Pricing settings updated successfully');
-    } catch (error: any) {
-      console.error('Error saving pricing settings:', error);
-      toast.error(error.message || 'Failed to update pricing settings');
-    } finally {
-      setSavingPricing(false);
     }
   };
 
@@ -466,42 +433,6 @@ export default function MainSettingsPage() {
             </div>
           </div>
         );
-      case 'pricing':
-        return (
-          <div className="space-y-6">
-            <section className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 space-y-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900">Global Tax Configuration</h2>
-                <p className="text-sm text-gray-600 mt-1">Set your default VAT or tax rate for orders.</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Tax Rate (%)"
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={pricingSettings.taxRate}
-                  onChange={(e) => setPricingSettings({ taxRate: e.target.value })}
-                  placeholder="0"
-                />
-              </div>
-              <p className="text-xs text-gray-500">
-                This rate is used in order calculations and reporting. Set to 0 if you do not charge tax.
-              </p>
-            </section>
-
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                variant="primary"
-                onClick={savePricingSettings}
-                disabled={savingPricing}
-              >
-                {savingPricing ? 'Saving...' : 'Save Pricing Settings'}
-              </Button>
-            </div>
-          </div>
-        );
       case 'taxes':
         return <TaxesManager />;
       case 'discounts':
@@ -584,12 +515,10 @@ export default function MainSettingsPage() {
     activeTab,
     generalSettings,
     inventorySettings,
-    pricingSettings,
     automationSettings,
     loading,
     savingGeneral,
     savingInventory,
-    savingPricing,
     savingAutomation,
   ]);
 

@@ -23,7 +23,10 @@ export const wishlistService = {
         }
         throw error;
       }
-      return data || [];
+      return (data || []).map((item: any) => ({
+        ...item,
+        product: normalizeWishlistProduct(item.product),
+      }));
     } catch (error) {
       console.error('Error fetching wishlist:', error);
       return [];
@@ -152,4 +155,31 @@ export const wishlistService = {
       return false;
     }
   },
+};
+
+const normalizeWishlistProduct = (product: any) => {
+  if (!product) return product;
+
+  const rawPrice = product.price ?? product.original_price ?? 0;
+  const originalPrice =
+    typeof rawPrice === 'number'
+      ? rawPrice
+      : typeof rawPrice === 'string'
+        ? parseFloat(rawPrice)
+        : 0;
+
+  const normalized = { ...product };
+  normalized.original_price = Number.isFinite(originalPrice) ? originalPrice : 0;
+  normalized.discount_price = null;
+  normalized.price_range = {
+    min: normalized.original_price,
+    max: normalized.original_price,
+    hasRange: false,
+  };
+
+  if (!normalized.thumbnail && normalized.images && normalized.images.length > 0) {
+    normalized.thumbnail = normalized.images[0];
+  }
+
+  return normalized;
 };

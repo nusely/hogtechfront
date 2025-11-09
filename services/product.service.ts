@@ -2,6 +2,102 @@ import { supabase } from '@/lib/supabase';
 import { Product } from '@/types/product';
 import { calculatePriceRangesForProducts } from './priceRange.service';
 
+const DEAL_PLACEHOLDER_IMAGE = '/placeholders/placeholder-product.webp';
+
+const parseAmount = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const cleaned = value.replace(/[^\d.,-]/g, '').replace(/,/g, '');
+    const parsed = parseFloat(cleaned);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const parseInteger = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.trunc(value);
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = parseInt(value, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+};
+
+const computeDiscountPercentage = (original: number | null, discounted: number | null): number => {
+  if (!original || original <= 0 || discounted === null || discounted === undefined) {
+    return 0;
+  }
+  const discount = Math.round(((original - discounted) / original) * 100);
+  return Math.max(0, discount);
+};
+
+const normalizeImages = (primary?: string | null, gallery?: string[] | null): string[] => {
+  const images: string[] = [];
+  if (Array.isArray(gallery)) {
+    for (const image of gallery) {
+      if (typeof image === 'string' && image.trim()) {
+        images.push(image.trim());
+      }
+    }
+  }
+  if (typeof primary === 'string' && primary.trim()) {
+    images.unshift(primary.trim());
+  }
+
+  const unique = Array.from(new Set(images));
+  return unique.length > 0 ? unique : [DEAL_PLACEHOLDER_IMAGE];
+};
+
+const parseKeyFeatures = (raw: string | string[] | null | undefined): string[] | undefined => {
+  if (!raw) return undefined;
+  if (Array.isArray(raw)) {
+    return raw.filter((feature) => typeof feature === 'string' && feature.trim().length > 0);
+  }
+
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter((item) => item.length > 0);
+    }
+  } catch {
+    // Ignore parse error and fallback
+  }
+
+  return trimmed
+    .replace(/\r/g, '')
+    .split(/\n|,/)
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+};
+
+const parseSpecifications = (raw: unknown): Product['specifications'] => {
+  if (!raw) return {};
+  if (typeof raw === 'object' && !Array.isArray(raw)) {
+    return raw as Product['specifications'];
+  }
+  if (typeof raw === 'string' && raw.trim().length > 0) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as Product['specifications'];
+      }
+      return raw;
+    } catch {
+      return raw;
+    }
+  }
+  return {};
+};
+
 interface GetProductsParams {
   category?: string;
   brand?: string;
@@ -230,12 +326,15 @@ export const getProductBySlug = async (slug: string): Promise<Product | null> =>
       }
     }
 
-    if (error) {
-      console.error('Error fetching product by slug:', error);
-      return null;
-    }
+    if (error || !data) {
+      const fallbackDealProduct = await fetchDealProductFallback(slug);
+      if (fallbackDealProduct) {
+        return fallbackDealProduct;
+      }
 
-    if (!data) {
+      if (error) {
+        console.error('Error fetching product by slug:', error);
+      }
       return null;
     }
 
@@ -382,4 +481,166 @@ export const productService = {
   getSimilarProducts,
   searchProducts,
   deleteProduct,
+};
+
+const fetchDealProductFallback = async (slug: string): Promise<Product | null> => {
+  if (!slug.startsWith('deal-')) {
+    return null;
+  }
+
+  const dealProductId = slug.replace(/^deal-/, '').trim();
+  if (!dealProductId) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from('deal_products')
+    .select(`
+      *,
+      product:products(*),
+      deal:deals(id, title, discount_percentage, start_date, end_date)
+    `)
+    .eq('id', dealProductId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+    }
+
+  return buildProductFromDealRecord(data, slug);
+};
+
+const buildProductFromDealRecord = (record: any, slug: string): Product | null => {
+  if (!record) return null;
+
+  const dealLevelDiscount =
+    parseInteger(record.discount_percentage) ?? parseInteger(record.deal?.discount_percentage) ?? 0;
+
+  if (record.product) {
+    const productRecord = record.product as Product & Record<string, any>;
+    const originalPrice =
+      parseAmount(productRecord.price) ??
+      parseAmount(productRecord.original_price) ??
+      0;
+    const productDiscountPrice = parseAmount(productRecord.discount_price);
+    const explicitDealPrice = parseAmount(record.deal_price);
+    const overrideDiscount = parseInteger(record.discount_percentage);
+    const computedDealPrice =
+      explicitDealPrice ??
+      (overrideDiscount && originalPrice
+        ? Number((originalPrice * (1 - overrideDiscount / 100)).toFixed(2))
+        : null) ??
+      (dealLevelDiscount && originalPrice
+        ? Number((originalPrice * (1 - dealLevelDiscount / 100)).toFixed(2))
+        : null) ??
+      productDiscountPrice ??
+      originalPrice;
+
+    const finalDealPrice = Number((computedDealPrice ?? originalPrice).toFixed(2));
+    const effectiveDiscount =
+      overrideDiscount ??
+      computeDiscountPercentage(originalPrice, finalDealPrice) ??
+      dealLevelDiscount;
+
+    const stockQuantity =
+      parseInteger(productRecord.stock_quantity) ?? 0;
+    const images = normalizeImages(productRecord.thumbnail, productRecord.images);
+
+    const transformed: Product = {
+      ...productRecord,
+      slug,
+      original_price: originalPrice,
+      discount_price: finalDealPrice,
+      stock_quantity: stockQuantity,
+      in_stock: stockQuantity > 0 ? true : Boolean(productRecord.in_stock),
+      thumbnail: images[0],
+      images,
+      price_range: productRecord.price_range ?? {
+        min: finalDealPrice,
+        max: originalPrice || finalDealPrice,
+        hasRange: false,
+      },
+      base_product_id: productRecord.id,
+    };
+
+    (transformed as any).deal_price = finalDealPrice;
+    (transformed as any).deal_discount = effectiveDiscount;
+
+    return transformed;
+  }
+
+  if (!record.product_name) {
+    return null;
+  }
+
+  const standaloneOriginalPrice =
+    parseAmount(record.original_price) ?? 0;
+  const explicitDealPrice = parseAmount(record.deal_price);
+  const overrideDiscount = parseInteger(record.discount_percentage);
+  const computedStandaloneDealPrice =
+    explicitDealPrice ??
+    (overrideDiscount && standaloneOriginalPrice
+      ? Number((standaloneOriginalPrice * (1 - overrideDiscount / 100)).toFixed(2))
+      : null) ??
+    (dealLevelDiscount && standaloneOriginalPrice
+      ? Number((standaloneOriginalPrice * (1 - dealLevelDiscount / 100)).toFixed(2))
+      : null) ??
+    standaloneOriginalPrice;
+
+  const finalStandaloneDealPrice = Number(
+    (computedStandaloneDealPrice ?? standaloneOriginalPrice).toFixed(2)
+  );
+  const effectiveStandaloneDiscount =
+    overrideDiscount ??
+    computeDiscountPercentage(standaloneOriginalPrice, finalStandaloneDealPrice) ??
+    dealLevelDiscount;
+
+  const standaloneImages = normalizeImages(record.product_image_url, record.product_images);
+  const standaloneStock = parseInteger(record.stock_quantity) ?? 0;
+  const keyFeatures = parseKeyFeatures(record.product_key_features);
+  const specifications = parseSpecifications(record.product_specifications);
+  const timestamp = record.created_at || new Date().toISOString();
+
+  const standaloneProduct: Product = {
+    id: record.id,
+    name: record.product_name,
+    slug,
+    description: record.product_description || '',
+    key_features: keyFeatures,
+    specifications,
+    category_id: record.product?.category_id || 'standalone',
+    brand: record.product?.brand || 'VENTECH Deals',
+    brand_id: record.product?.brand_id || null,
+    original_price: standaloneOriginalPrice || finalStandaloneDealPrice,
+    discount_price: finalStandaloneDealPrice,
+    in_stock: standaloneStock > 0,
+    stock_quantity: standaloneStock,
+    images: standaloneImages,
+    thumbnail: standaloneImages[0] || DEAL_PLACEHOLDER_IMAGE,
+    featured: false,
+    rating: 0,
+    review_count: 0,
+    specs:
+      (typeof specifications === 'object' && !Array.isArray(specifications)
+        ? (specifications as Product['specs'])
+        : {}) as Product['specs'],
+    variants: [],
+    created_at: timestamp,
+    updated_at: timestamp,
+    category_name: record.product?.category_name || null,
+    category_slug: record.product?.category_slug || null,
+    brand_name: record.product?.brand_name || 'VENTECH Deals',
+    brand_slug: record.product?.brand_slug || null,
+    base_product_id: record.product_id || record.id,
+    price_range: {
+      min: finalStandaloneDealPrice,
+      max: standaloneOriginalPrice || finalStandaloneDealPrice,
+      hasRange: false,
+    },
+  };
+
+  (standaloneProduct as any).deal_price = finalStandaloneDealPrice;
+  (standaloneProduct as any).deal_discount = effectiveStandaloneDiscount;
+
+  return standaloneProduct;
 };

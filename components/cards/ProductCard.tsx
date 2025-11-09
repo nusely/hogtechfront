@@ -29,20 +29,45 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   const isWishlisted = isInWishlist(product.id);
 
   // Check for deal price first (highest priority)
-  const dealPrice = (product as any).deal_price;
-  const dealDiscount = (product as any).deal_discount;
+  const rawDealPrice = (product as any).deal_price;
+  const rawDealDiscount = (product as any).deal_discount;
+
+  const dealPrice = (() => {
+    if (typeof rawDealPrice === 'number' && Number.isFinite(rawDealPrice)) {
+      return rawDealPrice;
+    }
+    if (typeof rawDealPrice === 'string') {
+      const parsed = parseFloat(rawDealPrice);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  })();
+
+  const dealDiscount = (() => {
+    if (typeof rawDealDiscount === 'number' && Number.isFinite(rawDealDiscount)) {
+      return rawDealDiscount;
+    }
+    if (typeof rawDealDiscount === 'string') {
+      const parsed = parseFloat(rawDealDiscount);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  })();
   
   // Calculate deal price if not explicitly set but discount is available
   let calculatedDealPrice: number | null = null;
-  if (dealDiscount && !dealPrice && product.original_price) {
-    calculatedDealPrice = product.original_price * (1 - dealDiscount / 100);
+  if (!dealPrice && dealDiscount && product.original_price) {
+    calculatedDealPrice = Number(
+      (product.original_price * (1 - dealDiscount / 100)).toFixed(2)
+    );
   }
   
   // Use deal price if available, otherwise use regular discount price
-  const finalPrice = dealPrice || calculatedDealPrice || product.discount_price || product.original_price || 0;
+  const finalPrice =
+    (dealPrice ?? calculatedDealPrice ?? product.discount_price ?? product.original_price ?? 0);
   
   // Determine discount percentage
-  const hasDeal = !!(dealPrice || calculatedDealPrice);
+  const hasDeal = dealPrice !== null || calculatedDealPrice !== null;
   const hasDiscount = !hasDeal && product.discount_price && product.discount_price < product.original_price;
   const discountPercentage = hasDeal 
     ? dealDiscount || (product.original_price ? calculateDiscountPercentage(product.original_price, finalPrice) : 0)
@@ -55,24 +80,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
     e.stopPropagation();
 
     const rawBaseProductId = (product as any).base_product_id;
-    if (rawBaseProductId === null) {
+    let resolvedBaseProductId: string | null = null;
+
+    if (typeof rawBaseProductId === 'string' && rawBaseProductId.trim().length > 0) {
+      resolvedBaseProductId = rawBaseProductId.trim();
+    } else if (typeof product.id === 'string' && product.id.trim().length > 0) {
+      resolvedBaseProductId = product.id.trim();
+    }
+
+    if (!resolvedBaseProductId) {
       toast.error('This promo item is not available for online checkout yet. Please contact support to order.');
       return;
     }
 
-    const baseProductId =
-      typeof rawBaseProductId === 'string' && rawBaseProductId.trim().length > 0
-        ? rawBaseProductId
-        : product.id;
-
     // Use deal price if available, otherwise use regular discount/original price
-    const itemPrice = dealPrice || calculatedDealPrice || product.discount_price || product.original_price || 0;
+    const itemPrice =
+      (dealPrice ?? calculatedDealPrice ?? product.discount_price ?? product.original_price ?? 0);
 
     const cartItem = {
       ...product,
       quantity: 1,
       selected_variants: {},
-      base_product_id: baseProductId,
+      base_product_id: resolvedBaseProductId,
       // Override discount_price with deal price so cart uses the discounted price
       discount_price: hasDeal ? itemPrice : product.discount_price,
       original_price: product.original_price,

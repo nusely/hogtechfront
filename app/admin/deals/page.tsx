@@ -624,6 +624,29 @@ export default function DealsPage() {
                               {dealProduct.discount_percentage > 0 && (
                                 <span>Discount: {dealProduct.discount_percentage}%</span>
                               )}
+                            {(() => {
+                              const stockOverride =
+                                dealProduct.product_id
+                                  ? null
+                                  : typeof dealProduct.stock_quantity === 'number'
+                                    ? dealProduct.stock_quantity
+                                    : null;
+                              const stockQty =
+                                stockOverride !== null
+                                  ? stockOverride
+                                  : dealProduct.product?.stock_quantity ?? 0;
+
+                              return (
+                                <span>
+                                  Stock: {stockQty}{' '}
+                                  {stockQty > 0 ? (
+                                    <span className="text-green-600 font-medium">Available</span>
+                                  ) : (
+                                    <span className="text-red-500 font-medium">Out</span>
+                                  )}
+                                </span>
+                              );
+                            })()}
                             </div>
                           </div>
                           <div className="flex gap-2">

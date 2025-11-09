@@ -51,6 +51,7 @@ export function AddProductToDealModal({
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   
   // New product fields
+  const [discountInput, setDiscountInput] = useState('');
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
@@ -59,7 +60,8 @@ export function AddProductToDealModal({
     images: [] as string[],
     thumbnail: '',
     original_price: '',
-    discount_price: '',
+    deal_price: '',
+    stock_quantity: '',
   });
 
   useEffect(() => {
@@ -71,7 +73,7 @@ export function AddProductToDealModal({
   // Populate form when editing
   useEffect(() => {
     if (editingProduct && isOpen) {
-      if (editingProduct.product_id) {
+        if (editingProduct.product_id) {
         // Existing product - set mode to existing and select the product
         setMode('existing');
         // Fetch products if not already loaded, then select the product
@@ -108,7 +110,8 @@ export function AddProductToDealModal({
           images: editingProduct.product_images || (editingProduct.product_image_url ? [editingProduct.product_image_url] : []),
           thumbnail: editingProduct.product_image_url || '',
           original_price: editingProduct.original_price?.toString() || '',
-          discount_price: '',
+          deal_price: editingProduct.deal_price?.toString() || '',
+          stock_quantity: (editingProduct.stock_quantity ?? 0).toString(),
         });
       }
       setIsFlashDeal(editingProduct.is_flash_deal || false);
@@ -125,8 +128,10 @@ export function AddProductToDealModal({
         images: [],
         thumbnail: '',
         original_price: '',
-        discount_price: '',
+        deal_price: '',
+        stock_quantity: '',
       });
+      setDiscountInput('');
       setIsFlashDeal(false);
     }
   }, [editingProduct, isOpen]);
@@ -297,6 +302,46 @@ export function AddProductToDealModal({
       }
     }
 
+    const trimmedDiscountInput = discountInput.trim();
+
+    const parsedDiscount =
+      trimmedDiscountInput !== ''
+        ? parseFloat(trimmedDiscountInput)
+        : undefined;
+
+    if (parsedDiscount !== undefined) {
+      if (!Number.isFinite(parsedDiscount) || parsedDiscount < 0 || parsedDiscount > 100) {
+        toast.error('Discount percentage must be between 0 and 100');
+        return;
+      }
+    }
+
+    const parsedStandaloneDealPrice =
+      mode === 'new' && newProduct.deal_price.trim() !== ''
+        ? parseFloat(newProduct.deal_price)
+        : undefined;
+
+    if (parsedStandaloneDealPrice !== undefined) {
+      if (!Number.isFinite(parsedStandaloneDealPrice) || parsedStandaloneDealPrice < 0) {
+        toast.error('Deal price must be a valid non-negative number');
+        return;
+      }
+    }
+
+    const parsedStandaloneStock =
+      mode === 'new'
+        ? (newProduct.stock_quantity.trim() === ''
+            ? 0
+            : parseInt(newProduct.stock_quantity, 10))
+        : undefined;
+
+    if (parsedStandaloneStock !== undefined) {
+      if (!Number.isFinite(parsedStandaloneStock) || parsedStandaloneStock < 0) {
+        toast.error('Stock quantity must be zero or a positive integer');
+        return;
+      }
+    }
+
     // No need to validate discount/price - deal's discount percentage will be used
 
     try {
@@ -309,10 +354,7 @@ export function AddProductToDealModal({
           is_flash_deal: isFlashDeal,
         };
 
-        if (editingProduct.product_id) {
-          // Editing existing product - only update flash deal flag
-          // (can't change product details for existing products)
-        } else if (mode === 'new') {
+        if (!editingProduct.product_id && mode === 'new') {
           // Update standalone product fields
           const keyFeatures = newProduct.key_features
             ? JSON.stringify(newProduct.key_features.split(',').map(f => f.trim()).filter(f => f))
@@ -339,16 +381,41 @@ export function AddProductToDealModal({
           updates.product_key_features = keyFeatures || null;
           updates.product_specifications = specifications || null;
           updates.original_price = parseFloat(newProduct.original_price);
+          if (parsedStandaloneDealPrice !== undefined) {
+            updates.deal_price = parsedStandaloneDealPrice;
+          }
+          if (parsedDiscount !== undefined) {
+            updates.discount_percentage = parsedDiscount;
+          }
+          if (parsedStandaloneStock !== undefined) {
+            updates.stock_quantity = parsedStandaloneStock;
+          }
         }
 
         await updateDealProduct(dealId, productId, updates);
         toast.success(editingProduct.product_name || selectedProduct?.name || 'Product updated in deal!');
       } else if (mode === 'existing') {
-        await addProductToDeal(dealId, {
+        const basePrice =
+          selectedProduct!.original_price ??
+          selectedProduct!.discount_price ??
+          0;
+        const effectiveDiscount =
+          typeof dealDiscountPercentage === 'number'
+            ? Math.min(100, Math.max(0, dealDiscountPercentage))
+            : 0;
+        const dealPrice = Number(
+          (basePrice * (1 - effectiveDiscount / 100)).toFixed(2)
+        );
+
+        const payload: any = {
           product_id: selectedProduct!.id,
-          discount_percentage: dealDiscountPercentage || 0, // Use deal's discount percentage
           is_flash_deal: isFlashDeal,
-        });
+          deal_price: dealPrice,
+          discount_percentage: effectiveDiscount,
+          stock_quantity: selectedProduct!.stock_quantity ?? null,
+        };
+
+        await addProductToDeal(dealId, payload);
         toast.success(`${selectedProduct!.name} added to deal!`);
       } else {
         // Parse key_features (comma-separated string to JSON array)
@@ -373,7 +440,7 @@ export function AddProductToDealModal({
         // Use thumbnail or first image as product_image_url
         const productImageUrl = newProduct.thumbnail || (newProduct.images && newProduct.images[0]) || null;
 
-        await addProductToDeal(dealId, {
+        const payload: any = {
           product_name: newProduct.name,
           product_description: newProduct.description || undefined,
           product_image_url: productImageUrl || undefined,
@@ -381,9 +448,22 @@ export function AddProductToDealModal({
           product_key_features: keyFeatures || undefined,
           product_specifications: specifications || undefined,
           original_price: parseFloat(newProduct.original_price),
-          discount_percentage: dealDiscountPercentage || 0, // Use deal's discount percentage
           is_flash_deal: isFlashDeal,
-        });
+        };
+
+        if (parsedStandaloneDealPrice !== undefined) {
+          payload.deal_price = parsedStandaloneDealPrice;
+        }
+        if (parsedDiscount !== undefined) {
+          payload.discount_percentage = parsedDiscount;
+        } else if (dealDiscountPercentage) {
+          payload.discount_percentage = dealDiscountPercentage;
+        }
+        if (parsedStandaloneStock !== undefined) {
+          payload.stock_quantity = parsedStandaloneStock;
+        }
+
+        await addProductToDeal(dealId, payload);
         toast.success(`${newProduct.name} added to deal!`);
       }
       
@@ -401,8 +481,10 @@ export function AddProductToDealModal({
         images: [],
         thumbnail: '',
         original_price: '',
-        discount_price: '',
+        deal_price: '',
+        stock_quantity: '',
       });
+      setDiscountInput('');
       setIsFlashDeal(false);
     } catch (error: any) {
       console.error('Error adding product to deal:', error);
@@ -413,10 +495,6 @@ export function AddProductToDealModal({
   };
 
   if (!isOpen) return null;
-
-  const originalPrice = mode === 'existing' 
-    ? (selectedProduct?.original_price || selectedProduct?.discount_price || 0)
-    : parseFloat(newProduct.original_price) || 0;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -454,8 +532,10 @@ export function AddProductToDealModal({
                   images: [] as string[],
                   thumbnail: '',
                   original_price: '',
-                  discount_price: '',
+                  deal_price: '',
+                  stock_quantity: '',
                 });
+                setDiscountInput('');
               }}
               className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 mode === 'existing'
@@ -471,6 +551,7 @@ export function AddProductToDealModal({
                 setMode('new');
                 setSelectedProduct(null);
                 setSearchQuery('');
+                setDiscountInput('');
               }}
               className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 mode === 'new'
@@ -551,6 +632,8 @@ export function AddProductToDealModal({
                   )}
                 </div>
               </div>
+
+              {/* Existing products inherit deal pricing automatically; overrides removed */}
             </>
           ) : (
             <>
@@ -620,6 +703,55 @@ export function AddProductToDealModal({
                   placeholder="0.00"
                   required
                 />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="standaloneDealPrice">Deal Price (GHS)</Label>
+                  <Input
+                    id="standaloneDealPrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={newProduct.deal_price}
+                    onChange={(e) => setNewProduct({ ...newProduct, deal_price: e.target.value })}
+                    placeholder="Leave blank to use original price"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Optional override for the promotional price.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="standaloneDiscount">Deal Discount (%)</Label>
+                  <Input
+                    id="standaloneDiscount"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={discountInput}
+                    onChange={(e) => setDiscountInput(e.target.value)}
+                    placeholder={dealDiscountPercentage ? `Defaults to ${dealDiscountPercentage}%` : 'Optional'}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Apply an additional discount specifically for this item.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="standaloneStock">Stock Quantity</Label>
+                  <Input
+                    id="standaloneStock"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={newProduct.stock_quantity}
+                    onChange={(e) => setNewProduct({ ...newProduct, stock_quantity: e.target.value })}
+                    placeholder="e.g., 10"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Determines if the deal item is in stock on the storefront.
+                  </p>
+                </div>
               </div>
 
               {/* Product Images */}
@@ -733,7 +865,13 @@ export function AddProductToDealModal({
               variant="primary" 
               disabled={saving || (mode === 'existing' ? !selectedProduct : !newProduct.name || !newProduct.original_price)}
             >
-              {saving ? 'Adding...' : 'Add to Deal'}
+              {saving
+                ? editingProduct
+                  ? 'Saving...'
+                  : 'Adding...'
+                : editingProduct
+                  ? 'Save Changes'
+                  : 'Add to Deal'}
             </Button>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel

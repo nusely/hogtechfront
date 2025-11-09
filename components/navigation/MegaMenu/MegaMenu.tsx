@@ -24,16 +24,33 @@ export const MegaMenu: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // Fetch main categories (parent_id is null)
+        // Fetch all categories and determine top-level entries for the mega menu
         const allCategories = await getCategories();
-        const mainCategories = allCategories.filter(cat => !cat.parent_id);
-        setCategories(mainCategories.slice(0, 4)); // Only show first 4
+        const topLevelCategories = allCategories.filter(cat => !cat.parent_id);
+
+        const prioritized = topLevelCategories
+          .filter(cat => cat.show_in_mega_menu)
+          .sort((a, b) => {
+            const orderA = typeof (a as any).display_order === 'number' ? (a as any).display_order : Number.MAX_SAFE_INTEGER;
+            const orderB = typeof (b as any).display_order === 'number' ? (b as any).display_order : Number.MAX_SAFE_INTEGER;
+            if (orderA === orderB) {
+              return a.name.localeCompare(b.name);
+            }
+            return orderA - orderB;
+          });
+
+        const fallback = topLevelCategories
+          .filter(cat => !cat.show_in_mega_menu)
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        const selectedCategories = [...prioritized, ...fallback].slice(0, 4);
+        setCategories(selectedCategories);
         
         // Fetch subcategories for each main category
         const subcategories: Record<string, Category[]> = {};
         const brands: Record<string, Brand[]> = {};
         
-        for (const category of mainCategories.slice(0, 4)) {
+        for (const category of selectedCategories) {
           // Get subcategories (children of this category)
           const subcats = allCategories.filter(cat => cat.parent_id === category.id);
           subcategories[category.id] = subcats;
