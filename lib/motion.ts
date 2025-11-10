@@ -1,4 +1,4 @@
-import { Variants } from 'framer-motion';
+import { Variants, MotionProps } from 'framer-motion';
 
 export const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 16 },
@@ -25,7 +25,7 @@ export const fadeIn: Variants = {
   }),
 };
 
-export const scaleHover = {
+export const scaleHover: MotionProps = {
   whileHover: { scale: 1.015 },
   whileTap: { scale: 0.985 },
   transition: { type: 'spring', stiffness: 320, damping: 24 },
