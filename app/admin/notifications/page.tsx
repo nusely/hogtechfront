@@ -49,14 +49,14 @@ const formatRelativeTime = (timestamp: string) => {
   return date.toLocaleDateString();
 };
 
-const typeFilterOptions: Array<{ label: string; value: NotificationTypeFilter; icon: JSX.Element }> = [
+const typeFilterOptions = [
   { label: 'All Types', value: 'all', icon: <Bell size={14} /> },
   { label: 'Orders', value: 'order', icon: <ShoppingCart size={14} /> },
   { label: 'Stock', value: 'stock', icon: <Package size={14} /> },
   { label: 'Customers', value: 'user', icon: <Users size={14} /> },
   { label: 'Alerts', value: 'alert', icon: <AlertCircle size={14} /> },
   { label: 'Success', value: 'success', icon: <CheckCircle size={14} /> },
-];
+] as const satisfies Array<{ label: string; value: NotificationTypeFilter; icon: React.ReactElement }>;
 
 export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
