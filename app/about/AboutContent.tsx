@@ -15,30 +15,30 @@ import {
 } from 'lucide-react';
 import { getCategories } from '@/services/category.service';
 import { Category } from '@/types/product';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
 
 const missionGridVariants = staggerChildren(0.08, 0.05);
-const missionCardVariants = {
+const missionCardVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.35,
-      ease: [0.22, 0.61, 0.36, 1],
+      ease: [0.22, 0.61, 0.36, 1] as const,
     },
   },
 };
 const valuesListVariants = staggerChildren(0.1, 0.05);
-const valuesItemVariants = {
+const valuesItemVariants: Variants = {
   hidden: { opacity: 0, x: -18 },
   visible: {
     opacity: 1,
     x: 0,
     transition: {
       duration: 0.4,
-      ease: [0.22, 0.61, 0.36, 1],
+      ease: [0.22, 0.61, 0.36, 1] as const,
     },
   },
 };

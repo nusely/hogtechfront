@@ -16,7 +16,7 @@ import { productService } from '@/services/product.service';
 import { getCategories } from '@/services/category.service';
 import { getFilterBrands, Brand } from '@/services/brand.service';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
 
 interface ProductFilters {
@@ -49,36 +49,36 @@ export function ShopContent() {
   const productsPerPage = 20;
 
   const layoutVariants = useMemo(() => staggerChildren(0.08, 0.05), []);
-  const filterCardVariants = useMemo(() => ({
+  const filterCardVariants: Variants = useMemo(() => ({
     hidden: { opacity: 0, x: -24 },
     visible: {
       opacity: 1,
       x: 0,
       transition: {
         duration: 0.4,
-        ease: [0.22, 0.61, 0.36, 1],
+        ease: [0.22, 0.61, 0.36, 1] as const,
       },
     },
   }), []);
-  const toolbarVariants = useMemo(() => ({
+  const toolbarVariants: Variants = useMemo(() => ({
     hidden: { opacity: 0, y: -12 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         duration: 0.35,
-        ease: [0.16, 1, 0.3, 1],
+        ease: [0.16, 1, 0.3, 1] as const,
       },
     },
   }), []);
-  const contentVariants = useMemo(() => ({
+  const contentVariants: Variants = useMemo(() => ({
     hidden: { opacity: 0, y: 16 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         duration: 0.4,
-        ease: [0.22, 0.61, 0.36, 1],
+        ease: [0.22, 0.61, 0.36, 1] as const,
       },
     },
   }), []);

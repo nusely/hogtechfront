@@ -13,7 +13,7 @@ import {
 } from '@/services/deal.service';
 import { CountdownTimer } from '@/components/shop/CountdownTimer';
 import { Product } from '@/types/product';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
 
 type DealDisplayProduct = Product & {
@@ -128,14 +128,14 @@ export function DealsContent() {
   }), []);
 
   const gridVariants = useMemo(() => staggerChildren(0.08, 0.05), []);
-  const cardVariants = useMemo(() => ({
+  const cardVariants: Variants = useMemo(() => ({
     hidden: { opacity: 0, y: 18 },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         duration: 0.35,
-        ease: [0.22, 0.61, 0.36, 1],
+        ease: [0.22, 0.61, 0.36, 1] as const,
       },
     },
   }), []);
