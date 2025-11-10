@@ -12,6 +12,9 @@ import { setUser } from '@/store/authSlice';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { fetchMaintenanceMode } from '@/lib/maintenance';
+import { customerService } from '@/services/customer.service';
+import { motion } from 'framer-motion';
+import { fadeIn, fadeInScale, fadeInUp } from '@/lib/motion';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -165,6 +168,10 @@ export default function LoginPage() {
           created_at: profileData.created_at || new Date().toISOString(),
           updated_at: profileData.updated_at || new Date().toISOString(),
         }));
+
+        if ((user.email || formData.email) && user.id) {
+          await customerService.linkCustomerToUser(user.email || formData.email, user.id);
+        }
         
         toast.success(`Welcome back, ${firstName || fullName.split(' ')[0] || 'User'}!`);
         
@@ -205,9 +212,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
+    <motion.section
+      className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+      variants={fadeIn}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="max-w-md w-full space-y-8" variants={fadeInUp} custom={0.08} initial="hidden" animate="visible">
+        <motion.div variants={fadeInUp} custom={0.1}>
           <div className="flex justify-center mb-4">
             <Link href="/" className="inline-block">
               <div className="text-2xl font-bold text-[#FF7A19]">VENTECH</div>
@@ -230,8 +242,15 @@ export default function LoginPage() {
               create a new account
             </Link>
           </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        </motion.div>
+        <motion.form
+          className="mt-8 space-y-6"
+          onSubmit={handleSubmit}
+          variants={fadeInScale}
+          custom={0.12}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
@@ -389,9 +408,17 @@ export default function LoginPage() {
               ← Back to Home
             </Link>
           </div>
-        </form>
-      </div>
-    </div>
+        </motion.form>
+        <div className="relative">
+          <div className="border-t border-gray-200 my-8" />
+          <span className="absolute inset-x-0 -top-3 flex justify-center">
+            <span className="bg-white px-3 text-sm text-gray-500">
+              Or continue with
+            </span>
+          </span>
+        </div>
+      </motion.div>
+    </motion.section>
   );
 }
 

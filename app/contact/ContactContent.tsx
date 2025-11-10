@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  Mail,
+  Phone,
+  MapPin,
   Clock,
   Send,
   MessageSquare,
@@ -14,6 +14,43 @@ import {
 import toast from 'react-hot-toast';
 import { contactService } from '@/services/contact.service';
 import { settingsService } from '@/lib/settings.service';
+import { motion } from 'framer-motion';
+import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
+
+const contactListVariants = staggerChildren(0.08, 0.05);
+const contactItemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.35,
+      ease: [0.22, 0.61, 0.36, 1],
+    },
+  },
+};
+const infoCardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+const formCardVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: [0.22, 0.61, 0.36, 1],
+    },
+  },
+};
 
 export function ContactContent() {
   const [formData, setFormData] = useState({
@@ -86,31 +123,40 @@ export function ContactContent() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <motion.main
+      className="min-h-screen bg-white"
+      variants={fadeIn}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-16">
+      <motion.section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-16" variants={fadeInUp} custom={0.05}>
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white">Get in Touch</h1>
-          <p className="text-lg text-white/90 max-w-2xl mx-auto">
+          <motion.h1 className="text-3xl md:text-4xl font-bold mb-4 text-white" variants={fadeInUp} custom={0.08}>
+            Get in Touch
+          </motion.h1>
+          <motion.p className="text-lg text-white/90 max-w-2xl mx-auto" variants={fadeInUp} custom={0.12}>
             Have questions? We&apos;re here to help. Reach out to us anytime!
-          </p>
+          </motion.p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Contact Info & Form */}
-      <section className="container mx-auto px-4 py-16">
+      <motion.section className="container mx-auto px-4 py-16" variants={fadeInUp} custom={0.1}>
         <div className="grid md:grid-cols-5 gap-8 max-w-6xl mx-auto">
           {/* Contact Information */}
-          <div className="md:col-span-2 space-y-6">
+          <motion.div className="md:col-span-2 space-y-6" variants={infoCardVariants}>
             <div>
-              <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">Contact Information</h2>
-              <p className="text-[#3A3A3A] text-sm mb-8">
+              <motion.h2 className="text-2xl font-bold text-[#1A1A1A] mb-6" variants={fadeInUp} custom={0.05}>
+                Contact Information
+              </motion.h2>
+              <motion.p className="text-[#3A3A3A] text-sm mb-8" variants={fadeInUp} custom={0.08}>
                 Feel free to reach out through any of these channels. We typically respond within 24 hours.
-              </p>
+              </motion.p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex gap-4">
+            <motion.div className="space-y-4" variants={contactListVariants}>
+              <motion.div className="flex gap-4" variants={contactItemVariants}>
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                     <Phone className="text-[#FF7A19]" size={20} />
@@ -122,9 +168,9 @@ export function ContactContent() {
                     {storePhone}
                   </a>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex gap-4">
+              <motion.div className="flex gap-4" variants={contactItemVariants}>
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                     <Mail className="text-[#FF7A19]" size={20} />
@@ -136,9 +182,9 @@ export function ContactContent() {
                     {storeEmail}
                   </a>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex gap-4">
+              <motion.div className="flex gap-4" variants={contactItemVariants}>
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                     <MapPin className="text-[#FF7A19]" size={20} />
@@ -152,9 +198,9 @@ export function ContactContent() {
                     {!addressHo && !addressAccra && 'Ghana'}
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex gap-4">
+              <motion.div className="flex gap-4" variants={contactItemVariants}>
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                     <Clock className="text-[#FF7A19]" size={20} />
@@ -164,11 +210,11 @@ export function ContactContent() {
                   <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">Business Hours</h3>
                   <p className="text-[#3A3A3A] text-sm">{businessHours}</p>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* Quick Support */}
-            <div className="bg-gray-50 rounded-xl p-6 mt-8">
+            <motion.div className="bg-gray-50 rounded-xl p-6 mt-8" variants={fadeInScale}>
               <div className="flex items-center gap-3 mb-3">
                 <Headphones className="text-[#FF7A19]" size={24} />
                 <h3 className="font-bold text-[#1A1A1A]">Need Immediate Help?</h3>
@@ -180,11 +226,11 @@ export function ContactContent() {
                 <MessageSquare size={16} />
                 Start Live Chat
               </Button>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Contact Form */}
-          <div className="md:col-span-3">
+          <motion.div className="md:col-span-3" variants={formCardVariants}>
             <div className="bg-gray-50 rounded-xl p-8">
               <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">Send us a Message</h2>
               
@@ -283,9 +329,9 @@ export function ContactContent() {
                 </Button>
               </form>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Map Section */}
       <section className="bg-gray-100 py-16">
@@ -300,7 +346,7 @@ export function ContactContent() {
           </div>
         </div>
       </section>
-    </div>
+    </motion.main>
   );
 }
 

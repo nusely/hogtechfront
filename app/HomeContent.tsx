@@ -2,18 +2,16 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { HeroSlider } from '@/components/banners/HeroSlider';
 import { ProductCard } from '@/components/cards/ProductCard';
-import { CategoryCard } from '@/components/cards/CategoryCard';
 import { ProductListSkeleton } from '@/components/loaders/ProductCardSkeleton';
 import { QuickView } from '@/components/shop/QuickView';
 import { FlashDeals } from '@/components/shop/FlashDeals';
 import { Button } from '@/components/ui/Button';
-import { 
-  ArrowRight, 
-  ShoppingBag, 
-  Shield, 
+import {
+  ArrowRight,
+  ShoppingBag,
+  Shield,
   Headphones,
   Zap,
   Award,
@@ -29,6 +27,8 @@ import { supabasePublic } from '@/lib/supabase';
 import { CategoryCarousel } from '@/components/categories/CategoryCarousel';
 import { seoConfig } from '@/lib/seo.config';
 import { buildApiUrl } from '@/lib/api';
+import { motion } from 'framer-motion';
+import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
 
 export function HomeContent() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -36,6 +36,13 @@ export function HomeContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+
+  const sectionMotionProps = {
+    variants: fadeInUp,
+    initial: 'hidden',
+    whileInView: 'visible',
+    viewport: { once: true, amount: 0.2 },
+  } as const;
 
   // Fetch banners separately to allow refresh
   const fetchBanners = useCallback(async () => {
@@ -210,43 +217,43 @@ export function HomeContent() {
   }, [fetchBanners]);
 
   return (
-    <div className="bg-white overflow-x-hidden">
+    <motion.main className="bg-white overflow-x-hidden" variants={fadeIn} initial="hidden" animate="visible">
       {/* Hero Section */}
-      <section className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <motion.section className="container mx-auto px-3 sm:px-4 py-4 sm:py-6" variants={fadeInUp} initial="hidden" animate="visible">
         <HeroSlider banners={heroBanners} />
-      </section>
+      </motion.section>
 
       {/* Features Section */}
-      <section className="bg-gray-50 py-6 sm:py-8 border-y border-gray-200">
+      <motion.section className="bg-gray-50 py-6 sm:py-8 border-y border-gray-200" {...sectionMotionProps}>
         <div className="container mx-auto px-3 sm:px-4">
-          <div className="grid grid-cols-3 md:grid-cols-3 gap-3 sm:gap-4">
+          <motion.div className="grid grid-cols-3 md:grid-cols-3 gap-3 sm:gap-4" variants={staggerChildren(0.08)} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}>
             {/* Momo & Cards - First on mobile */}
-            <div className="flex flex-col items-center text-center p-4">
+            <motion.div className="flex flex-col items-center text-center p-4" variants={fadeInUp}>
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-3">
                 <Shield className="text-[#FF7A19]" size={18} />
               </div>
               <p className="font-semibold text-xs sm:text-sm text-[#1A1A1A]">Momo & Cards</p>
-            </div>
+            </motion.div>
             {/* Quality Guarantee */}
-            <div className="flex flex-col items-center text-center p-4">
+            <motion.div className="flex flex-col items-center text-center p-4" variants={fadeInUp} custom={0.05}>
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-3">
                 <Award className="text-[#FF7A19]" size={18} />
               </div>
               <p className="font-semibold text-xs sm:text-sm text-[#1A1A1A]">Quality Guarantee</p>
-            </div>
+            </motion.div>
             {/* 24/7 Support */}
-            <div className="flex flex-col items-center text-center p-4">
+            <motion.div className="flex flex-col items-center text-center p-4" variants={fadeInUp} custom={0.1}>
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-3">
                 <Headphones className="text-[#FF7A19]" size={18} />
               </div>
               <p className="font-semibold text-xs sm:text-sm text-[#1A1A1A]">24/7 Support</p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Featured Products */}
-      <section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
+      <motion.section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10" {...sectionMotionProps}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -265,7 +272,13 @@ export function HomeContent() {
         {isLoading ? (
           <ProductListSkeleton count={5} />
         ) : featuredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4"
+            variants={staggerChildren(0.06)}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             {featuredProducts.slice(0, 10).map((product) => (
               <ProductCard
                 key={product.id}
@@ -273,7 +286,7 @@ export function HomeContent() {
                 onQuickView={() => setQuickViewProduct(product)}
               />
             ))}
-          </div>
+          </motion.div>
         ) : (
           <div className="text-center py-12 bg-gray-50 rounded-xl">
             <Star className="mx-auto mb-4 text-gray-400" size={48} />
@@ -283,10 +296,10 @@ export function HomeContent() {
             </Link>
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Categories */}
-      <section className="bg-gray-50 py-6 sm:py-10">
+      <motion.section className="bg-gray-50 py-6 sm:py-10" {...sectionMotionProps}>
         <div className="container mx-auto px-3 sm:px-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
@@ -319,15 +332,15 @@ export function HomeContent() {
             </div>
           )}
         </div>
-      </section>
+      </motion.section>
 
       {/* Flash Deals */}
-      <section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
+      <motion.section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10" {...sectionMotionProps}>
         <FlashDeals />
-      </section>
+      </motion.section>
 
       {/* All Products / Trending */}
-      <section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
+      <motion.section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10" {...sectionMotionProps}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -353,7 +366,13 @@ export function HomeContent() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4"
+            variants={staggerChildren(0.05)}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+          >
             {allProducts.slice(0, 20).map((product) => (
               <ProductCard
                 key={product.id}
@@ -361,13 +380,13 @@ export function HomeContent() {
                 onQuickView={() => setQuickViewProduct(product)}
               />
             ))}
-          </div>
+          </motion.div>
         )}
-      </section>
+      </motion.section>
 
       {/* Special Offers Banner */}
-      <section className="container mx-auto px-4 py-10">
-        <div className="relative rounded-2xl overflow-hidden text-white">
+      <motion.section className="container mx-auto px-4 py-10" {...sectionMotionProps}>
+        <motion.div className="relative rounded-2xl overflow-hidden text-white" variants={fadeInScale}>
           <div className="absolute inset-0 bg-[url('/placeholders/bg-gadgets1.webp')] bg-cover bg-center" />
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative z-10 max-w-2xl p-8 md:p-12">
@@ -390,12 +409,12 @@ export function HomeContent() {
           <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-10">
             <ShoppingBag size={200} />
           </div>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* Stay Updated / Newsletter Section */}
-      <section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10">
-        <div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-6 md:p-12 text-center text-white">
+      <motion.section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10" {...sectionMotionProps}>
+        <motion.div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-6 md:p-12 text-center text-white" variants={fadeInScale}>
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Stay Updated</h2>
           <p className="text-white/90 mb-6 max-w-2xl mx-auto">
             Subscribe to our newsletter and be the first to know about exclusive deals, flash sales, and special offers!
@@ -411,8 +430,8 @@ export function HomeContent() {
               Subscribe
             </Button>
           </form>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* Call to Action Section */}
       <section className="bg-[#1A1A1A] py-12">
@@ -437,7 +456,7 @@ export function HomeContent() {
         isOpen={!!quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
       />
-    </div>
+    </motion.main>
   );
 }
 

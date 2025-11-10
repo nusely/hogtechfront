@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Bell,
   ShoppingCart,
@@ -10,9 +10,11 @@ import {
   CheckCircle,
   Clock,
   Trash2,
+  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
+import { buildApiUrl } from '@/lib/api';
 
 interface Notification {
   id: string;
@@ -24,108 +26,102 @@ interface Notification {
   action_url?: string;
 }
 
+type NotificationType = Notification['type'];
+type NotificationTypeFilter = NotificationType | 'all';
+
+const formatRelativeTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(diffSeconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (diffSeconds < 60) return `${Math.max(diffSeconds, 1)}s ago`;
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days <= 7) return `${days}d ago`;
+
+  return date.toLocaleDateString();
+};
+
+const typeFilterOptions: Array<{ label: string; value: NotificationTypeFilter; icon: JSX.Element }> = [
+  { label: 'All Types', value: 'all', icon: <Bell size={14} /> },
+  { label: 'Orders', value: 'order', icon: <ShoppingCart size={14} /> },
+  { label: 'Stock', value: 'stock', icon: <Package size={14} /> },
+  { label: 'Customers', value: 'user', icon: <Users size={14} /> },
+  { label: 'Alerts', value: 'alert', icon: <AlertCircle size={14} /> },
+  { label: 'Success', value: 'success', icon: <CheckCircle size={14} /> },
+];
+
 export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const [typeFilter, setTypeFilter] = useState<NotificationTypeFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Fetch real data from Supabase
   useEffect(() => {
     fetchNotifications();
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .order('created_at', { ascending: false });
+  const fetchNotifications = async (options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? false;
 
-      if (error) {
-        // Check for table doesn't exist or RLS policy errors
-        const errorMessage = error.message || JSON.stringify(error) || '';
-        const errorCode = error.code || '';
-        const errorDetails = error.details || '';
-        const errorHint = error.hint || '';
-        
-        // Check if it's a "table doesn't exist" error
-        const isTableNotFound = 
-          errorCode === '42P01' || 
-          errorCode === 'PGRST116' || 
-          errorMessage.includes('does not exist') || 
-          errorMessage.includes('relation') || 
-          errorMessage.includes('not found') ||
-          errorMessage.includes('Could not find');
-        
-        // Check if it's an RLS policy error
-        const isRLSError = 
-          errorMessage.includes('policy') ||
-          errorMessage.includes('RLS') ||
-          errorMessage.includes('permission denied') ||
-          errorMessage.includes('new row violates row-level security');
-        
-        if (isTableNotFound) {
-          // Table doesn't exist - set empty array silently
-          setNotifications([]);
-          return;
-        }
-        
-        if (isRLSError) {
-          // RLS policy blocking - log but don't show error to user
-          console.warn('RLS policy may be blocking notifications access. Run create_notifications_table.sql to set up proper policies.');
-          setNotifications([]);
-          return;
-        }
-        
-        // For other errors, log with details
-        if (Object.keys(error).length > 0) {
-          console.error('Error fetching notifications:', {
-            code: errorCode,
-            message: errorMessage,
-            details: errorDetails,
-            hint: errorHint,
-            fullError: error
-          });
-        }
-        
-        setNotifications([]);
-        return;
+    try {
+      if (silent) {
+        setIsRefreshing(true);
+      } else {
+        setLoading(true);
       }
-      setNotifications(data || []);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const url = new URL(buildApiUrl('/api/notifications'));
+      url.searchParams.set('limit', '200');
+
+      const response = await fetch(url.toString(), {
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch notifications (${response.status})`);
+      }
+
+      const payload = await response.json();
+      const notificationData = payload?.data?.notifications || [];
+
+      setNotifications(notificationData);
     } catch (error: any) {
-      // Handle caught errors
-      const errorMessage = error?.message || JSON.stringify(error) || 'Unknown error';
-      const errorCode = error?.code || '';
-      
-      // Check if it's a "table doesn't exist" or RLS error
-      const isTableNotFound = 
-        errorCode === '42P01' || 
-        errorCode === 'PGRST116' || 
-        errorMessage.includes('does not exist') || 
-        errorMessage.includes('relation') || 
-        errorMessage.includes('not found');
-      
-      const isRLSError = 
-        errorMessage.includes('policy') ||
-        errorMessage.includes('RLS') ||
-        errorMessage.includes('permission denied');
-      
-      if (!isTableNotFound && !isRLSError) {
-        // Only log unexpected errors
-        if (errorMessage !== '{}' && errorMessage !== 'Unknown error') {
-          console.error('Error fetching notifications:', {
-            code: errorCode,
-            message: errorMessage,
-            error: error
-          });
-        }
-      }
-      
+      console.error('Error fetching notifications:', error);
       setNotifications([]);
     } finally {
-      setLoading(false);
+      if (silent) {
+        setIsRefreshing(false);
+      } else {
+        setLoading(false);
+      }
     }
+  };
+
+  const handleRefresh = () => {
+    fetchNotifications({ silent: true });
   };
 
   const getIcon = (type: string) => {
@@ -164,20 +160,34 @@ export default function NotificationsPage() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq('id', notificationId);
-
-      if (error) {
-        const errorWithCode = error as any;
-        if (errorWithCode.code === '42P01') return; // Table doesn't exist
-        throw error;
+      const targetExists = notifications.some((n) => n.id === notificationId);
+      if (!targetExists) {
+        return;
       }
 
-      // Update local state
-      setNotifications(
-        notifications.map((n) =>
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(buildApiUrl(`/api/notifications/${notificationId}/read`), {
+        method: 'PATCH',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark notification as read (${response.status})`);
+      }
+
+      setNotifications((prev) =>
+        prev.map((n) =>
           n.id === notificationId ? { ...n, is_read: true } : n
         )
       );
@@ -188,53 +198,94 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
-      if (unreadIds.length === 0) return;
-      
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .in('id', unreadIds);
-
-      if (error) {
-        const errorWithCode = error as any;
-        if (errorWithCode.code === '42P01') return; // Table doesn't exist
-        throw error;
+      const hasUnread = notifications.some((n) => !n.is_read);
+      if (!hasUnread) {
+        return;
       }
 
-      // Update local state
-      setNotifications(notifications.map((n) => ({ ...n, is_read: true })));
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(buildApiUrl('/api/notifications/read-all'), {
+        method: 'PATCH',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark notifications as read (${response.status})`);
+      }
+
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
     } catch (error) {
-      console.error('Error marking all as read:', error);
+      console.error('Error marking all notifications as read:', error);
     }
   };
 
   const deleteNotification = async (notificationId: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (error) {
-        const errorWithCode = error as any;
-        if (errorWithCode.code === '42P01') return; // Table doesn't exist
-        throw error;
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
       }
 
-      // Update local state
-      setNotifications(notifications.filter((n) => n.id !== notificationId));
+      const response = await fetch(buildApiUrl(`/api/notifications/${notificationId}`), {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete notification (${response.status})`);
+      }
+
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
     } catch (error) {
       console.error('Error deleting notification:', error);
     }
   };
 
-  const filteredNotifications =
-    filter === 'unread'
-      ? notifications.filter((n) => !n.is_read)
-      : notifications;
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.is_read).length,
+    [notifications]
+  );
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const filteredNotifications = useMemo(() => {
+    let data = [...notifications];
+
+    if (filter === 'unread') {
+      data = data.filter((n) => !n.is_read);
+    }
+
+    if (typeFilter !== 'all') {
+      data = data.filter((n) => n.type === typeFilter);
+    }
+
+    if (searchQuery.trim().length > 0) {
+      const query = searchQuery.trim().toLowerCase();
+      data = data.filter((n) => {
+        const titleMatch = n.title?.toLowerCase().includes(query) ?? false;
+        const messageMatch = n.message?.toLowerCase().includes(query) ?? false;
+        return titleMatch || messageMatch;
+      });
+    }
+
+    return data;
+  }, [notifications, filter, typeFilter, searchQuery]);
 
   if (loading) {
     return (
@@ -259,36 +310,74 @@ export default function NotificationsPage() {
               : 'All notifications are read'}
           </p>
         </div>
-        {unreadCount > 0 && (
-          <Button variant="outline" size="sm" onClick={markAllAsRead}>
-            Mark All as Read
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            isLoading={isRefreshing}
+          >
+            Refresh
           </Button>
-        )}
+          {unreadCount > 0 && (
+            <Button variant="primary" size="sm" onClick={markAllAsRead}>
+              Mark All as Read
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'all'
-                ? 'bg-[#FF7A19] text-white'
-                : 'bg-gray-100 text-[#3A3A3A] hover:bg-gray-200'
-            }`}
-          >
-            All ({notifications.length})
-          </button>
-          <button
-            onClick={() => setFilter('unread')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'unread'
-                ? 'bg-[#FF7A19] text-white'
-                : 'bg-gray-100 text-[#3A3A3A] hover:bg-gray-200'
-            }`}
-          >
-            Unread ({unreadCount})
-          </button>
+      <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-200 space-y-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === 'all'
+                  ? 'bg-[#FF7A19] text-white'
+                  : 'bg-gray-100 text-[#3A3A3A] hover:bg-gray-200'
+              }`}
+            >
+              All ({notifications.length})
+            </button>
+            <button
+              onClick={() => setFilter('unread')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filter === 'unread'
+                  ? 'bg-[#FF7A19] text-white'
+                  : 'bg-gray-100 text-[#3A3A3A] hover:bg-gray-200'
+              }`}
+            >
+              Unread ({unreadCount})
+            </button>
+          </div>
+          <div className="relative w-full md:w-72">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search notifications..."
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent"
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {typeFilterOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setTypeFilter(option.value)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors flex items-center gap-1.5 ${
+                typeFilter === option.value
+                  ? 'bg-[#FF7A19] text-white border-[#FF7A19]'
+                  : 'bg-white text-[#3A3A3A] border-gray-200 hover:border-[#FF7A19]'
+              }`}
+            >
+              {option.icon}
+              <span>{option.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -323,10 +412,13 @@ export default function NotificationsPage() {
                       <p className="text-sm text-[#3A3A3A] mb-2">
                         {notification.message}
                       </p>
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
+                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-1 flex-wrap">
+                        <span className="inline-flex items-center gap-1">
                           <Clock size={12} />
-                          {new Date(notification.created_at).toLocaleString()}
+                          {formatRelativeTime(notification.created_at)}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-200 rounded-full capitalize">
+                          {notification.type}
                         </span>
                       </div>
                     </div>

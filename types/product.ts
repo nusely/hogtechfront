@@ -22,6 +22,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
   base_product_id?: string | null;
+  backorder?: boolean;
   // Flattened properties for search results
   category_name?: string | null;
   category_slug?: string | null;

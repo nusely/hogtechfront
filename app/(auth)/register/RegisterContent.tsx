@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/Input';
 import { signUp } from '@/services/auth.service';
 import toast from 'react-hot-toast';
 import { Mail, Lock, User, Phone, ArrowRight, CheckCircle, Clock } from 'lucide-react';
+import { customerService } from '@/services/customer.service';
+import { motion } from 'framer-motion';
+import { fadeIn, fadeInScale, fadeInUp } from '@/lib/motion';
 
 export function RegisterContent() {
   const router = useRouter();
@@ -180,6 +183,10 @@ export function RegisterContent() {
         if (userEmail) {
           localStorage.setItem('pendingVerificationEmail', userEmail);
         }
+
+        if (userEmail && user.id) {
+          await customerService.linkCustomerToUser(userEmail, user.id);
+        }
         
         // Clear any rate limit cooldown on success
         setRateLimitCooldown(null);
@@ -209,18 +216,29 @@ export function RegisterContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto">
+    <motion.section
+      className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
+      variants={fadeIn}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="max-w-md mx-auto" variants={fadeInUp} custom={0.05} initial="hidden" animate="visible">
         {/* Header */}
-        <div className="text-center mb-8">
+        <motion.div className="text-center mb-8" variants={fadeInUp} custom={0.1}>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
           <p className="text-gray-600">
             Join VENTECH and start shopping for the latest gadgets
           </p>
-        </div>
+        </motion.div>
 
         {/* Registration Form */}
-        <div className="bg-white rounded-xl shadow-sm p-8">
+        <motion.div
+          className="bg-white rounded-xl shadow-sm p-8"
+          variants={fadeInScale}
+          custom={0.12}
+          initial="hidden"
+          animate="visible"
+        >
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* First Name */}
             <Input
@@ -281,6 +299,7 @@ export function RegisterContent() {
               error={errors.password}
               required
               icon={<Lock size={18} />}
+              autoComplete="new-password"
             />
 
             {/* Confirm Password */}
@@ -293,6 +312,7 @@ export function RegisterContent() {
               error={errors.confirmPassword}
               required
               icon={<Lock size={18} />}
+              autoComplete="new-password"
             />
 
             {/* Rate Limit Warning */}
@@ -348,10 +368,16 @@ export function RegisterContent() {
               <ArrowRight size={16} />
             </Link>
           </div>
-        </div>
+        </motion.div>
 
         {/* Benefits */}
-        <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
+        <motion.div
+          className="mt-8 bg-white rounded-xl shadow-sm p-6"
+          variants={fadeInScale}
+          custom={0.2}
+          initial="hidden"
+          animate="visible"
+        >
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <CheckCircle size={20} className="text-[#FF7A19]" />
             Why Create an Account?
@@ -374,9 +400,9 @@ export function RegisterContent() {
               <span>Order history and easy returns</span>
             </li>
           </ul>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </motion.section>
   );
 }
 

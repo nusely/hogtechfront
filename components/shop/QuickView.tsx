@@ -12,6 +12,7 @@ import { addToCart } from '@/store/cartSlice';
 import { useWishlist } from '@/hooks/useWishlist';
 import { LoginPromptModal } from '../auth/LoginPromptModal';
 import toast from 'react-hot-toast';
+import { useAllowBackorders } from '@/hooks/useAllowBackorders';
 
 interface QuickViewProps {
   product: Product | null;
@@ -26,6 +27,11 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
   const { isInWishlist, toggleItem } = useWishlist();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginAction, setLoginAction] = useState<'wishlist' | 'cart' | 'general'>('general');
+  const { allowBackorders } = useAllowBackorders();
+  const stockQuantity = Number(product?.stock_quantity ?? 0);
+  const isOutOfStock = !product?.in_stock || stockQuantity <= 0;
+  const isBackorder = allowBackorders && isOutOfStock;
+  const canPurchase = product?.in_stock || isBackorder;
 
   if (!product) return null;
 
@@ -38,21 +44,22 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
   const isWishlisted = isInWishlist(product.id);
 
   const handleAddToCart = () => {
-    const cartItem = {
-      ...product,
+    if (isOutOfStock && !allowBackorders) {
+      toast.error('This item is currently out of stock.');
+      return;
+    }
+
+    dispatch(addToCart({
+      product: {
+        ...product,
+        backorder: isBackorder,
+      },
       quantity: 1,
-      selected_variants: {},
-      subtotal: product.discount_price || product.original_price,
-    };
+    }));
 
-    dispatch(
-      addToCart({
-        product: cartItem,
-        quantity: 1,
-      })
+    toast.success(
+      `${product.name} added to cart${isBackorder ? ' (Backorder)' : ''}!`
     );
-
-    toast.success(`${product.name} added to cart!`);
   };
 
   const handleWishlist = async () => {
@@ -180,9 +187,19 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
                           In Stock
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-2 text-sm font-medium text-red-600 bg-red-50 px-3 py-1 rounded-full">
-                          <span className="w-2 h-2 bg-red-600 rounded-full"></span>
-                          Out of Stock
+                        <span
+                          className={`inline-flex items-center gap-2 text-sm font-medium px-3 py-1 rounded-full ${
+                            isBackorder
+                              ? 'text-[#FF7A19] bg-orange-50'
+                              : 'text-red-600 bg-red-50'
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              isBackorder ? 'bg-[#FF7A19]' : 'bg-red-600'
+                            }`}
+                          ></span>
+                          {isBackorder ? 'Available on Backorder' : 'Out of Stock'}
                         </span>
                       )}
                     </div>
@@ -194,11 +211,17 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
                       variant="primary"
                       size="lg"
                       className="w-full"
-                      disabled={!product.in_stock}
+                      disabled={!canPurchase}
                       onClick={handleAddToCart}
                       icon={<ShoppingCart size={20} />}
                     >
-                      {product.in_stock ? (isInCart ? 'In Cart' : 'Add to Cart') : 'Out of Stock'}
+                      {canPurchase
+                        ? isInCart
+                          ? 'In Cart'
+                          : product.in_stock
+                          ? 'Add to Cart'
+                          : 'Backorder Item'
+                        : 'Out of Stock'}
                     </Button>
 
                     <div className="grid grid-cols-2 gap-3">

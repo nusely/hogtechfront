@@ -26,6 +26,8 @@ interface CustomerSummary {
   full_name: string;
   email: string;
   phone: string | null;
+  user_id?: string | null;
+  source?: string | null;
 }
 
 interface SelectedProductLine {
@@ -239,27 +241,33 @@ export function CreateOrderModal({ isOpen, onClose, onCreated, adminEmail }: Cre
     try {
       setCustomerLoading(true);
       const query = customerSearch.trim();
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, full_name, first_name, last_name, email, phone')
-        .eq('role', 'customer')
-        .or(
-          `email.ilike.%${query}%,phone.ilike.%${query}%,full_name.ilike.%${query}%` +
-            `,first_name.ilike.%${query}%,last_name.ilike.%${query}%`
-        )
-        .limit(10);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
 
-      if (error) throw error;
+      if (!token) {
+        toast.error('Authentication expired. Please refresh and try again.');
+        return;
+      }
 
-      const results: CustomerSummary[] = (data || []).map((customer: any) => ({
+      const response = await fetch(buildApiUrl(`/api/customers?q=${encodeURIComponent(query)}`), {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result?.success) {
+        throw new Error(result?.message || result?.error || 'Failed to search customers.');
+      }
+
+      const results: CustomerSummary[] = (result.data || []).map((customer: any) => ({
         id: customer.id,
-        full_name:
-          customer.full_name ||
-          `${customer.first_name || ''} ${customer.last_name || ''}`.trim() ||
-          customer.email ||
-          'Customer',
+        full_name: customer.full_name || customer.email || 'Customer',
         email: customer.email || '',
         phone: customer.phone || null,
+        user_id: customer.user_id || null,
+        source: customer.source || null,
       }));
 
       if (results.length === 0) {
@@ -269,7 +277,7 @@ export function CreateOrderModal({ isOpen, onClose, onCreated, adminEmail }: Cre
       setCustomerResults(results);
     } catch (error) {
       console.error('Error searching customers:', error);
-      toast.error('Failed to search customers.');
+      toast.error(error instanceof Error ? error.message : 'Failed to search customers.');
       setCustomerResults([]);
     } finally {
       setCustomerLoading(false);
@@ -473,7 +481,10 @@ export function CreateOrderModal({ isOpen, onClose, onCreated, adminEmail }: Cre
         tax_breakdown: appliedTaxBreakdown,
       };
 
-      const createdOrder = await orderService.createOrder(checkoutData, customerId);
+      const createdOrder = await orderService.createOrder(checkoutData, {
+        userId: customerMode === 'existing' ? selectedCustomer?.user_id || null : null,
+        customerId,
+      });
 
       toast.success(`Order ${createdOrder.order_number || 'created'} successfully!`);
       onCreated();

@@ -18,6 +18,7 @@ import {
   Phone,
   ChevronDown,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { logout as logoutAction } from '@/store/authSlice';
 import { Button } from '../ui/Button';
@@ -25,6 +26,7 @@ import { MegaMenu } from './MegaMenu';
 import { SearchBar } from '../search/SearchBar';
 import { signOut } from '@/services/auth.service';
 import toast from 'react-hot-toast';
+import { fadeIn, fadeInUp, staggerChildren } from '@/lib/motion';
 
 export const NavBar = () => {
   const pathname = usePathname();
@@ -80,33 +82,46 @@ export const NavBar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <motion.nav
+      className="bg-white shadow-md sticky top-0 z-50"
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+      custom={0}
+    >
       <div className="container mx-auto px-3 sm:px-4">
         {/* Top Bar */}
-        <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
+        <motion.div
+          className="flex items-center justify-between h-14 sm:h-16 md:h-20"
+          variants={staggerChildren(0.05)}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0">
-            <Image
-              src="https://files.ventechgadgets.com/ventech_logo_1.webp"
-              alt="VENTECH"
-              width={120}
-              height={50}
-              className="object-contain h-8 sm:h-10 md:h-12 w-auto"
-              style={{ width: "auto", height: "auto" }}
-              priority
-            />
-          </Link>
+          <motion.div variants={fadeInUp}>
+            <Link href="/" className="flex items-center flex-shrink-0">
+              <Image
+                src="https://files.ventechgadgets.com/ventech_logo_1.webp"
+                alt="VENTECH"
+                width={120}
+                height={50}
+                className="object-contain h-8 sm:h-10 md:h-12 w-auto"
+                style={{ width: 'auto', height: 'auto' }}
+                priority
+              />
+            </Link>
+          </motion.div>
 
           {/* Desktop Search Bar */}
-          <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
+          <motion.div className="hidden lg:flex flex-1 max-w-2xl mx-8" variants={fadeInUp} custom={0.05}>
             <SearchBar
               placeholder="Search for products, brands, categories..."
               className="w-full"
             />
-          </div>
+          </motion.div>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-4">
+          <motion.div className="hidden md:flex items-center gap-4" variants={fadeInUp} custom={0.1}>
             {/* Contact Info */}
             <div className="flex flex-col gap-1 pr-4 border-r border-gray-200">
               <a 
@@ -219,10 +234,14 @@ export const NavBar = () => {
                 </Link>
               </>
             )}
-          </div>
+          </motion.div>
 
           {/* Mobile Actions - Cart & Menu */}
-          <div className="md:hidden flex items-center gap-2">
+          <motion.div
+            className="md:hidden flex items-center gap-2"
+            variants={fadeInUp}
+            custom={0.1}
+          >
             {/* Mobile Cart Icon */}
             <Link href="/cart" className="relative p-2 -mr-1">
               <ShoppingCart size={22} className="text-[#3A3A3A]" />
@@ -241,11 +260,17 @@ export const NavBar = () => {
             >
               {isMobileMenuOpen ? <X size={24} className="text-[#3A3A3A]" /> : <Menu size={24} className="text-[#3A3A3A]" />}
             </button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Desktop Navigation with Mega Menu */}
-        <div className="hidden lg:flex items-center justify-between py-3 border-t border-gray-100">
+        <motion.div
+          className="hidden lg:flex items-center justify-between py-3 border-t border-gray-100"
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUp}
+          custom={0.12}
+        >
           {/* Mega Menu */}
           <MegaMenu />
 
@@ -269,7 +294,7 @@ export const NavBar = () => {
               </Link>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Mobile Menu Overlay & Sidebar */}
@@ -482,6 +507,6 @@ export const NavBar = () => {
           </div>
         </div>
       </>
-    </nav>
+    </motion.nav>
   );
 };

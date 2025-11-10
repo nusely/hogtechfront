@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useAppSelector } from '@/store';
 import {
   LayoutDashboard,
@@ -28,11 +28,16 @@ import {
   Zap,
   SlidersHorizontal,
   ScrollText,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from '@/services/auth.service';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
+import { buildApiUrl } from '@/lib/api';
 
 interface MenuItem {
   icon: any;
@@ -41,6 +46,70 @@ interface MenuItem {
   badge?: number;
   children?: MenuItem[];
 }
+
+interface NotificationPreview {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  action_url?: string | null;
+}
+
+const getNotificationIcon = (type: string) => {
+  switch (type) {
+    case 'order':
+      return <ShoppingCart size={16} className="text-blue-600" />;
+    case 'stock':
+      return <Package size={16} className="text-orange-600" />;
+    case 'user':
+      return <Users size={16} className="text-purple-600" />;
+    case 'alert':
+      return <AlertCircle size={16} className="text-red-600" />;
+    case 'success':
+      return <CheckCircle size={16} className="text-green-600" />;
+    default:
+      return <Bell size={16} className="text-gray-500" />;
+  }
+};
+
+const getNotificationAccent = (type: string) => {
+  switch (type) {
+    case 'order':
+      return 'bg-blue-50 text-blue-600';
+    case 'stock':
+      return 'bg-orange-50 text-orange-600';
+    case 'user':
+      return 'bg-purple-50 text-purple-600';
+    case 'alert':
+      return 'bg-red-50 text-red-600';
+    case 'success':
+      return 'bg-green-50 text-green-600';
+    default:
+      return 'bg-gray-100 text-gray-600';
+  }
+};
+
+const formatRelativeTime = (timestamp: string) => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const diffMs = Date.now() - date.getTime();
+  const diffSeconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(diffSeconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (diffSeconds < 60) return `${Math.max(diffSeconds, 1)}s ago`;
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days <= 7) return `${days}d ago`;
+
+  return date.toLocaleDateString();
+};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -51,6 +120,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mounted, setMounted] = useState(false);
   const [pendingOrdersCount, setPendingOrdersCount] = useState<number | undefined>(undefined);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState<number | undefined>(undefined);
+  const [notificationsPreview, setNotificationsPreview] = useState<NotificationPreview[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState<string | null>(null);
+  const [showNotificationsDropdown, setShowNotificationsDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Mark as mounted to prevent hydration mismatch
@@ -61,61 +135,225 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const hasAdminPrivileges = (role?: string | null) =>
     role === 'admin' || role === 'superadmin';
 
-  useEffect(() => {
-    if (!isAuthenticated || !user || !hasAdminPrivileges(user.role)) return;
+  const loadNotifications = useCallback(async () => {
+    if (!isAuthenticated || !user || !hasAdminPrivileges(user.role)) {
+      setNotificationsPreview([]);
+      setUnreadNotificationsCount(undefined);
+      setNotificationsError(null);
+      return;
+    }
 
-    const fetchBadgeCounts = async () => {
-      try {
-        // Fetch pending orders count
-        const { count: pendingCount, error: ordersError } = await supabase
-          .from('orders')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'pending');
+    setNotificationsLoading(true);
+    setNotificationsError(null);
 
-        if (!ordersError) {
-          setPendingOrdersCount(pendingCount || 0);
-        }
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-        // Fetch unread notifications count
-        // Handle gracefully if notifications table doesn't exist
-        try {
-          const { count: unreadCount, error: notificationsError } = await supabase
-            .from('notifications')
-            .select('*', { count: 'exact', head: true })
-            .eq('is_read', false);
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
 
-          if (!notificationsError) {
-            setUnreadNotificationsCount(unreadCount || 0);
-          } else {
-            // If table doesn't exist, set to 0 and don't show badge
-            const errorCode = notificationsError.code || '';
-            const errorMessage = notificationsError.message || '';
-            
-            if (
-              errorCode === '42P01' || // Table doesn't exist
-              errorCode === 'PGRST116' ||
-              errorMessage.includes('does not exist') ||
-              errorMessage.includes('relation') ||
-              errorMessage.includes('not found')
-            ) {
-              setUnreadNotificationsCount(0); // Set to 0 so badge doesn't show
-            }
-          }
-        } catch (err) {
-          // Table doesn't exist or other error - set to 0
-          setUnreadNotificationsCount(0);
-        }
-      } catch (error) {
-        console.error('Error fetching badge counts:', error);
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
       }
-    };
 
-    fetchBadgeCounts();
-    
-    // Refresh counts every 30 seconds
-    const interval = setInterval(fetchBadgeCounts, 30000);
-    return () => clearInterval(interval);
+      const response = await fetch(buildApiUrl(`/api/notifications?limit=8`), {
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch notifications (${response.status})`);
+      }
+
+      const payload = await response.json();
+      const preview = payload?.data?.notifications || [];
+      const unreadCount = payload?.data?.unread_count ?? 0;
+
+      setNotificationsPreview(preview);
+      setUnreadNotificationsCount(unreadCount);
+    } catch (error) {
+      console.error('Error loading notifications preview:', error);
+      setNotificationsError('Unable to load notifications right now.');
+    } finally {
+      setNotificationsLoading(false);
+    }
   }, [isAuthenticated, user]);
+
+  const loadBadgeData = useCallback(async () => {
+    if (!isAuthenticated || !user || !hasAdminPrivileges(user.role)) {
+      setNotificationsPreview([]);
+      setUnreadNotificationsCount(undefined);
+      return;
+    }
+
+    try {
+      const { count: pendingCount, error: ordersError } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      if (!ordersError) {
+        setPendingOrdersCount(pendingCount || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching pending orders count:', error);
+    }
+
+    await loadNotifications();
+  }, [isAuthenticated, user, loadNotifications]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user || !hasAdminPrivileges(user.role)) {
+      setNotificationsPreview([]);
+      setUnreadNotificationsCount(undefined);
+      return;
+    }
+
+    loadBadgeData();
+
+    const interval = setInterval(loadBadgeData, 30000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, user, loadBadgeData]);
+
+  const toggleNotificationsDropdown = () => {
+    setShowNotificationsDropdown((prev) => {
+      const next = !prev;
+      if (!prev) {
+        // Ensure preview is up-to-date when opening
+        loadNotifications();
+      }
+      return next;
+    });
+  };
+
+  const markNotificationAsRead = async (id: string) => {
+    try {
+      const target = notificationsPreview.find((notification) => notification.id === id);
+      if (!target || target.is_read) {
+        return;
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(buildApiUrl(`/api/notifications/${id}/read`), {
+        method: 'PATCH',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark notification as read (${response.status})`);
+      }
+
+      setNotificationsPreview((prev) =>
+        prev.map((notification) =>
+          notification.id === id ? { ...notification, is_read: true } : notification
+        )
+      );
+      setUnreadNotificationsCount((prev) => {
+        if (!prev || prev <= 0) {
+          return 0;
+        }
+        return prev - 1;
+      });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      const unreadIds = notificationsPreview.filter((notification) => !notification.is_read);
+      if (unreadIds.length === 0) {
+        return;
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(buildApiUrl('/api/notifications/read-all'), {
+        method: 'PATCH',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark notifications as read (${response.status})`);
+      }
+
+      setNotificationsPreview((prev) =>
+        prev.map((notification) => ({ ...notification, is_read: true }))
+      );
+      setUnreadNotificationsCount(0);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const deleteNotificationById = async (id: string) => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(buildApiUrl(`/api/notifications/${id}`), {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete notification (${response.status})`);
+      }
+
+      setNotificationsPreview((prev) => prev.filter((notification) => notification.id !== id));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
+  const handleNotificationClick = async (notification: NotificationPreview) => {
+    if (!notification.is_read) {
+      await markNotificationAsRead(notification.id);
+    }
+    setShowNotificationsDropdown(false);
+
+    if (notification.action_url) {
+      if (notification.action_url.startsWith('http')) {
+        window.open(notification.action_url, '_blank');
+      } else {
+        router.push(notification.action_url);
+      }
+    } else {
+      router.push('/admin/notifications');
+    }
+  };
 
   useEffect(() => {
     // Wait for component to mount and auth state to finish loading before checking
@@ -165,6 +403,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return () => clearTimeout(timeoutId);
   }, [isAuthenticated, user, isLoading, mounted, router, pathname]);
+
+  useEffect(() => {
+    if (!showNotificationsDropdown) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowNotificationsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotificationsDropdown]);
+
+  useEffect(() => {
+    setShowNotificationsDropdown(false);
+  }, [pathname]);
 
   const toggleMenu = (label: string) => {
     setExpandedMenus(prev =>
@@ -463,10 +722,109 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={toggleNotificationsDropdown}
+                  className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  aria-label="View notifications"
+                >
+                  <Bell size={20} />
+                  {unreadNotificationsCount !== undefined && unreadNotificationsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#FF7A19] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 min-w-[18px] flex items-center justify-center">
+                      {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                    </span>
+                  )}
+                </button>
+
+                {showNotificationsDropdown && (
+                  <div className="absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                      <div>
+                        <p className="text-sm font-semibold text-[#1A1A1A]">Notifications</p>
+                        <p className="text-xs text-gray-500">
+                          {unreadNotificationsCount && unreadNotificationsCount > 0
+                            ? `${unreadNotificationsCount} unread`
+                            : 'All caught up'}
+                        </p>
+                      </div>
+                      {unreadNotificationsCount && unreadNotificationsCount > 0 && (
+                        <button
+                          onClick={async () => {
+                            await markAllNotificationsRead();
+                            await loadNotifications();
+                          }}
+                          className="text-xs text-[#FF7A19] font-semibold hover:underline"
+                        >
+                          Mark all as read
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto">
+                      {notificationsLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF7A19]"></div>
+                        </div>
+                      ) : notificationsError ? (
+                        <div className="py-6 text-center text-sm text-red-500 px-4">
+                          {notificationsError}
+                        </div>
+                      ) : notificationsPreview.length === 0 ? (
+                        <div className="py-6 text-center text-sm text-gray-500 px-4">
+                          No notifications yet.
+                        </div>
+                      ) : (
+                        <ul className="divide-y divide-gray-100">
+                          {notificationsPreview.map((notification) => (
+                            <li key={notification.id}>
+                              <button
+                                onClick={() => handleNotificationClick(notification)}
+                                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
+                                  notification.is_read ? 'bg-white' : 'bg-orange-50/60'
+                                }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${getNotificationAccent(notification.type)}`}>
+                                    {getNotificationIcon(notification.type)}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-[#1A1A1A] truncate">
+                                      {notification.title || 'Notification'}
+                                    </p>
+                                    <p className="text-xs text-[#3A3A3A] line-clamp-2">
+                                      {notification.message}
+                                    </p>
+                                    <div className="mt-1 flex items-center gap-1 text-[11px] text-gray-500">
+                                      <Clock size={12} />
+                                      <span>{formatRelativeTime(notification.created_at)}</span>
+                                      {!notification.is_read && (
+                                        <span className="ml-2 inline-flex text-[10px] uppercase tracking-wide text-[#FF7A19] font-semibold">
+                                          New
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+                      <Link
+                        href="/admin/notifications"
+                        className="text-sm font-medium text-[#FF7A19] hover:underline"
+                        onClick={() => setShowNotificationsDropdown(false)}
+                      >
+                        View all notifications →
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <Link
                 href="/"
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"

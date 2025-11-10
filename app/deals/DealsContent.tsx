@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
+import React, { useEffect, useState, useMemo } from 'react';
 import { ProductCard } from '@/components/cards/ProductCard';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Zap, Clock, Percent } from 'lucide-react';
-import { 
+import {
   getAllDeals,
   getActiveDealProducts,
   Deal,
@@ -15,6 +13,8 @@ import {
 } from '@/services/deal.service';
 import { CountdownTimer } from '@/components/shop/CountdownTimer';
 import { Product } from '@/types/product';
+import { motion } from 'framer-motion';
+import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
 
 type DealDisplayProduct = Product & {
   deal_price: number;
@@ -120,6 +120,26 @@ export function DealsContent() {
   const [dealProducts, setDealProducts] = useState<DealProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const sectionMotionProps = useMemo(() => ({
+    variants: fadeInUp,
+    initial: 'hidden',
+    whileInView: 'visible',
+    viewport: { once: true, amount: 0.2 },
+  }), []);
+
+  const gridVariants = useMemo(() => staggerChildren(0.08, 0.05), []);
+  const cardVariants = useMemo(() => ({
+    hidden: { opacity: 0, y: 18 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.35,
+        ease: [0.22, 0.61, 0.36, 1],
+      },
+    },
+  }), []);
+
   useEffect(() => {
     (async () => {
       try {
@@ -187,10 +207,10 @@ export function DealsContent() {
       const images = normalizeImages(product.thumbnail, product.images as string[] | null | undefined);
 
       return {
-        ...product,
+          ...product,
         original_price: originalPrice,
         discount_price: finalDealPrice,
-        stock_quantity: stockQuantity,
+          stock_quantity: stockQuantity,
         in_stock: stockQuantity > 0 ? true : Boolean(product.in_stock),
         thumbnail: images[0],
         images,
@@ -200,8 +220,8 @@ export function DealsContent() {
           hasRange: false,
         },
         deal_price: finalDealPrice,
-        deal_discount: dealDiscount,
-        base_product_id: product.id,
+          deal_discount: dealDiscount,
+          base_product_id: product.id,
       };
       } 
 
@@ -302,68 +322,80 @@ export function DealsContent() {
   console.log('Products by deal:', productsByDeal);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <motion.main
+      className="min-h-screen bg-gray-50"
+      variants={fadeIn}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-16">
+      <motion.section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-16" variants={fadeInUp} custom={0.05}>
         <div className="container mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+          <motion.div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6" variants={fadeInScale}>
             <Zap className="text-white" size={20} />
             <span className="text-sm font-semibold text-white">HOT DEALS</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+          </motion.div>
+          <motion.h1 className="text-4xl md:text-5xl font-bold mb-6 text-white" variants={fadeInUp} custom={0.08}>
             Don&apos;t Miss Out on Amazing Deals!
-          </h1>
-          <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
+          </motion.h1>
+          <motion.p className="text-lg text-white/90 max-w-2xl mx-auto mb-8" variants={fadeInUp} custom={0.12}>
             Shop the latest discounts and exclusive offers on top gadgets and electronics
-          </p>
+          </motion.p>
         </div>
-      </section>
+      </motion.section>
 
       {/* Deals Campaigns Section */}
       {productsByDeal.length > 0 && (
-        <section className="container mx-auto px-4 py-12">
+        <motion.section className="container mx-auto px-4 py-12" variants={fadeInUp} custom={0.08}>
           {productsByDeal.map(({ deal, products }) => (
-            <div key={deal.id} className="mb-12">
+            <motion.div key={deal.id} className="mb-12" variants={fadeIn}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.25 }}
+            >
               {/* Campaign Header */}
-              <div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-xl p-6 md:p-8 mb-6">
+              <motion.div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-xl p-6 md:p-8 mb-6" variants={fadeInScale}>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
-                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4">
+                    <motion.div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4" variants={fadeInUp} custom={0.05}>
                       <Zap className="text-white" size={18} />
                       <span className="text-sm font-semibold text-white">DEAL</span>
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                    </motion.div>
+                    <motion.h2 className="text-2xl md:text-3xl font-bold text-white mb-2" variants={fadeInUp} custom={0.08}>
                       {deal.title}
-                    </h2>
+                    </motion.h2>
                     {deal.description && (
-                      <p className="text-white/90 text-sm md:text-base mb-4">
+                      <motion.p className="text-white/90 text-sm md:text-base mb-4" variants={fadeInUp} custom={0.1}>
                         {deal.description}
-                      </p>
+                      </motion.p>
                     )}
                     {deal.discount_percentage > 0 && (
-                      <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+                      <motion.div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2" variants={fadeInUp} custom={0.12}>
                         <Percent className="text-white" size={16} />
                         <span className="text-sm font-semibold text-white">
                           {deal.discount_percentage}% OFF
                         </span>
-                      </div>
+                      </motion.div>
                     )}
                   </div>
-                  <div className="flex-shrink-0">
+                  <motion.div className="flex-shrink-0" variants={fadeInUp} custom={0.14}>
                     <div className="text-white mb-2 text-sm font-medium">Ends in:</div>
-                    <CountdownTimer 
-                      endTime={deal.end_date} 
+                    <CountdownTimer
+                      endTime={deal.end_date}
                       variant="large"
                     />
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Campaign Products */}
               {products.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <motion.div
+                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                  variants={gridVariants}
+                >
                   {products.map((product) => (
-                    <div key={product.id} className="relative">
+                    <motion.div key={product.id} className="relative" variants={cardVariants}>
                       <ProductCard product={product} />
                       {product.deal_discount > 0 && (
                         <div className="absolute -top-2 -right-2 z-10">
@@ -372,23 +404,23 @@ export function DealsContent() {
                           </Badge>
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               ) : (
-                <div className="text-center py-12 bg-white rounded-xl">
+                <motion.div className="text-center py-12 bg-white rounded-xl" variants={fadeIn}>
                   <p className="text-[#3A3A3A]">No products in this deal yet</p>
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           ))}
-        </section>
+        </motion.section>
       )}
 
 
       {/* Newsletter Section */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-8 md:p-12 text-center text-white">
+      <motion.section className="container mx-auto px-4 py-12" {...sectionMotionProps}>
+        <motion.div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-8 md:p-12 text-center text-white" variants={fadeInScale}>
           <Clock className="mx-auto mb-4" size={48} />
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Never Miss a Deal</h2>
           <p className="text-white/90 mb-6 max-w-2xl mx-auto">
@@ -405,8 +437,8 @@ export function DealsContent() {
               Subscribe
             </Button>
           </form>
-        </div>
-      </section>
-    </div>
+        </motion.div>
+      </motion.section>
+    </motion.main>
   );
 }

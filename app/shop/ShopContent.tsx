@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { ProductCard } from '@/components/cards/ProductCard';
 import { QuickView } from '@/components/shop/QuickView';
 import { Product, Category } from '@/types/product';
-import { 
+import {
   SlidersHorizontal,
   Grid3x3,
   List,
@@ -16,6 +16,8 @@ import { productService } from '@/services/product.service';
 import { getCategories } from '@/services/category.service';
 import { getFilterBrands, Brand } from '@/services/brand.service';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
 
 interface ProductFilters {
   category?: string;
@@ -45,6 +47,41 @@ export function ShopContent() {
     sortBy: 'newest'
   });
   const productsPerPage = 20;
+
+  const layoutVariants = useMemo(() => staggerChildren(0.08, 0.05), []);
+  const filterCardVariants = useMemo(() => ({
+    hidden: { opacity: 0, x: -24 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.4,
+        ease: [0.22, 0.61, 0.36, 1],
+      },
+    },
+  }), []);
+  const toolbarVariants = useMemo(() => ({
+    hidden: { opacity: 0, y: -12 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.35,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+  }), []);
+  const contentVariants = useMemo(() => ({
+    hidden: { opacity: 0, y: 16 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: [0.22, 0.61, 0.36, 1],
+      },
+    },
+  }), []);
 
   const searchParamsString = useMemo(() => searchParams.toString(), [searchParams]);
 
@@ -239,7 +276,7 @@ export function ShopContent() {
 
   const handleFilterChange = <K extends keyof ProductFilters>(key: K, value: ProductFilters[K] | undefined) => {
     setFilters(prev => ({
-      ...prev,
+        ...prev,
       [key]: value ?? undefined,
     }));
     setCurrentPage(1); // Reset to first page when filter changes
@@ -274,17 +311,31 @@ export function ShopContent() {
   }, [filters, buildUrlFromFilters, pathname, router, searchParamsString]);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-3 sm:px-4 max-w-full overflow-x-hidden">
+    <motion.section
+      className="min-h-screen bg-gray-50 py-8"
+      variants={fadeIn}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div
+        className="container mx-auto px-3 sm:px-4 max-w-full overflow-x-hidden"
+        variants={layoutVariants}
+      >
         {/* Header */}
-        <div className="mb-8">
+        <motion.div className="mb-8" variants={fadeInUp} custom={0.05}>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Shop All Products</h1>
           <p className="text-gray-600">Browse our complete collection of gadgets and electronics</p>
-        </div>
+        </motion.div>
 
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        <motion.div
+          className="flex flex-col lg:flex-row gap-4 lg:gap-6"
+          variants={layoutVariants}
+        >
           {/* Filters Sidebar - Desktop: Always visible on left, Mobile: Toggle */}
-          <div className={`w-full lg:w-64 lg:flex-shrink-0 ${showFilters ? 'block' : 'hidden'} lg:block`}>
+          <motion.aside
+            className={`w-full lg:w-64 lg:flex-shrink-0 ${showFilters ? 'block' : 'hidden'} lg:block`}
+            variants={filterCardVariants}
+          >
             <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-semibold text-[#1A1A1A] text-lg">Filters</h3>
@@ -401,12 +452,15 @@ export function ShopContent() {
                   </label>
                 </div>
             </div>
-          </div>
+          </motion.aside>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
+          <motion.div className="flex-1 min-w-0" variants={contentVariants}>
             {/* Toolbar */}
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-6 flex items-center justify-between flex-wrap gap-4">
+            <motion.div
+              className="bg-white rounded-lg shadow-sm p-4 mb-6 flex items-center justify-between flex-wrap gap-4"
+              variants={toolbarVariants}
+            >
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">
                   Showing {filteredProducts.length} products
@@ -459,7 +513,7 @@ export function ShopContent() {
                   <SlidersHorizontal size={18} className="text-gray-700" />
                 </button>
               </div>
-            </div>
+            </motion.div>
 
             {/* Products Grid/List */}
             {isLoading && products.length === 0 ? (
@@ -476,10 +530,14 @@ export function ShopContent() {
               </div>
             ) : (
               <>
-                <div className={viewMode === 'grid' 
+                <motion.div
+                  className={viewMode === 'grid' 
                   ? 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 xl:gap-6'
                   : 'space-y-4'
-                }>
+                }
+                  variants={fadeInUp}
+                  custom={0.08}
+                >
                   {filteredProducts.map((product) => (
                     <ProductCard
                       key={product.id}
@@ -487,11 +545,11 @@ export function ShopContent() {
                       onQuickView={() => setQuickViewProduct(product)}
                     />
                   ))}
-                </div>
+                </motion.div>
 
                 {/* Load More Button */}
                 {hasMore && (
-                  <div className="text-center mt-8">
+                  <motion.div className="text-center mt-8" variants={fadeIn}>
                     <Button
                       variant="outline"
                       onClick={loadMore}
@@ -499,18 +557,18 @@ export function ShopContent() {
                     >
                       {isLoading ? 'Loading...' : 'Load More'}
                     </Button>
-                  </div>
+                  </motion.div>
                 )}
               </>
             )}
-          </div>
+          </motion.div>
 
           {/* Sidebar Ads (Desktop Only) */}
-          <div className="hidden lg:block w-64 flex-shrink-0">
+          <motion.div className="hidden lg:block w-64 flex-shrink-0" variants={fadeInUp} custom={0.12}>
             <SidebarAds position="right" page="shop" />
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Quick View Modal */}
       <QuickView
@@ -518,6 +576,6 @@ export function ShopContent() {
         isOpen={!!quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
       />
-    </div>
+    </motion.section>
   );
 }

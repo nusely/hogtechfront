@@ -15,6 +15,23 @@ interface CustomerData {
   customerSegments: Array<{ segment: string; count: number; percentage: number }>;
 }
 
+interface SupabaseCustomerRecord {
+  id: string;
+  user_id: string | null;
+  full_name: string | null;
+  email: string | null;
+  source?: string | null;
+  created_at: string;
+  user?:
+    | {
+        full_name?: string | null;
+        first_name?: string | null;
+        last_name?: string | null;
+        created_at?: string | null;
+      }
+    | null;
+}
+
 export default function CustomersAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<'7days' | '30days' | '90days'>('30days');
@@ -35,93 +52,167 @@ export default function CustomersAnalyticsPage() {
     try {
       setLoading(true);
 
-      // Calculate date range
       const now = new Date();
       let startDate: Date;
       switch (timeFilter) {
         case '7days':
           startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
           break;
-        case '30days':
-          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          break;
         case '90days':
           startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
           break;
+        case '30days':
         default:
           startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
       }
 
-      // Fetch all customers
-      const { data: allCustomers, error: customersError } = await supabase
-        .from('users')
-        .select('id, first_name, last_name, created_at')
-        .eq('role', 'customer');
+      const { data: customerRecords, error: customersError } = await supabase
+        .from('customers')
+        .select(`
+          id,
+          user_id,
+          full_name,
+          email,
+          source,
+          created_at,
+          user:users!customers_user_id_fkey(full_name, first_name, last_name, created_at)
+        `);
 
       if (customersError) throw customersError;
 
-      const totalCustomers = allCustomers?.length || 0;
-      const newCustomers = allCustomers?.filter(c => new Date(c.created_at) >= startDate).length || 0;
+      const customers: SupabaseCustomerRecord[] = Array.isArray(customerRecords)
+        ? (customerRecords as SupabaseCustomerRecord[])
+        : [];
 
-      // Fetch orders with user info for top customers
+      const totalCustomers = customers.length;
+      const newCustomers = customers.filter((customer) => new Date(customer.created_at) >= startDate).length;
+
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select('user_id, total, created_at, user:users!orders_user_id_fkey(first_name, last_name, created_at)')
+        .select(`
+          id,
+          total,
+          created_at,
+          customer_id,
+          user_id,
+          customer:customers!orders_customer_id_fkey(id, full_name, email, created_at),
+          user:users!orders_user_id_fkey(full_name, first_name, last_name, created_at)
+        `)
         .eq('payment_status', 'paid');
 
       if (ordersError) throw ordersError;
 
-      // Calculate customer spending
-      const customerSpending: { [key: string]: { name: string; orders: number; spent: number; since: string } } = {};
-      
-      orders?.forEach(order => {
-        const userId = order.user_id;
-        if (!userId) return;
+      const unwrap = <T,>(value: T | T[] | null | undefined): T | null => {
+        if (!value) return null;
+        if (Array.isArray(value)) {
+          return value.length > 0 ? (value[0] as T) : null;
+        }
+        return value;
+      };
 
-        const user = order.user as any;
-        const userName = user 
-          ? (user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Unknown')
-          : 'Unknown';
-        
-        if (!customerSpending[userId]) {
-          customerSpending[userId] = {
-            name: userName,
+      const findCustomerById = (id: string | null): SupabaseCustomerRecord | null => {
+        if (!id) return null;
+        return customers.find((customer) => customer.id === id) || null;
+      };
+
+      const resolveName = (
+        joinedCustomer: any,
+        fallbackCustomer: SupabaseCustomerRecord | null,
+        joinedUser: any
+      ) => {
+        const candidates = [
+          typeof joinedCustomer?.full_name === 'string' ? joinedCustomer.full_name : undefined,
+          typeof fallbackCustomer?.full_name === 'string' ? fallbackCustomer.full_name : undefined,
+          typeof joinedUser?.full_name === 'string' ? joinedUser.full_name : undefined,
+          `${joinedUser?.first_name || ''} ${joinedUser?.last_name || ''}`.trim() || undefined,
+        ];
+
+        const name = candidates.find((candidate) => typeof candidate === 'string' && candidate.trim().length > 0);
+        return name ? name.trim() : 'Guest Customer';
+      };
+
+      const resolveSinceDate = (
+        joinedCustomer: any,
+        fallbackCustomer: SupabaseCustomerRecord | null,
+        joinedUser: any,
+        orderCreatedAt: string
+      ) => {
+        const candidateDates = [
+          joinedCustomer?.created_at,
+          fallbackCustomer?.created_at,
+          joinedUser?.created_at,
+          orderCreatedAt,
+        ].filter(Boolean);
+
+        if (candidateDates.length === 0) {
+          return orderCreatedAt;
+        }
+
+        return candidateDates.reduce((earliest, current) => {
+          return new Date(current) < new Date(earliest) ? current : earliest;
+        }, candidateDates[0]);
+      };
+
+      const customerSpending: Record<string, { name: string; orders: number; spent: number; since: string }> = {};
+
+      orders?.forEach((order: any) => {
+        const key: string | null = order.customer_id || order.user_id;
+        if (!key) return;
+
+        const joinedCustomer = unwrap(order.customer);
+        const joinedUser = unwrap(order.user);
+        const fallbackCustomer = order.customer_id ? findCustomerById(order.customer_id) : null;
+
+        const customerName = resolveName(joinedCustomer, fallbackCustomer, joinedUser);
+        const since = resolveSinceDate(joinedCustomer, fallbackCustomer, joinedUser, order.created_at);
+        const amountRaw = typeof order.total === 'number' ? order.total : parseFloat(order.total ?? '0');
+        const amount = Number.isFinite(amountRaw) ? amountRaw : 0;
+
+        if (!customerSpending[key]) {
+          customerSpending[key] = {
+            name: customerName,
             orders: 0,
             spent: 0,
-            since: (user && !Array.isArray(user) && user.created_at) ? user.created_at : order.created_at,
+            since,
           };
         }
-        customerSpending[userId].orders += 1;
-        customerSpending[userId].spent += parseFloat(order.total) || 0;
+
+        customerSpending[key].orders += 1;
+        customerSpending[key].spent += amount;
+        if (new Date(since) < new Date(customerSpending[key].since)) {
+          customerSpending[key].since = since;
+        }
       });
 
       const topCustomers = Object.values(customerSpending)
         .sort((a, b) => b.spent - a.spent)
         .slice(0, 5);
 
-      // Calculate customer segments - include all customers (even those without orders)
       const totalWithOrders = Object.keys(customerSpending).length;
-      const totalCustomersWithoutOrders = Math.max(0, totalCustomers - totalWithOrders);
-      
-      const vipCount = Object.values(customerSpending).filter(c => c.orders >= 10).length;
-      const loyalCount = Object.values(customerSpending).filter(c => c.orders >= 5 && c.orders < 10).length;
-      const regularCount = Object.values(customerSpending).filter(c => c.orders >= 2 && c.orders < 4).length;
-      const newCount = Object.values(customerSpending).filter(c => c.orders === 1).length;
+      const customersWithoutOrders = Math.max(0, totalCustomers - totalWithOrders);
+
+      const vipCount = Object.values(customerSpending).filter((c) => c.orders >= 10).length;
+      const loyalCount = Object.values(customerSpending).filter((c) => c.orders >= 5 && c.orders < 10).length;
+      const regularCount = Object.values(customerSpending).filter((c) => c.orders >= 2 && c.orders < 5).length;
+      const newCount = Object.values(customerSpending).filter((c) => c.orders === 1).length;
 
       const customerSegments = [
-        { segment: 'VIP (10+ orders)', count: vipCount, percentage: totalCustomers > 0 ? (vipCount / totalCustomers) * 100 : 0 },
-        { segment: 'Loyal (5-9 orders)', count: loyalCount, percentage: totalCustomers > 0 ? (loyalCount / totalCustomers) * 100 : 0 },
-        { segment: 'Regular (2-4 orders)', count: regularCount, percentage: totalCustomers > 0 ? (regularCount / totalCustomers) * 100 : 0 },
-        { segment: 'New (1 order)', count: newCount, percentage: totalCustomers > 0 ? (newCount / totalCustomers) * 100 : 0 },
-        { segment: 'No Orders Yet', count: totalCustomersWithoutOrders, percentage: totalCustomers > 0 ? (totalCustomersWithoutOrders / totalCustomers) * 100 : 0 },
-      ];
+        { segment: 'VIP (10+ orders)', count: vipCount },
+        { segment: 'Loyal (5-9 orders)', count: loyalCount },
+        { segment: 'Regular (2-4 orders)', count: regularCount },
+        { segment: 'New (1 order)', count: newCount },
+        { segment: 'No Orders Yet', count: customersWithoutOrders },
+      ].map((segment) => ({
+        segment: segment.segment,
+        count: segment.count,
+        percentage: totalCustomers > 0 ? parseFloat(((segment.count / totalCustomers) * 100).toFixed(1)) : 0,
+      }));
 
-      // Calculate returning rate
-      const customersWithMultipleOrders = Object.values(customerSpending).filter(c => c.orders > 1).length;
+      const customersWithMultipleOrders = Object.values(customerSpending).filter((c) => c.orders > 1).length;
       const returningRate = totalWithOrders > 0 ? (customersWithMultipleOrders / totalWithOrders) * 100 : 0;
 
-      // Calculate average lifetime value
-      const totalSpent = Object.values(customerSpending).reduce((sum, c) => sum + c.spent, 0);
+      const totalSpent = Object.values(customerSpending).reduce((sum, customer) => sum + customer.spent, 0);
       const avgLifetimeValue = totalWithOrders > 0 ? totalSpent / totalWithOrders : 0;
 
       setCustomerData({

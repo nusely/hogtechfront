@@ -330,11 +330,11 @@ export const getProductBySlug = async (slug: string): Promise<Product | null> =>
       const fallbackDealProduct = await fetchDealProductFallback(slug);
       if (fallbackDealProduct) {
         return fallbackDealProduct;
-      }
+    }
 
-      if (error) {
-        console.error('Error fetching product by slug:', error);
-      }
+    if (error) {
+      console.error('Error fetching product by slug:', error);
+    }
       return null;
     }
 

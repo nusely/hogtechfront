@@ -17,8 +17,21 @@ const getAuthToken = async (): Promise<string | null> => {
 export const orderService = {
   // Create new order (supports guest checkout with null userId)
   // Uses backend API to handle emails and notifications
-  async createOrder(checkoutData: CheckoutData, userId: string | null) {
+  async createOrder(
+    checkoutData: CheckoutData,
+    arg?: string | null | { userId?: string | null; customerId?: string | null }
+  ) {
     const API_URL = buildApiUrl('/api');
+
+    let userId: string | null = null;
+    let customerId: string | null = null;
+
+    if (typeof arg === 'string' || arg === null || arg === undefined) {
+      userId = arg ?? null;
+    } else if (typeof arg === 'object') {
+      userId = arg.userId ?? null;
+      customerId = arg.customerId ?? null;
+    }
     
     // Calculate totals
     const subtotal = checkoutData.items.reduce((sum, item) => sum + item.subtotal, 0);
@@ -55,6 +68,7 @@ export const orderService = {
     // Try to call backend API first, fallback to Supabase if it fails
     const orderPayload = {
       user_id: userId,
+      customer_id: customerId,
       subtotal,
       discount: discountAmount,
       discount_code: checkoutData.discount_code || null,

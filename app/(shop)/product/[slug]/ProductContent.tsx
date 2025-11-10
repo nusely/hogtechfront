@@ -33,6 +33,7 @@ import { Product, ProductVariant } from '@/types/product';
 import { useWishlist } from '@/hooks/useWishlist';
 import { formatCurrency } from '@/lib/helpers';
 import { useRouter } from 'next/navigation';
+import { useAllowBackorders } from '@/hooks/useAllowBackorders';
 
 interface ProductContentProps {
   product: Product;
@@ -52,6 +53,11 @@ export function ProductContent({ product }: ProductContentProps) {
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews'>('description');
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { allowBackorders } = useAllowBackorders();
+  const stockQuantity = Number(product.stock_quantity ?? 0);
+  const isOutOfStock = !product.in_stock || stockQuantity <= 0;
+  const isBackorder = allowBackorders && isOutOfStock;
 
   const isInCart = items.some(item => item.id === product.id);
   const hasDiscount = product.discount_price && product.discount_price < product.original_price;
@@ -115,20 +121,34 @@ export function ProductContent({ product }: ProductContentProps) {
     setQuantity(prev => {
       const newQuantity = prev + delta;
       if (newQuantity < 1) return 1;
-      if (newQuantity > product.stock_quantity) {
-        toast.error(`Only ${product.stock_quantity} items available`);
-        return product.stock_quantity;
+      if (!allowBackorders) {
+        const maxAvailable = stockQuantity > 0 ? stockQuantity : 0;
+        if (maxAvailable === 0 && newQuantity > 1) {
+          toast.error('This item is currently out of stock.');
+          return 1;
+        }
+        if (maxAvailable > 0 && newQuantity > maxAvailable) {
+          toast.error(`Only ${maxAvailable} item${maxAvailable === 1 ? '' : 's'} available`);
+          return maxAvailable;
+        }
       }
       return newQuantity;
     });
   };
 
   const handleAddToCart = () => {
+    if (isOutOfStock && !allowBackorders) {
+      toast.error('This item is currently out of stock.');
+      return;
+    }
+
     const cartItem = {
       ...product,
       quantity,
       selected_variants: selectedVariants,
-      subtotal: finalPrice * quantity,
+      subtotal: totalPrice,
+      variant_price: variantPrice,
+      backorder: isBackorder,
     };
 
     dispatch(
@@ -139,7 +159,9 @@ export function ProductContent({ product }: ProductContentProps) {
       })
     );
 
-    toast.success(`${product.name} added to cart!`);
+    toast.success(
+      `${product.name} added to cart${isBackorder ? ' (Backorder)' : ''}!`
+    );
   };
 
   const handleWishlist = async () => {
@@ -290,6 +312,11 @@ export function ProductContent({ product }: ProductContentProps) {
                   Total for {quantity} {quantity === 1 ? 'item' : 'items'}: {formatCurrency(totalPrice)}
                 </span>
               )}
+              {isBackorder && (
+                <div className="flex items-center gap-2 text-sm text-[#FF7A19] font-medium mt-2">
+                  <Package size={16} /> Ships once restocked — this item is on backorder.
+                </div>
+              )}
             </div>
 
             {/* Variant Selector */}
@@ -314,7 +341,7 @@ export function ProductContent({ product }: ProductContentProps) {
                 <span className="w-12 text-center font-semibold">{quantity}</span>
                 <button
                   onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= product.stock_quantity}
+                  disabled={!allowBackorders && (stockQuantity === 0 || quantity >= stockQuantity)}
                   className="p-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Plus size={20} />
@@ -326,10 +353,10 @@ export function ProductContent({ product }: ProductContentProps) {
                 size="lg"
                 icon={<ShoppingCart size={20} />}
                 onClick={handleAddToCart}
-                disabled={!product.in_stock || product.stock_quantity === 0}
+                disabled={!allowBackorders && isOutOfStock}
                 className="flex-1"
               >
-                {isInCart ? 'In Cart' : 'Add to Cart'}
+                {isBackorder ? 'Backorder Item' : isInCart ? 'In Cart' : 'Add to Cart'}
               </Button>
             </div>
 
