@@ -7,7 +7,7 @@ After deploying to Vercel, you'll get a URL like:
 
 **Note:** Replace `your-project-name` with your actual Vercel project name throughout this guide.
 
----
+--- hogtechfront.vercel.app
 
 ## Step 2: Configure Supabase Dashboard
 
