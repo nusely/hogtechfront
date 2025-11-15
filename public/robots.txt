@@ -13,7 +13,6 @@ Allow: /deals
 Allow: /about
 Allow: /contact
 Allow: /register
-Allow: /laptop-banking
 
 # Sitemap
 Sitemap: https://ventechgadgets.com/sitemap.xml

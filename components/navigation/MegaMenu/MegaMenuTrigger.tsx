@@ -28,8 +28,8 @@ export const MegaMenuTrigger: React.FC<MegaMenuTriggerProps> = ({ category, isAc
         flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium
         transition-all duration-200
         ${isActive 
-          ? 'bg-[#FF7A19] text-white' 
-          : 'text-[#1A1A1A] hover:bg-orange-50 hover:text-[#FF7A19]'
+          ? 'bg-gradient-to-r from-[#00afef] to-[#163b86] text-white' 
+          : 'text-[#1A1A1A] hover:bg-blue-50 hover:text-[#00afef]'
         }
       `}
     >

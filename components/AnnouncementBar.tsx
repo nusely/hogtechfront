@@ -80,7 +80,7 @@ export function AnnouncementBar() {
   }
 
   return (
-    <div className="bg-[#FF7A19] text-white">
+    <div className="bg-[#00afef] text-white">
       <div className="relative container mx-auto px-3 sm:px-4 py-2 flex items-center justify-center text-center">
         <span
           className={`text-xs sm:text-sm font-medium tracking-wide leading-tight ${
@@ -92,7 +92,7 @@ export function AnnouncementBar() {
         <button
           type="button"
           onClick={() => setDismissed(true)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full p-1.5 transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white/70 focus-visible:ring-offset-[#FF7A19]"
+          className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full p-1.5 transition-colors hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white/70 focus-visible:ring-offset-[#00afef]"
           aria-label="Dismiss announcement"
         >
           <X size={14} strokeWidth={2.5} />

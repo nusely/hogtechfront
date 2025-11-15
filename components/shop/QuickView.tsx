@@ -187,7 +187,7 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
                     className="object-cover"
                   />
                   {hasDiscount && (
-                    <div className="absolute top-4 left-4 bg-[#FF7A19] text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <div className="absolute top-4 left-4 bg-gradient-to-r from-[#00afef] to-[#163b86] text-white px-3 py-1 rounded-full text-sm font-bold">
                       -{discountPercentage}%
                     </div>
                   )}
@@ -197,7 +197,7 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
                 <div className="flex flex-col">
                   <div className="flex-1">
                     {/* Brand */}
-                    <p className="text-sm text-[#FF7A19] font-semibold uppercase mb-2">
+                    <p className="text-sm text-[#00afef] font-semibold uppercase mb-2">
                       {product.brand}
                     </p>
 
@@ -250,13 +250,13 @@ export const QuickView: React.FC<QuickViewProps> = ({ product, isOpen, onClose }
                         <span
                           className={`inline-flex items-center gap-2 text-sm font-medium px-3 py-1 rounded-full ${
                             isBackorder
-                              ? 'text-[#FF7A19] bg-orange-50'
+                              ? 'text-[#00afef] bg-blue-50'
                               : 'text-red-600 bg-red-50'
                           }`}
                         >
                           <span
                             className={`w-2 h-2 rounded-full ${
-                              isBackorder ? 'bg-[#FF7A19]' : 'bg-red-600'
+                              isBackorder ? 'bg-[#00afef]' : 'bg-red-600'
                             }`}
                           ></span>
                           {isBackorder ? 'Available on Backorder' : 'Out of Stock'}

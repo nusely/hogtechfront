@@ -54,6 +54,11 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [updatingDetails, setUpdatingDetails] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedShippingFee, setEditedShippingFee] = useState<string>('');
+  const [editedNotes, setEditedNotes] = useState<string>('');
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [formattedVariants, setFormattedVariants] = useState<{ [key: string]: any[] }>({});
 
   useEffect(() => {
@@ -110,6 +115,8 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
             });
 
             setOrder(formattedOrder);
+            setEditedShippingFee(formattedOrder.shipping_fee?.toString() || '0');
+            setEditedNotes(formattedOrder.notes || '');
 
             // Format variants for all items
             if (orderItems.length > 0) {
@@ -274,10 +281,78 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
     }
   };
 
-  const handleDownloadPDF = async () => {
-    if (!order) return;
+  const handleSaveDetails = async () => {
+    if (!order || updatingDetails) return;
 
     try {
+      setUpdatingDetails(true);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const updateData: any = {};
+      if (editedShippingFee !== order.shipping_fee?.toString()) {
+        updateData.shipping_fee = parseFloat(editedShippingFee) || 0;
+      }
+      if (editedNotes !== (order.notes || '')) {
+        updateData.notes = editedNotes || null;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        toast.info('No changes to save');
+        setIsEditing(false);
+        return;
+      }
+
+      const response = await fetch(`${buildApiUrl('/api/orders')}/${orderId}/details`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update order details');
+      }
+
+      const result = await response.json();
+      
+      // Refresh order data
+      await fetchOrder();
+      
+      // Notify parent to refresh orders list
+      if (onStatusUpdate) {
+        onStatusUpdate();
+      }
+
+      setIsEditing(false);
+      toast.success('Order details updated successfully. Customer has been notified via email.');
+    } catch (error: any) {
+      console.error('Error updating order details:', error);
+      toast.error(error.message || 'Failed to update order details');
+    } finally {
+      setUpdatingDetails(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    if (order) {
+      setEditedShippingFee(order.shipping_fee?.toString() || '0');
+      setEditedNotes(order.notes || '');
+    }
+    setIsEditing(false);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!order || downloadingPDF) return;
+
+    try {
+      setDownloadingPDF(true);
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -306,6 +381,8 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
     } catch (error: any) {
       console.error('Error downloading PDF:', error);
       toast.error(error.message || 'Failed to download PDF');
+    } finally {
+      setDownloadingPDF(false);
     }
   };
 
@@ -357,7 +434,7 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
         <div className="p-6 flex-grow overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF7A19]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00afef]"></div>
               <span className="ml-3 text-[#3A3A3A]">Loading order details...</span>
             </div>
           ) : !order ? (
@@ -368,7 +445,7 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <User size={18} className="text-[#FF7A19]" />
+                    <User size={18} className="text-[#00afef]" />
                     <h3 className="font-semibold text-[#1A1A1A]">Customer</h3>
                   </div>
                   <p className="text-sm text-[#1A1A1A] font-medium">{order.customer_name}</p>
@@ -377,7 +454,7 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
 
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <Calendar size={18} className="text-[#FF7A19]" />
+                    <Calendar size={18} className="text-[#00afef]" />
                     <h3 className="font-semibold text-[#1A1A1A]">Order Date</h3>
                   </div>
                   <p className="text-sm text-[#1A1A1A]">
@@ -387,29 +464,36 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
 
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <Package size={18} className="text-[#FF7A19]" />
+                    <Package size={18} className="text-[#00afef]" />
                     <h3 className="font-semibold text-[#1A1A1A]">Status</h3>
                   </div>
                   <div className="flex items-center gap-2">
                     {getStatusBadge(order.status)}
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusUpdate(e.target.value)}
-                      className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#FF7A19] ml-2"
-                      disabled={updatingStatus || order.status === 'delivered' || order.status === 'cancelled'}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="processing">Processing</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
+                    {updatingStatus ? (
+                      <div className="ml-2 flex items-center gap-1 text-xs text-[#3A3A3A]">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-[#00afef]"></div>
+                        <span>Updating...</span>
+                      </div>
+                    ) : (
+                      <select
+                        value={order.status}
+                        onChange={(e) => handleStatusUpdate(e.target.value)}
+                        className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#00afef] ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={updatingStatus || isEditing || order.status === 'delivered' || order.status === 'cancelled'}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    )}
                   </div>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <CreditCard size={18} className="text-[#FF7A19]" />
+                    <CreditCard size={18} className="text-[#00afef]" />
                     <h3 className="font-semibold text-[#1A1A1A]">Payment</h3>
                   </div>
                   <div className="space-y-1">
@@ -423,7 +507,7 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
               {order.shipping_address && (
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <MapPin size={18} className="text-[#FF7A19]" />
+                    <MapPin size={18} className="text-[#00afef]" />
                     <h3 className="font-semibold text-[#1A1A1A]">Shipping Address</h3>
                   </div>
                   <div className="text-sm text-[#1A1A1A]">
@@ -480,7 +564,7 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
                                       </div>
                                     )}
                                     {isFlashDeal && (
-                                      <div className="absolute -top-1 -right-1 bg-[#FF7A19] text-white rounded-full p-0.5">
+                                      <div className="absolute -top-1 -right-1 bg-[#00afef] text-white rounded-full p-0.5">
                                         <Zap size={10} className="fill-white" />
                                       </div>
                                     )}
@@ -539,12 +623,25 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
                       <span className="font-medium text-[#1A1A1A]">-GHS {order.discount.toFixed(2)}</span>
                     </div>
                   )}
-                  {order.shipping_fee > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-[#3A3A3A]">Shipping:</span>
-                      <span className="font-medium text-[#1A1A1A]">GHS {order.shipping_fee.toFixed(2)}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#3A3A3A]">Shipping:</span>
+                    {isEditing ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-[#3A3A3A]">GHS</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={editedShippingFee}
+                          onChange={(e) => setEditedShippingFee(e.target.value)}
+                          className="w-24 text-sm px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#00afef] text-right"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    ) : (
+                      <span className="font-medium text-[#1A1A1A]">GHS {order.shipping_fee?.toFixed(2) || '0.00'}</span>
+                    )}
+                  </div>
                   {order.tax > 0 && (
                     <div className="flex justify-between">
                       <span className="text-[#3A3A3A]">Tax:</span>
@@ -553,32 +650,109 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
                   )}
                   <div className="flex justify-between pt-2 border-t border-gray-300">
                     <span className="font-semibold text-[#1A1A1A]">Total:</span>
-                    <span className="font-bold text-lg text-[#FF7A19]">GHS {order.total.toFixed(2)}</span>
+                    <span className="font-bold text-lg text-[#00afef]">
+                      GHS {isEditing 
+                        ? (Number(order.subtotal) - Number(order.discount || 0) + Number(order.tax || 0) + Number(editedShippingFee || 0)).toFixed(2)
+                        : order.total.toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Notes */}
-              {order.notes && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-[#1A1A1A] mb-2">Order Notes</h3>
-                  <p className="text-sm text-[#3A3A3A]">{order.notes}</p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold text-[#1A1A1A]">Order Notes</h3>
+                  {!isEditing && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditing(true)}
+                      className="text-xs"
+                    >
+                      Edit
+                    </Button>
+                  )}
                 </div>
-              )}
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={editedNotes}
+                      onChange={(e) => setEditedNotes(e.target.value)}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] resize-none"
+                      rows={3}
+                      placeholder="Add notes about this order..."
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancelEdit}
+                        disabled={updatingDetails}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={handleSaveDetails}
+                        isLoading={updatingDetails}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#3A3A3A]">{order.notes || 'No notes added'}</p>
+                )}
+              </div>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-200 flex items-center justify-between sticky bottom-0 bg-white">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={updatingDetails || updatingStatus}>
             Close
           </Button>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleDownloadPDF} disabled={!order || loading}>
-              <Download size={18} className="mr-2" />
-              Download PDF
-            </Button>
+            {isEditing ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={updatingDetails}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={handleSaveDetails}
+                  isLoading={updatingDetails}
+                >
+                  Save Changes
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                  disabled={!order || loading || updatingStatus}
+                >
+                  Edit Order
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDownloadPDF}
+                  isLoading={downloadingPDF}
+                  disabled={!order || loading || updatingStatus}
+                >
+                  <Download size={18} className="mr-2" />
+                  Download PDF
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

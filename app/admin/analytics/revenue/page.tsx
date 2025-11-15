@@ -254,7 +254,7 @@ export default function RevenueAnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading revenue analytics...</p>
         </div>
       </div>
@@ -275,7 +275,7 @@ export default function RevenueAnalyticsPage() {
           <select
             value={timeFilter}
             onChange={(e) => setTimeFilter(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
           >
             <option value="7days">Last 7 Days</option>
             <option value="30days">Last 30 Days</option>
@@ -314,7 +314,7 @@ export default function RevenueAnalyticsPage() {
 
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <p className="text-sm text-[#3A3A3A] mb-1">Average Order Value</p>
-          <p className="text-3xl font-bold text-[#FF7A19]">
+          <p className="text-3xl font-bold text-[#00afef]">
             GHS {revenueData.averageOrder}
           </p>
           <p className="text-sm text-[#3A3A3A] mt-2">Per transaction</p>
@@ -338,7 +338,7 @@ export default function RevenueAnalyticsPage() {
               <div key={index} className="flex-1 flex flex-col items-center gap-2">
                 <div className="w-full flex flex-col justify-end" style={{ height: '200px' }}>
                   <div
-                    className="w-full bg-[#FF7A19] rounded-t-lg hover:bg-[#FF8A29] transition-colors cursor-pointer"
+                    className="w-full bg-[#00afef] rounded-t-lg hover:bg-[#FF8A29] transition-colors cursor-pointer"
                     style={{ height: `${height}%` }}
                     title={`GHS ${day.revenue}`}
                   ></div>
@@ -371,7 +371,7 @@ export default function RevenueAnalyticsPage() {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div
-                  className="bg-[#FF7A19] h-full rounded-full transition-all duration-500"
+                  className="bg-[#00afef] h-full rounded-full transition-all duration-500"
                   style={{ width: `${category.percentage}%` }}
                 ></div>
               </div>

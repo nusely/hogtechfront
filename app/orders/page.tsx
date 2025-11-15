@@ -96,7 +96,7 @@ export default function OrdersPage() {
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF7A19]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00afef]"></div>
             <span className="ml-3 text-[#3A3A3A]">Loading orders...</span>
           </div>
         </div>
@@ -109,9 +109,9 @@ export default function OrdersPage() {
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-[#3A3A3A] mb-6">
-          <Link href="/" className="hover:text-[#FF7A19]">Home</Link>
+          <Link href="/" className="hover:text-[#00afef]">Home</Link>
           <ChevronRight size={16} />
-          <span className="text-[#FF7A19]">My Orders</span>
+          <span className="text-[#00afef]">My Orders</span>
         </div>
 
         {/* Header */}
@@ -123,8 +123,8 @@ export default function OrdersPage() {
         {/* Orders List */}
         {orders.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Package className="w-10 h-10 text-[#FF7A19]" />
+            <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Package className="w-10 h-10 text-[#00afef]" />
             </div>
             <h2 className="text-2xl font-bold text-[#1A1A1A] mb-3">No Orders Yet</h2>
             <p className="text-[#3A3A3A] mb-6 max-w-md mx-auto">
@@ -132,7 +132,7 @@ export default function OrdersPage() {
             </p>
             <Link
               href="/shop"
-              className="inline-block bg-[#FF7A19] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#FF8C3A] transition-colors"
+              className="inline-block bg-[#00afef] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#163b86] transition-colors"
             >
               Start Shopping
             </Link>

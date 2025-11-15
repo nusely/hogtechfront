@@ -51,8 +51,7 @@ export default function MainSettingsPage() {
     storePhone: '',
     storeEmail: '',
     storeWhatsapp: '',
-    storeAddressHo: '',
-    storeAddressAccra: '',
+    storeAddress: '',
     storeFacebook: '',
     storeInstagram: '',
     storeTwitter: '',
@@ -95,12 +94,17 @@ export default function MainSettingsPage() {
         key: string,
       ) => obj?.[key]?.value ?? null;
 
+      // For migration: check new key first, then fallback to old keys
+      const addressValue = getValue(store, 'store_address') || 
+                          (getValue(store, 'store_address_ho') && getValue(store, 'store_address_accra') 
+                            ? `${getValue(store, 'store_address_ho')}, ${getValue(store, 'store_address_accra')}`
+                            : getValue(store, 'store_address_ho') || getValue(store, 'store_address_accra') || '');
+
       setGeneralSettings({
         storePhone: getValue(store, 'store_phone') || '',
         storeEmail: getValue(store, 'store_email') || '',
         storeWhatsapp: getValue(store, 'store_whatsapp_number') || '',
-        storeAddressHo: getValue(store, 'store_address_ho') || '',
-        storeAddressAccra: getValue(store, 'store_address_accra') || '',
+        storeAddress: addressValue,
         storeFacebook: getValue(store, 'store_facebook_url') || '',
         storeInstagram: getValue(store, 'store_instagram_url') || '',
         storeTwitter: getValue(store, 'store_twitter_url') || '',
@@ -141,8 +145,7 @@ export default function MainSettingsPage() {
         { key: 'store_phone', value: generalSettings.storePhone, category: 'store' },
         { key: 'store_email', value: generalSettings.storeEmail, category: 'store' },
         { key: 'store_whatsapp_number', value: generalSettings.storeWhatsapp, category: 'store' },
-        { key: 'store_address_ho', value: generalSettings.storeAddressHo, category: 'store' },
-        { key: 'store_address_accra', value: generalSettings.storeAddressAccra, category: 'store' },
+        { key: 'store_address', value: generalSettings.storeAddress, category: 'store' },
         { key: 'store_facebook_url', value: generalSettings.storeFacebook, category: 'store' },
         { key: 'store_instagram_url', value: generalSettings.storeInstagram, category: 'store' },
         { key: 'store_twitter_url', value: generalSettings.storeTwitter, category: 'store' },
@@ -256,16 +259,10 @@ export default function MainSettingsPage() {
                   placeholder="e.g., +233 55 134 4310"
                 />
                 <Input
-                  label="Store Address (Ho)"
-                  value={generalSettings.storeAddressHo}
-                  onChange={(e) => setGeneralSettings((prev) => ({ ...prev, storeAddressHo: e.target.value }))}
-                  placeholder="Ho, Ghana"
-                />
-                <Input
-                  label="Store Address (Accra)"
-                  value={generalSettings.storeAddressAccra}
-                  onChange={(e) => setGeneralSettings((prev) => ({ ...prev, storeAddressAccra: e.target.value }))}
-                  placeholder="Accra, Ghana"
+                  label="Address"
+                  value={generalSettings.storeAddress}
+                  onChange={(e) => setGeneralSettings((prev) => ({ ...prev, storeAddress: e.target.value }))}
+                  placeholder="e.g., Accra, Ghana"
                 />
               </div>
             </section>
@@ -281,7 +278,7 @@ export default function MainSettingsPage() {
                     type="checkbox"
                     checked={generalSettings.storeOpen}
                     onChange={(e) => setGeneralSettings((prev) => ({ ...prev, storeOpen: e.target.checked }))}
-                    className="h-5 w-5 rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                    className="h-5 w-5 rounded border-gray-300 text-[#00afef] focus:ring-[#00afef]"
                   />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
@@ -300,7 +297,7 @@ export default function MainSettingsPage() {
                     id="announcement_message"
                     value={generalSettings.announcementMessage}
                     onChange={(e) => setGeneralSettings((prev) => ({ ...prev, announcementMessage: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     placeholder="e.g., Free shipping on orders above GHS 500"
                     rows={3}
                   />
@@ -314,7 +311,7 @@ export default function MainSettingsPage() {
                     id="maintenance_message"
                     value={generalSettings.maintenanceMessage}
                     onChange={(e) => setGeneralSettings((prev) => ({ ...prev, maintenanceMessage: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     placeholder="We are performing scheduled maintenance. Please check back soon."
                     rows={3}
                   />
@@ -361,9 +358,9 @@ export default function MainSettingsPage() {
                 type="button"
                 variant="primary"
                 onClick={saveGeneralSettings}
-                disabled={savingGeneral}
+                isLoading={savingGeneral}
               >
-                {savingGeneral ? 'Saving...' : 'Save General Settings'}
+                Save General Settings
               </Button>
             </div>
           </div>
@@ -403,7 +400,7 @@ export default function MainSettingsPage() {
                         outOfStockBehavior: e.target.value as 'hide' | 'show' | 'backorder',
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                   >
                     {outOfStockOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -426,9 +423,9 @@ export default function MainSettingsPage() {
                 type="button"
                 variant="primary"
                 onClick={saveInventorySettings}
-                disabled={savingInventory}
+                isLoading={savingInventory}
               >
-                {savingInventory ? 'Saving...' : 'Save Inventory Settings'}
+                Save Inventory Settings
               </Button>
             </div>
           </div>
@@ -465,7 +462,7 @@ export default function MainSettingsPage() {
                     onChange={(e) =>
                       setAutomationSettings((prev) => ({ ...prev, allowBackorders: e.target.checked }))
                     }
-                    className="mt-1 h-5 w-5 rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                    className="mt-1 h-5 w-5 rounded border-gray-300 text-[#00afef] focus:ring-[#00afef]"
                   />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">Allow Backorders</p>
@@ -484,7 +481,7 @@ export default function MainSettingsPage() {
                         allowAdminManualOrders: e.target.checked,
                       }))
                     }
-                    className="mt-1 h-5 w-5 rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                    className="mt-1 h-5 w-5 rounded border-gray-300 text-[#00afef] focus:ring-[#00afef]"
                   />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">Allow Admin-created Orders (No Payment Required)</p>
@@ -501,9 +498,9 @@ export default function MainSettingsPage() {
                 type="button"
                 variant="primary"
                 onClick={saveAutomationSettings}
-                disabled={savingAutomation}
+                isLoading={savingAutomation}
               >
-                {savingAutomation ? 'Saving...' : 'Save Automation Settings'}
+                Save Automation Settings
               </Button>
             </div>
           </div>
@@ -539,10 +536,10 @@ export default function MainSettingsPage() {
               disabled={tab.disabled}
               className={`rounded-full px-5 py-2 text-sm font-semibold transition-all ${
                 isActive
-                  ? 'bg-[#FF7A19] text-white shadow-sm'
+                  ? 'bg-[#00afef] text-white shadow-sm'
                   : tab.disabled
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:border-[#FF7A19]'
+                  : 'bg-white text-gray-700 border border-gray-200 hover:border-[#00afef]'
               }`}
             >
               {tab.label}

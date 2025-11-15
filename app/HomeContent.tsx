@@ -229,22 +229,22 @@ export function HomeContent() {
           <motion.div className="grid grid-cols-3 md:grid-cols-3 gap-3 sm:gap-4" variants={staggerChildren(0.08)} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}>
             {/* Momo & Cards - First on mobile */}
             <motion.div className="flex flex-col items-center text-center p-4" variants={fadeInUp}>
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-3">
-                <Shield className="text-[#FF7A19]" size={18} />
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                <Shield className="text-[#00afef]" size={18} />
               </div>
               <p className="font-semibold text-xs sm:text-sm text-[#1A1A1A]">Momo & Cards</p>
             </motion.div>
             {/* Quality Guarantee */}
             <motion.div className="flex flex-col items-center text-center p-4" variants={fadeInUp} custom={0.05}>
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-3">
-                <Award className="text-[#FF7A19]" size={18} />
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                <Award className="text-[#00afef]" size={18} />
               </div>
               <p className="font-semibold text-xs sm:text-sm text-[#1A1A1A]">Quality Guarantee</p>
             </motion.div>
             {/* 24/7 Support */}
             <motion.div className="flex flex-col items-center text-center p-4" variants={fadeInUp} custom={0.1}>
-              <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-3">
-                <Headphones className="text-[#FF7A19]" size={18} />
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                <Headphones className="text-[#00afef]" size={18} />
               </div>
               <p className="font-semibold text-xs sm:text-sm text-[#1A1A1A]">24/7 Support</p>
             </motion.div>
@@ -257,7 +257,7 @@ export function HomeContent() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Star className="text-[#FF7A19]" size={20} />
+              <Star className="text-[#00afef]" size={20} />
               <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#1A1A1A]">Featured Products</h2>
             </div>
             <p className="text-[#3A3A3A] text-[11px] sm:text-xs">Top-rated and trending items</p>
@@ -344,7 +344,7 @@ export function HomeContent() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="text-[#FF7A19]" size={20} />
+                <TrendingUp className="text-[#00afef]" size={20} />
                 <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-[#1A1A1A]">All Products</h2>
               </div>
               <p className="text-[#3A3A3A] text-[11px] sm:text-xs">Explore our complete collection</p>
@@ -390,7 +390,7 @@ export function HomeContent() {
           <div className="absolute inset-0 bg-[url('/placeholders/bg-gadgets1.webp')] bg-cover bg-center" />
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative z-10 max-w-2xl p-8 md:p-12">
-            <div className="inline-flex items-center gap-2 bg-[#FF7A19] rounded-full px-4 py-1 mb-4">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#00afef] to-[#163b86] rounded-full px-4 py-1 mb-4">
               <Tag size={14} />
               <span className="text-xs font-semibold">SPECIAL OFFER</span>
             </div>
@@ -414,7 +414,7 @@ export function HomeContent() {
 
       {/* Stay Updated / Newsletter Section */}
       <motion.section className="container mx-auto px-3 sm:px-4 py-6 sm:py-10" {...sectionMotionProps}>
-        <motion.div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-6 md:p-12 text-center text-white" variants={fadeInScale}>
+        <motion.div className="bg-gradient-to-r from-[#00afef] via-[#0d7bc4] to-[#163b86] rounded-2xl p-6 md:p-12 text-center text-white" variants={fadeInScale}>
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Stay Updated</h2>
           <p className="text-white/90 mb-6 max-w-2xl mx-auto">
             Subscribe to our newsletter and be the first to know about exclusive deals, flash sales, and special offers!
@@ -434,7 +434,7 @@ export function HomeContent() {
       </motion.section>
 
       {/* Call to Action Section */}
-      <section className="bg-[#1A1A1A] py-12">
+      <section className="bg-gradient-to-br from-[#163b86] to-[#1a4ba0] py-12">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-3 text-white !text-white">
             Ready to Upgrade Your Tech?

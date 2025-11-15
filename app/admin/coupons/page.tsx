@@ -319,7 +319,7 @@ export default function AdminCouponsPage() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleEditCoupon(coupon)}
-                          className="text-[#FF7A19] hover:text-[#FF7A19]/80"
+                          className="text-[#00afef] hover:text-[#00afef]/80"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -361,7 +361,7 @@ export default function AdminCouponsPage() {
                       type="text"
                       value={newCoupon.code}
                       onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                       placeholder="WELCOME10"
                       maxLength={8}
                       required
@@ -386,7 +386,7 @@ export default function AdminCouponsPage() {
                     type="text"
                     value={newCoupon.name}
                     onChange={(e) => setNewCoupon({ ...newCoupon, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     placeholder="Welcome Discount"
                     required
                   />
@@ -400,7 +400,7 @@ export default function AdminCouponsPage() {
                   <textarea
                     value={newCoupon.description}
                     onChange={(e) => setNewCoupon({ ...newCoupon, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     rows={3}
                     placeholder="Description of the coupon"
                   />
@@ -415,7 +415,7 @@ export default function AdminCouponsPage() {
                     <select
                       value={newCoupon.type}
                       onChange={(e) => setNewCoupon({ ...newCoupon, type: e.target.value as any })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     >
                       <option value="percentage">Percentage</option>
                       <option value="fixed_amount">Fixed Amount</option>
@@ -430,7 +430,7 @@ export default function AdminCouponsPage() {
                       type="number"
                       value={newCoupon.value}
                       onChange={(e) => setNewCoupon({ ...newCoupon, value: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                       min="0"
                       step="0.01"
                       required
@@ -447,7 +447,7 @@ export default function AdminCouponsPage() {
                     type="number"
                     value={newCoupon.minimum_amount}
                     onChange={(e) => setNewCoupon({ ...newCoupon, minimum_amount: parseFloat(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     min="0"
                     step="0.01"
                   />
@@ -463,7 +463,7 @@ export default function AdminCouponsPage() {
                       type="number"
                       value={newCoupon.maximum_discount}
                       onChange={(e) => setNewCoupon({ ...newCoupon, maximum_discount: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                       min="0"
                       step="0.01"
                     />
@@ -479,7 +479,7 @@ export default function AdminCouponsPage() {
                     type="number"
                     value={newCoupon.usage_limit}
                     onChange={(e) => setNewCoupon({ ...newCoupon, usage_limit: parseInt(e.target.value) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     min="0"
                   />
                 </div>
@@ -493,7 +493,7 @@ export default function AdminCouponsPage() {
                     type="datetime-local"
                     value={newCoupon.valid_until ? new Date(newCoupon.valid_until).toISOString().slice(0, 16) : ''}
                     onChange={(e) => setNewCoupon({ ...newCoupon, valid_until: e.target.value ? new Date(e.target.value).toISOString() : '' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                   />
                 </div>
 
@@ -504,7 +504,7 @@ export default function AdminCouponsPage() {
                     id="is_active"
                     checked={newCoupon.is_active}
                     onChange={(e) => setNewCoupon({ ...newCoupon, is_active: e.target.checked })}
-                    className="rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                    className="rounded border-gray-300 text-[#00afef] focus:ring-[#00afef]"
                   />
                   <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
                     Active

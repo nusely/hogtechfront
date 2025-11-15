@@ -68,7 +68,7 @@ export const CouponCode: React.FC<CouponCodeProps> = ({
   return (
     <div className="bg-white rounded-lg border p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Tag className="w-5 h-5 text-[#FF7A19]" />
+        <Tag className="w-5 h-5 text-[#00afef]" />
         <h3 className="font-semibold text-[#1A1A1A]">Coupon Code</h3>
       </div>
 
@@ -102,7 +102,7 @@ export const CouponCode: React.FC<CouponCodeProps> = ({
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               placeholder="Enter coupon code"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
               maxLength={8}
             />
             <Button

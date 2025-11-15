@@ -31,9 +31,9 @@ export default function MaintenancePage() {
       <div className="max-w-2xl w-full text-center">
         <div className="mb-8 flex justify-center">
           <div className="relative">
-            <div className="absolute inset-0 bg-[#FF7A19] rounded-full blur-2xl opacity-20 animate-pulse"></div>
-            <div className="relative bg-white border-2 border-[#FF7A19] rounded-full p-8 shadow-lg">
-              <Wrench size={64} className="text-[#FF7A19]" />
+            <div className="absolute inset-0 bg-[#00afef] rounded-full blur-2xl opacity-20 animate-pulse"></div>
+            <div className="relative bg-white border-2 border-[#00afef] rounded-full p-8 shadow-lg">
+              <Wrench size={64} className="text-[#00afef]" />
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function MaintenancePage() {
 
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Settings className="text-[#FF7A19]" size={24} />
+            <Settings className="text-[#00afef]" size={24} />
             <h2 className="text-lg font-semibold text-[#1A1A1A]">System Maintenance</h2>
           </div>
           <p className="text-sm text-[#3A3A3A] mb-4">
@@ -70,8 +70,8 @@ export default function MaintenancePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="mailto:ventechgadgets@gmail.com"
-              className="px-6 py-3 bg-[#FF7A19] hover:bg-[#FF8A29] text-white rounded-lg font-medium transition-colors shadow"
+              href="mailto:hedgehog.technologies1@gmail.com"
+              className="px-6 py-3 bg-[#00afef] hover:bg-[#0099d6] text-white rounded-lg font-medium transition-colors shadow"
             >
               Email Support
             </Link>
@@ -86,7 +86,7 @@ export default function MaintenancePage() {
 
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-sm text-[#3A3A3A]">
-            &copy; {new Date().getFullYear()} VENTECH. All rights reserved.
+            &copy; {new Date().getFullYear()} Hedgehog Technologies. All rights reserved.
           </p>
         </div>
       </div>

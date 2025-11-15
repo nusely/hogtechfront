@@ -143,7 +143,7 @@ export function CategoryContent({ initialCategory, slug }: CategoryContentProps)
       <div className="container mx-auto px-3 sm:px-4">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <Link href="/categories" className="inline-flex items-center gap-2 text-[#FF7A19] hover:text-orange-600 mb-4">
+          <Link href="/categories" className="inline-flex items-center gap-2 text-[#00afef] hover:text-[#163b86] mb-4">
             <ArrowLeft size={18} />
             <span className="text-sm font-medium">Back to Categories</span>
           </Link>
@@ -196,7 +196,7 @@ export function CategoryContent({ initialCategory, slug }: CategoryContentProps)
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -247,7 +247,7 @@ export function CategoryContent({ initialCategory, slug }: CategoryContentProps)
                         value=""
                         checked={!selectedBrand}
                         onChange={() => setSelectedBrand(null)}
-                        className="w-4 h-4 text-[#FF7A19]"
+                        className="w-4 h-4 text-[#00afef]"
                       />
                       <span className="text-sm text-[#3A3A3A]">All Brands</span>
                     </label>
@@ -259,7 +259,7 @@ export function CategoryContent({ initialCategory, slug }: CategoryContentProps)
                           value={brand.id}
                           checked={selectedBrand === brand.id}
                           onChange={(e) => setSelectedBrand(e.target.value)}
-                          className="w-4 h-4 text-[#FF7A19]"
+                          className="w-4 h-4 text-[#00afef]"
                         />
                         <span className="text-sm text-[#3A3A3A]">{brand.name}</span>
                       </label>
@@ -275,7 +275,7 @@ export function CategoryContent({ initialCategory, slug }: CategoryContentProps)
                     type="checkbox"
                     checked={inStockOnly}
                     onChange={(e) => setInStockOnly(e.target.checked)}
-                    className="w-4 h-4 text-[#FF7A19] rounded"
+                    className="w-4 h-4 text-[#00afef] rounded"
                   />
                   <span className="text-sm text-[#3A3A3A]">In Stock Only</span>
                 </label>
@@ -324,7 +324,7 @@ export function CategoryContent({ initialCategory, slug }: CategoryContentProps)
                         value=""
                         checked={!selectedBrand}
                         onChange={() => setSelectedBrand(null)}
-                        className="w-4 h-4 text-[#FF7A19]"
+                        className="w-4 h-4 text-[#00afef]"
                       />
                       <span className="text-sm text-[#3A3A3A]">All Brands</span>
                     </label>
@@ -336,7 +336,7 @@ export function CategoryContent({ initialCategory, slug }: CategoryContentProps)
                           value={brand.id}
                           checked={selectedBrand === brand.id}
                           onChange={(e) => setSelectedBrand(e.target.value)}
-                          className="w-4 h-4 text-[#FF7A19]"
+                          className="w-4 h-4 text-[#00afef]"
                         />
                         <span className="text-sm text-[#3A3A3A]">{brand.name}</span>
                       </label>
@@ -352,7 +352,7 @@ export function CategoryContent({ initialCategory, slug }: CategoryContentProps)
                     type="checkbox"
                     checked={inStockOnly}
                     onChange={(e) => setInStockOnly(e.target.checked)}
-                    className="w-4 h-4 text-[#FF7A19] rounded"
+                    className="w-4 h-4 text-[#00afef] rounded"
                   />
                   <span className="text-sm text-[#3A3A3A]">In Stock Only</span>
                 </label>

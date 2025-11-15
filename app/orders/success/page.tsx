@@ -40,7 +40,7 @@ export default function OrderSuccessPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading order details...</p>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default function OrderSuccessPage() {
           {order && (
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <p className="text-sm text-[#3A3A3A] mb-2">Order Number</p>
-              <p className="text-xl font-bold text-[#FF7A19]">{order.order_number}</p>
+              <p className="text-xl font-bold text-[#00afef]">{order.order_number}</p>
             </div>
           )}
         </div>
@@ -84,7 +84,7 @@ export default function OrderSuccessPage() {
               )}
               <div className="flex items-center justify-between py-3 border-t-2 border-gray-300">
                 <span className="text-lg font-bold text-[#1A1A1A]">Total</span>
-                <span className="text-lg font-bold text-[#FF7A19]">GHS {order.total?.toFixed(2) || '0.00'}</span>
+                <span className="text-lg font-bold text-[#00afef]">GHS {order.total?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
           </div>
@@ -106,8 +106,8 @@ export default function OrderSuccessPage() {
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="bg-orange-100 p-3 rounded-lg">
-                <Package className="w-5 h-5 text-[#FF7A19]" />
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Package className="w-5 h-5 text-[#00afef]" />
               </div>
               <div>
                 <h3 className="font-semibold text-[#1A1A1A] mb-1">Order Processing</h3>

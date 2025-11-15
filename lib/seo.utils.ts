@@ -6,7 +6,7 @@ import { seoConfig } from './seo.config';
  */
 export function generatePageMetadata(page: keyof typeof seoConfig.pages): Metadata {
   const pageConfig = seoConfig.pages[page];
-  const path = page === 'homepage' ? '' : page === 'laptopBanking' ? 'laptop-banking' : page;
+  const path = page === 'homepage' ? '' : page;
   
   return {
     title: pageConfig.title,

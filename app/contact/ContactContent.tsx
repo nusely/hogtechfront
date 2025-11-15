@@ -92,9 +92,12 @@ export function ContactContent() {
   }, []);
 
   const storePhone = settings.store_phone || '+233 55 134 4310';
-  const storeEmail = settings.store_email || 'ventechgadgets@gmail.com';
-  const addressHo = settings.store_address_ho || '';
-  const addressAccra = settings.store_address_accra || '';
+  const storeEmail = settings.store_email || 'hedgehog.technologies1@gmail.com';
+  // For migration: check new key first, then fallback to old keys
+  const address = settings.store_address || 
+                  (settings.store_address_ho && settings.store_address_accra 
+                    ? `${settings.store_address_ho}, ${settings.store_address_accra}`
+                    : settings.store_address_ho || settings.store_address_accra || 'Ghana');
   const businessHours = settings.store_business_hours || 'Mon-Sat: 9AM-6PM, Sun: Closed';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -130,7 +133,7 @@ export function ContactContent() {
       animate="visible"
     >
       {/* Hero Section */}
-      <motion.section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-16" variants={fadeInUp} custom={0.05}>
+      <motion.section className="bg-gradient-to-r from-[#00afef] to-[#163b86] py-16" variants={fadeInUp} custom={0.05}>
         <div className="container mx-auto px-4 text-center">
           <motion.h1 className="text-3xl md:text-4xl font-bold mb-4 text-white" variants={fadeInUp} custom={0.08}>
             Get in Touch
@@ -158,13 +161,13 @@ export function ContactContent() {
             <motion.div className="space-y-4" variants={contactListVariants}>
               <motion.div className="flex gap-4" variants={contactItemVariants}>
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Phone className="text-[#FF7A19]" size={20} />
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Phone className="text-[#00afef]" size={20} />
                   </div>
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">Phone</h3>
-                  <a href={`tel:${storePhone.replace(/\s/g, '')}`} className="text-[#3A3A3A] text-sm hover:text-[#FF7A19] transition-colors">
+                  <a href={`tel:${storePhone.replace(/\s/g, '')}`} className="text-[#3A3A3A] text-sm hover:text-[#00afef] transition-colors">
                     {storePhone}
                   </a>
                 </div>
@@ -172,13 +175,13 @@ export function ContactContent() {
 
               <motion.div className="flex gap-4" variants={contactItemVariants}>
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Mail className="text-[#FF7A19]" size={20} />
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Mail className="text-[#00afef]" size={20} />
                   </div>
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">Email</h3>
-                  <a href={`mailto:${storeEmail}`} className="text-[#3A3A3A] text-sm hover:text-[#FF7A19] transition-colors">
+                  <a href={`mailto:${storeEmail}`} className="text-[#3A3A3A] text-sm hover:text-[#00afef] transition-colors">
                     {storeEmail}
                   </a>
                 </div>
@@ -186,24 +189,20 @@ export function ContactContent() {
 
               <motion.div className="flex gap-4" variants={contactItemVariants}>
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <MapPin className="text-[#FF7A19]" size={20} />
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <MapPin className="text-[#00afef]" size={20} />
                   </div>
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm text-[#1A1A1A] mb-1">Address</h3>
-                  <p className="text-[#3A3A3A] text-sm">
-                    {addressHo && <>{addressHo}<br /></>}
-                    {addressAccra && <>{addressAccra}<br /></>}
-                    {!addressHo && !addressAccra && 'Ghana'}
-                  </p>
+                  <p className="text-[#3A3A3A] text-sm">{address}</p>
                 </div>
               </motion.div>
 
               <motion.div className="flex gap-4" variants={contactItemVariants}>
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Clock className="text-[#FF7A19]" size={20} />
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Clock className="text-[#00afef]" size={20} />
                   </div>
                 </div>
                 <div>
@@ -216,7 +215,7 @@ export function ContactContent() {
             {/* Quick Support */}
             <motion.div className="bg-gray-50 rounded-xl p-6 mt-8" variants={fadeInScale}>
               <div className="flex items-center gap-3 mb-3">
-                <Headphones className="text-[#FF7A19]" size={24} />
+                <Headphones className="text-[#00afef]" size={24} />
                 <h3 className="font-bold text-[#1A1A1A]">Need Immediate Help?</h3>
               </div>
               <p className="text-sm text-[#3A3A3A] mb-4">
@@ -245,7 +244,7 @@ export function ContactContent() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
                     placeholder="John Doe"
                   />
                 </div>
@@ -261,7 +260,7 @@ export function ContactContent() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -275,7 +274,7 @@ export function ContactContent() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
                       placeholder="+233 55 134 4310"
                     />
                   </div>
@@ -290,7 +289,7 @@ export function ContactContent() {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
                   >
                     <option value="">Select a subject</option>
                     <option value="general">General Inquiry</option>
@@ -312,7 +311,7 @@ export function ContactContent() {
                     onChange={handleChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm resize-none"
                     placeholder="Tell us how we can help you..."
                   />
                 </div>
@@ -337,7 +336,7 @@ export function ContactContent() {
       <section className="bg-gray-100 py-16">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto">
-            <MapPin className="mx-auto mb-4 text-[#FF7A19]" size={48} />
+            <MapPin className="mx-auto mb-4 text-[#00afef]" size={48} />
             <h2 className="text-2xl font-bold text-[#1A1A1A] mb-3">Visit Our Store</h2>
             <p className="text-[#3A3A3A] text-sm mb-6">
               Come see our products in person. Our friendly staff is ready to help you find exactly what you need.

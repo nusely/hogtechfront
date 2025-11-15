@@ -125,7 +125,7 @@ export function AddProductToDealFromProductModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {loading ? (
             <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#00afef]"></div>
             </div>
           ) : deals.length === 0 ? (
             <p className="text-center text-gray-600">No deals available. Create one first in Admin &gt; Marketing &gt; Deals.</p>
@@ -184,7 +184,7 @@ export function AddProductToDealFromProductModal({
                   <p className="text-sm text-gray-600">
                     Original Price: <span className="line-through">{formatCurrency(productPrice)}</span>
                   </p>
-                  <p className="text-sm font-semibold text-orange-600">
+                  <p className="text-sm font-semibold text-[#163b86]">
                     Deal Price: {formatCurrency(parseFloat(dealPrice) || 0)}
                   </p>
                   {discountPercentage && (

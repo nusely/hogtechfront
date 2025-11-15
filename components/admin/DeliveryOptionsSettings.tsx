@@ -66,8 +66,35 @@ export const DeliveryOptionsSettings: React.FC = () => {
       const options = await deliveryOptionsService.getAllDeliveryOptions();
       setDeliveryOptions(options);
     } catch (error: any) {
-      console.error('Error fetching delivery options:', error);
-      toast.error('Failed to load delivery options');
+      console.error('Error fetching delivery options:', {
+        message: error?.message || 'Unknown error',
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        stack: error?.stack,
+        name: error?.name,
+      });
+      
+      const errorMessage = error?.message || '';
+      const errorCode = error?.code || '';
+      
+      if (
+        errorCode === '42P01' ||
+        errorCode === 'PGRST116' ||
+        errorCode === 'PGRST205' ||
+        errorMessage.includes('does not exist') ||
+        errorMessage.includes('could not find the table') ||
+        errorMessage.includes('relation') ||
+        errorMessage.includes('not found')
+      ) {
+        toast.error('Delivery options table does not exist. Please check your database schema.');
+      } else if (errorMessage.includes('permission') || errorMessage.includes('policy') || errorCode === '42501') {
+        toast.error('Permission denied. Please ensure you are logged in as an admin.');
+      } else if (errorMessage.includes('Authentication required')) {
+        toast.error('Please log in to view delivery options.');
+      } else {
+        toast.error(`Failed to load delivery options: ${errorMessage || 'Unknown error'}`);
+      }
     } finally {
       setLoading(false);
     }

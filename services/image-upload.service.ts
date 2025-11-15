@@ -33,10 +33,23 @@ interface UploadResult {
  * Calculate file hash for deduplication
  */
 async function calculateFileHash(file: File): Promise<string> {
-  const arrayBuffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    // Check if crypto.subtle is available (HTTPS context required)
+    if (typeof window !== 'undefined' && window.crypto?.subtle) {
+      const arrayBuffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } else {
+      // Fallback: use simple hash based on file metadata
+      // This is less secure but works in non-HTTPS contexts (localhost)
+      return `${file.name}-${file.size}-${file.lastModified}`;
+    }
+  } catch (error) {
+    console.warn('Failed to calculate file hash, using fallback:', error);
+    // Fallback hash based on file metadata
+    return `${file.name}-${file.size}-${file.lastModified}`;
+  }
 }
 
 /**

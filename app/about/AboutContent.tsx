@@ -60,10 +60,10 @@ export function AboutContent() {
       animate="visible"
     >
       {/* Hero Section */}
-      <motion.section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-16" variants={fadeInUp} custom={0.05}>
+      <motion.section className="bg-gradient-to-r from-[#00afef] via-[#0d7bc4] to-[#163b86] py-16" variants={fadeInUp} custom={0.05}>
         <div className="container mx-auto px-4 text-center">
           <motion.h1 className="text-3xl md:text-4xl font-bold mb-4 text-white" variants={fadeInUp} custom={0.08}>
-            About VENTECH
+            About Hedgehog Technologies
           </motion.h1>
           <motion.p className="text-lg text-white/90 max-w-3xl mx-auto" variants={fadeInUp} custom={0.12}>
             Your trusted partner for quality electronics and gadgets in Ghana
@@ -75,7 +75,7 @@ export function AboutContent() {
       <motion.section className="container mx-auto px-4 py-16" variants={fadeInUp} custom={0.1}>
         <div className="max-w-4xl mx-auto">
           <motion.div className="text-center mb-12" variants={fadeIn}>
-            <motion.div className="inline-flex items-center gap-2 bg-orange-100 text-[#FF7A19] rounded-full px-4 py-2 mb-4" variants={fadeInScale}>
+            <motion.div className="inline-flex items-center gap-2 bg-blue-100 text-[#00afef] rounded-full px-4 py-2 mb-4" variants={fadeInScale}>
               <Target size={20} />
               <span className="text-sm font-semibold">OUR MISSION</span>
             </motion.div>
@@ -83,7 +83,7 @@ export function AboutContent() {
               Making Technology Accessible to Everyone
             </motion.h2>
             <motion.p className="text-[#3A3A3A] leading-relaxed" variants={fadeInUp} custom={0.08}>
-              At VENTECH, we believe that everyone deserves access to quality technology. 
+              At Hedgehog Technologies, we believe that everyone deserves access to quality technology. 
               We&apos;re committed to providing authentic, high-quality electronics and gadgets 
               at competitive prices, backed by excellent customer service and support.
             </motion.p>
@@ -91,8 +91,8 @@ export function AboutContent() {
 
           <motion.div className="grid md:grid-cols-3 gap-6" variants={missionGridVariants}>
             <motion.div className="bg-gray-50 rounded-xl p-6 text-center" variants={missionCardVariants}>
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Award className="text-[#FF7A19]" size={28} />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="text-[#00afef]" size={28} />
               </div>
               <h3 className="font-bold text-[#1A1A1A] mb-2">Quality Assured</h3>
               <p className="text-sm text-[#3A3A3A]">
@@ -101,8 +101,8 @@ export function AboutContent() {
             </motion.div>
 
             <motion.div className="bg-gray-50 rounded-xl p-6 text-center" variants={missionCardVariants}>
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="text-[#FF7A19]" size={28} />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="text-[#00afef]" size={28} />
               </div>
               <h3 className="font-bold text-[#1A1A1A] mb-2">Customer First</h3>
               <p className="text-sm text-[#3A3A3A]">
@@ -111,8 +111,8 @@ export function AboutContent() {
             </motion.div>
 
             <motion.div className="bg-gray-50 rounded-xl p-6 text-center" variants={missionCardVariants}>
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="text-[#FF7A19]" size={28} />
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="text-[#00afef]" size={28} />
               </div>
               <h3 className="font-bold text-[#1A1A1A] mb-2">Fast Delivery</h3>
               <p className="text-sm text-[#3A3A3A]">
@@ -128,14 +128,14 @@ export function AboutContent() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <motion.h2 className="text-3xl font-bold text-[#1A1A1A] text-center mb-12" variants={fadeInUp} custom={0.05}>
-              Why Choose VENTECH?
+              Why Choose Hedgehog Technologies?
             </motion.h2>
 
             <motion.div className="space-y-8" variants={valuesListVariants}>
               <motion.div className="flex gap-4" variants={valuesItemVariants}>
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Shield className="text-[#FF7A19]" size={24} />
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Shield className="text-[#00afef]" size={24} />
                   </div>
                 </div>
                 <div>
@@ -151,8 +151,8 @@ export function AboutContent() {
 
               <motion.div className="flex gap-4" variants={valuesItemVariants}>
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Truck className="text-[#FF7A19]" size={24} />
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Truck className="text-[#00afef]" size={24} />
                   </div>
                 </div>
                 <div>
@@ -168,8 +168,8 @@ export function AboutContent() {
 
               <motion.div className="flex gap-4" variants={valuesItemVariants}>
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Heart className="text-[#FF7A19]" size={24} />
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Heart className="text-[#00afef]" size={24} />
                   </div>
                 </div>
                 <div>
@@ -189,7 +189,7 @@ export function AboutContent() {
 
       {/* CTA Section */}
       <motion.section className="container mx-auto px-4 py-16" variants={fadeInUp} custom={0.15}>
-        <motion.div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-12 text-center text-white" variants={fadeInScale}>
+        <motion.div className="bg-gradient-to-r from-[#00afef] via-[#0d7bc4] to-[#163b86] rounded-2xl p-12 text-center text-white" variants={fadeInScale}>
           <h2 className="text-3xl font-bold mb-4">Ready to Shop?</h2>
           <p className="text-lg text-white/90 mb-8">
             Explore our wide range of quality electronics and gadgets

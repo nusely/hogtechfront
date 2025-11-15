@@ -63,12 +63,24 @@ export const deliveryOptionsService = {
         throw new Error('Authentication required');
       }
 
+      console.log('Fetching delivery options for admin...');
+      
       const { data, error } = await supabase
         .from('delivery_options')
         .select('*')
         .order('display_order', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error fetching delivery options:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        throw error;
+      }
+
+      console.log('Delivery options fetched successfully:', data?.length || 0);
 
       return (data || []).map((option: any) => ({
         id: option.id,
@@ -83,7 +95,14 @@ export const deliveryOptionsService = {
         updated_at: option.updated_at,
       }));
     } catch (error: any) {
-      console.error('Error fetching all delivery options:', error);
+      console.error('Error fetching all delivery options:', {
+        message: error?.message || 'Unknown error',
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        stack: error?.stack,
+        name: error?.name,
+      });
       throw error;
     }
   },

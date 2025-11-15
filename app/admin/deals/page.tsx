@@ -49,6 +49,7 @@ export default function DealsPage() {
   const [dealProducts, setDealProducts] = useState<DealProduct[]>([]);
   const [showProducts, setShowProducts] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<DealProduct | null>(null);
@@ -131,7 +132,10 @@ export default function DealsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
+    
     try {
+      setSaving(true);
       if (editingDeal) {
         await updateDeal(editingDeal.id, formData);
         toast.success('Deal updated successfully!');
@@ -144,6 +148,8 @@ export default function DealsPage() {
     } catch (error: any) {
       console.error('Error saving deal:', error);
       toast.error(error.message || 'Failed to save deal');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -389,7 +395,7 @@ export default function DealsPage() {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     required
                   />
                 </div>
@@ -401,7 +407,7 @@ export default function DealsPage() {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     rows={3}
                   />
                 </div>
@@ -459,7 +465,7 @@ export default function DealsPage() {
                       max="100"
                       value={formData.discount_percentage}
                       onChange={(e) => setFormData({ ...formData, discount_percentage: parseInt(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     />
                   </div>
 
@@ -472,7 +478,7 @@ export default function DealsPage() {
                       min="0"
                       value={formData.display_order}
                       onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     />
                   </div>
                 </div>
@@ -486,7 +492,7 @@ export default function DealsPage() {
                       type="datetime-local"
                       value={formData.start_date}
                       onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                       required
                     />
                   </div>
@@ -499,7 +505,7 @@ export default function DealsPage() {
                       type="datetime-local"
                       value={formData.end_date}
                       onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                       required
                     />
                   </div>
@@ -512,7 +518,7 @@ export default function DealsPage() {
                       id="is_active"
                       checked={formData.is_active}
                       onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                      className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                      className="w-4 h-4 text-[#163b86] border-gray-300 rounded focus:ring-[#00afef]"
                     />
                     <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
                       Active
@@ -524,7 +530,7 @@ export default function DealsPage() {
                       id="is_flash_deal"
                       checked={formData.is_flash_deal}
                       onChange={(e) => setFormData({ ...formData, is_flash_deal: e.target.checked })}
-                      className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                      className="w-4 h-4 text-[#163b86] border-gray-300 rounded focus:ring-[#00afef]"
                     />
                     <label htmlFor="is_flash_deal" className="text-sm font-medium text-gray-700">
                       Flash Deal (Show on Homepage)
@@ -533,10 +539,10 @@ export default function DealsPage() {
                 </div>
 
                 <div className="flex gap-2 pt-4">
-                  <Button type="submit" variant="primary" disabled={uploading}>
+                  <Button type="submit" variant="primary" isLoading={saving} disabled={uploading}>
                     {editingDeal ? 'Update Deal' : 'Create Deal'}
                   </Button>
-                  <Button type="button" variant="outline" onClick={handleCancel}>
+                  <Button type="button" variant="outline" onClick={handleCancel} disabled={saving}>
                     Cancel
                   </Button>
                 </div>
@@ -619,7 +625,7 @@ export default function DealsPage() {
                                 <span>Original: <span className="line-through">{formatCurrency(originalPrice)}</span></span>
                               )}
                               {dealProduct.deal_price && (
-                                <span className="font-semibold text-orange-600">Deal Price: {formatCurrency(dealProduct.deal_price)}</span>
+                                <span className="font-semibold text-[#163b86]">Deal Price: {formatCurrency(dealProduct.deal_price)}</span>
                               )}
                               {dealProduct.discount_percentage > 0 && (
                                 <span>Discount: {dealProduct.discount_percentage}%</span>

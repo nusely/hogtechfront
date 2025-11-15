@@ -492,7 +492,7 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
             <div
               key={attr.id}
               className={`border-2 rounded-lg transition-all ${
-                isSelected ? 'border-[#FF7A19] bg-orange-50' : 'border-gray-200'
+                isSelected ? 'border-[#00afef] bg-blue-50' : 'border-gray-200'
               }`}
             >
               {/* Attribute Header */}
@@ -503,7 +503,7 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleAttribute(attr.id)}
-                      className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                      className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                     />
                     <div className="flex-1">
                       <p className="font-semibold text-[#1A1A1A]">{attr.name}</p>
@@ -550,7 +550,7 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
                           <div
                             key={option.id}
                             className={`p-3 border rounded-lg ${
-                              isOptionSelected ? 'border-[#FF7A19] bg-white' : 'border-gray-200'
+                              isOptionSelected ? 'border-[#00afef] bg-white' : 'border-gray-200'
                             }`}
                           >
                             <div className="flex items-center justify-between gap-4">
@@ -560,7 +560,7 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
                                   name={`attr-${attr.id}`}
                                   checked={isOptionSelected}
                                   onChange={() => toggleOption(attr.id, option.id)}
-                                  className="w-4 h-4 text-[#FF7A19] border-gray-300 focus:ring-[#FF7A19]"
+                                  className="w-4 h-4 text-[#00afef] border-gray-300 focus:ring-[#00afef]"
                                 />
                                 <div className="flex-1">
                                   <p className="font-medium text-[#1A1A1A]">{option.label}</p>
@@ -662,7 +662,7 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
           <button
             type="button"
             onClick={() => setShowAddAttribute(true)}
-            className="w-full flex items-center justify-center gap-2 text-[#FF7A19] hover:text-orange-600 font-medium"
+            className="w-full flex items-center justify-center gap-2 text-[#00afef] hover:text-[#163b86] font-medium"
           >
             <Plus size={18} />
             Add Custom Attribute
@@ -674,12 +674,12 @@ export function ProductVariantManager({ productId, onVariantChange }: ProductVar
               placeholder="Attribute name (e.g., Screen Size, Processor)"
               value={newAttributeName}
               onChange={(e) => setNewAttributeName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
             <select
               value={newAttributeType}
               onChange={(e) => setNewAttributeType(e.target.value as 'select' | 'radio')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             >
               <option value="select">Select (Multiple values)</option>
               <option value="radio">Radio (Single value)</option>

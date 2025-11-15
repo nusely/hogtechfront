@@ -42,11 +42,11 @@ export const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
   const getIcon = () => {
     switch (action) {
       case 'wishlist':
-        return <Heart size={48} className="text-[#FF7A19]" />;
+        return <Heart size={48} className="text-[#00afef]" />;
       case 'cart':
-        return <ShoppingCart size={48} className="text-[#FF7A19]" />;
+        return <ShoppingCart size={48} className="text-[#00afef]" />;
       default:
-        return <UserPlus size={48} className="text-[#FF7A19]" />;
+        return <UserPlus size={48} className="text-[#00afef]" />;
     }
   };
 
@@ -55,7 +55,7 @@ export const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
       <div className="text-center py-4">
         {/* Icon */}
         <div className="flex justify-center mb-6">
-          <div className="p-4 bg-orange-50 rounded-full">
+          <div className="p-4 bg-blue-50 rounded-full">
             {getIcon()}
           </div>
         </div>

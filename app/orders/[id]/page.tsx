@@ -184,7 +184,7 @@ export default function OrderDetailPage() {
                           <Package className="text-gray-400 m-auto mt-4" size={32} />
                         )}
                         {isFlashDeal && (
-                          <div className="absolute top-1 right-1 bg-[#FF7A19] text-white rounded-full p-1">
+                          <div className="absolute top-1 right-1 bg-[#00afef] text-white rounded-full p-1">
                             <Zap size={12} className="fill-white" />
                           </div>
                         )}

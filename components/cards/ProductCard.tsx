@@ -220,7 +220,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                 disabled={!canPurchase}
                 className={`p-2 rounded-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center shadow-md ${
                   canPurchase
-                    ? 'bg-[#FF7A19] text-white hover:bg-[#e86a0d]'
+                    ? 'bg-[#00afef] text-white hover:bg-[#0099d6]'
                     : 'bg-gray-300 text-gray-100'
                 }`}
                 title={!product.in_stock ? 'Out of Stock' : isInCart ? 'In Cart' : 'Add to Cart'}
@@ -234,12 +234,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             <div className="hidden md:flex absolute top-12 right-3 flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
               <button
                 onClick={handleWishlist}
-                className="p-2 bg-white rounded-full shadow-md hover:bg-orange-50 transition-colors"
+                className="p-2 bg-white rounded-full shadow-md hover:bg-blue-50 transition-colors"
                 title="Add to wishlist"
               >
                 <Heart
                   size={16}
-                  className={isWishlisted ? 'fill-[#FF7A19] text-[#FF7A19]' : 'text-[#3A3A3A]'}
+                  className={isWishlisted ? 'fill-[#00afef] text-[#00afef]' : 'text-[#3A3A3A]'}
                 />
               </button>
               {onQuickView && (
@@ -249,7 +249,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                     e.stopPropagation();
                     onQuickView();
                   }}
-                  className="p-2 bg-white rounded-full shadow-md hover:bg-orange-50 transition-colors"
+                  className="p-2 bg-white rounded-full shadow-md hover:bg-blue-50 transition-colors"
                   title="Quick view"
                 >
                   <svg
@@ -279,7 +279,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
               >
                 <Heart
                   size={18}
-                  className={isWishlisted ? 'fill-[#FF7A19] text-[#FF7A19]' : 'text-[#3A3A3A]'}
+                  className={isWishlisted ? 'fill-[#00afef] text-[#00afef]' : 'text-[#3A3A3A]'}
                 />
               </button>
             </div>
@@ -288,12 +288,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           {/* Content */}
           <div className="p-4 flex-1 flex flex-col">
             {/* Brand/Category - Using p tag, smaller than product name */}
-            <p className="text-[7px] sm:text-[9px] text-[#FF7A19] font-medium uppercase tracking-wide mb-1">
+            <p className="text-[7px] sm:text-[9px] text-[#00afef] font-medium uppercase tracking-wide mb-1">
               {product.brand}
             </p>
 
             {/* Product Name - Using p tag for easier font-size control */}
-            <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-[#1A1A1A] mb-2 line-clamp-2 group-hover:text-[#FF7A19] transition-colors leading-tight">
+            <p className="text-[10px] sm:text-xs md:text-sm font-semibold text-[#1A1A1A] mb-2 line-clamp-2 group-hover:text-[#00afef] transition-colors leading-tight">
               {product.name}
             </p>
 
@@ -301,12 +301,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             {/* Price - Using p tag, smaller size */}
             <div className="flex items-baseline gap-2 mb-3 mt-auto flex-wrap">
               {product.price_range?.hasRange ? (
-                <span className="text-xs sm:text-sm text-[#FF7A19]">
+                <span className="text-xs sm:text-sm text-[#00afef]">
                   {formatCurrency(product.price_range.min)} - {formatCurrency(product.price_range.max)}
                 </span>
               ) : (
                 <>
-                  <span className="text-xs sm:text-sm text-[#FF7A19]">
+                  <span className="text-xs sm:text-sm text-[#00afef]">
                     {formatCurrency(finalPrice)}
                   </span>
                   {(hasDeal || hasDiscount) && product.original_price && (
@@ -333,7 +333,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
               }
               className={`hidden md:flex flex-1 items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md ${
                 canPurchase
-                  ? 'bg-[#FF7A19] text-white hover:bg-[#e86a0d]'
+                  ? 'bg-[#00afef] text-white hover:bg-[#0099d6]'
                   : 'bg-gray-200 text-gray-400'
               }`}
             >

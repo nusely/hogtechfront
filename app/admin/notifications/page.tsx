@@ -129,7 +129,7 @@ export default function NotificationsPage() {
       case 'order':
         return <ShoppingCart size={20} className="text-blue-600" />;
       case 'stock':
-        return <Package size={20} className="text-orange-600" />;
+        return <Package size={20} className="text-[#163b86]" />;
       case 'user':
         return <Users size={20} className="text-purple-600" />;
       case 'alert':
@@ -146,7 +146,7 @@ export default function NotificationsPage() {
       case 'order':
         return 'bg-blue-50';
       case 'stock':
-        return 'bg-orange-50';
+        return 'bg-blue-50';
       case 'user':
         return 'bg-purple-50';
       case 'alert':
@@ -291,7 +291,7 @@ export default function NotificationsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading notifications...</p>
         </div>
       </div>
@@ -335,7 +335,7 @@ export default function NotificationsPage() {
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === 'all'
-                  ? 'bg-[#FF7A19] text-white'
+                  ? 'bg-[#00afef] text-white'
                   : 'bg-gray-100 text-[#3A3A3A] hover:bg-gray-200'
               }`}
             >
@@ -345,7 +345,7 @@ export default function NotificationsPage() {
               onClick={() => setFilter('unread')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === 'unread'
-                  ? 'bg-[#FF7A19] text-white'
+                  ? 'bg-[#00afef] text-white'
                   : 'bg-gray-100 text-[#3A3A3A] hover:bg-gray-200'
               }`}
             >
@@ -359,7 +359,7 @@ export default function NotificationsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notifications..."
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent"
             />
           </div>
         </div>
@@ -370,8 +370,8 @@ export default function NotificationsPage() {
               onClick={() => setTypeFilter(option.value)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors flex items-center gap-1.5 ${
                 typeFilter === option.value
-                  ? 'bg-[#FF7A19] text-white border-[#FF7A19]'
-                  : 'bg-white text-[#3A3A3A] border-gray-200 hover:border-[#FF7A19]'
+                  ? 'bg-[#00afef] text-white border-[#00afef]'
+                  : 'bg-white text-[#3A3A3A] border-gray-200 hover:border-[#00afef]'
               }`}
             >
               {option.icon}
@@ -406,7 +406,7 @@ export default function NotificationsPage() {
                       <h3 className="font-semibold text-[#1A1A1A] mb-1">
                         {notification.title}
                         {!notification.is_read && (
-                          <span className="ml-2 inline-block w-2 h-2 bg-[#FF7A19] rounded-full"></span>
+                          <span className="ml-2 inline-block w-2 h-2 bg-[#00afef] rounded-full"></span>
                         )}
                       </h3>
                       <p className="text-sm text-[#3A3A3A] mb-2">
@@ -444,7 +444,7 @@ export default function NotificationsPage() {
                   {notification.action_url && (
                     <a
                       href={notification.action_url}
-                      className="inline-block mt-3 text-sm text-[#FF7A19] hover:underline font-semibold"
+                      className="inline-block mt-3 text-sm text-[#00afef] hover:underline font-semibold"
                     >
                       View Details →
                     </a>

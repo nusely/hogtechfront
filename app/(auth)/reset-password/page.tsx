@@ -158,9 +158,9 @@ export default function ResetPasswordPage() {
 
   if (isValidating) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#FF7A19] text-center">
+          <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#00afef] text-center">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="text-blue-600 animate-pulse" size={32} />
             </div>
@@ -174,7 +174,7 @@ export default function ResetPasswordPage() {
 
   if (!isValid) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-red-500 text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -201,7 +201,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -210,7 +210,7 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#FF7A19]">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#00afef]">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* New Password */}
             <div>
@@ -228,7 +228,7 @@ export default function ResetPasswordPage() {
                     setPassword(e.target.value);
                     setError('');
                   }}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
                   placeholder="Enter new password"
                   required
                   minLength={8}
@@ -236,7 +236,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#3A3A3A] hover:text-[#FF7A19]"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#3A3A3A] hover:text-[#00afef]"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -260,7 +260,7 @@ export default function ResetPasswordPage() {
                     setConfirmPassword(e.target.value);
                     setError('');
                   }}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
                   placeholder="Confirm new password"
                   required
                   minLength={8}
@@ -268,7 +268,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#3A3A3A] hover:text-[#FF7A19]"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#3A3A3A] hover:text-[#00afef]"
                 >
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -297,7 +297,7 @@ export default function ResetPasswordPage() {
             <Button
               variant="ghost"
               size="md"
-              className="w-full mt-4 text-[#3A3A3A] hover:text-[#FF7A19]"
+              className="w-full mt-4 text-[#3A3A3A] hover:text-[#00afef]"
             >
               Back to Sign In
             </Button>
@@ -306,7 +306,7 @@ export default function ResetPasswordPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link href="/" className="text-sm text-[#3A3A3A] hover:text-[#FF7A19]">
+          <Link href="/" className="text-sm text-[#3A3A3A] hover:text-[#00afef]">
             ← Back to Home
           </Link>
         </div>

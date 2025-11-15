@@ -9,7 +9,7 @@ export default function ReturnsPage() {
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <Link href="/" className="text-sm text-[#FF7A19] hover:underline mb-4 inline-block">
+          <Link href="/" className="text-sm text-[#00afef] hover:underline mb-4 inline-block">
             ← Back to Home
           </Link>
           <h1 className="text-4xl md:text-5xl font-bold text-[#1A1A1A] mb-4">
@@ -23,22 +23,22 @@ export default function ReturnsPage() {
         {/* Return Policy Summary */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-            <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-8 h-8 text-[#FF7A19]" />
+            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-[#00afef]" />
             </div>
             <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">7-Day Returns</h3>
             <p className="text-[#3A3A3A]">Return eligible items within 7 days of delivery</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-            <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <RotateCcw className="w-8 h-8 text-[#FF7A19]" />
+            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <RotateCcw className="w-8 h-8 text-[#00afef]" />
             </div>
             <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">Easy Returns</h3>
             <p className="text-[#3A3A3A]">Simple return process with full refund</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-            <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-[#FF7A19]" />
+            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-[#00afef]" />
             </div>
             <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">Quality Guaranteed</h3>
             <p className="text-[#3A3A3A]">Defective items replaced at no cost</p>
@@ -127,7 +127,7 @@ export default function ReturnsPage() {
           <div className="space-y-6">
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#00afef] to-[#163b86] text-white flex items-center justify-center font-bold">
                   1
                 </div>
               </div>
@@ -137,15 +137,15 @@ export default function ReturnsPage() {
                   Reach out to our customer service team within 7 days of receiving your order:
                 </p>
                 <ul className="text-[#3A3A3A] space-y-1">
-                  <li>📧 Email: <a href="mailto:ventechgadgets@gmail.com" className="text-[#FF7A19] hover:underline">ventechgadgets@gmail.com</a></li>
-                  <li>📞 Phone: <a href="tel:+233551344310" className="text-[#FF7A19] hover:underline">+233 55 134 4310</a></li>
+                  <li>📧 Email: <a href="mailto:hedgehog.technologies1@gmail.com" className="text-[#00afef] hover:underline">hedgehog.technologies1@gmail.com</a></li>
+                  <li>📞 Phone: <a href="tel:+233551344310" className="text-[#00afef] hover:underline">+233 55 134 4310</a></li>
                 </ul>
               </div>
             </div>
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#00afef] to-[#163b86] text-white flex items-center justify-center font-bold">
                   2
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default function ReturnsPage() {
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#00afef] to-[#163b86] text-white flex items-center justify-center font-bold">
                   3
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function ReturnsPage() {
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#00afef] to-[#163b86] text-white flex items-center justify-center font-bold">
                   4
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default function ReturnsPage() {
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#00afef] to-[#163b86] text-white flex items-center justify-center font-bold">
                   5
                 </div>
               </div>
@@ -251,24 +251,24 @@ export default function ReturnsPage() {
           </p>
           <ul className="space-y-2 text-[#3A3A3A]">
             <li className="flex gap-3">
-              <span className="text-[#FF7A19] font-bold">•</span>
+              <span className="text-[#00afef] font-bold">•</span>
               <span>Exchanges are subject to product availability</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FF7A19] font-bold">•</span>
+              <span className="text-[#00afef] font-bold">•</span>
               <span>Price differences may apply and will be charged or refunded accordingly</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FF7A19] font-bold">•</span>
+              <span className="text-[#00afef] font-bold">•</span>
               <span>Exchanges are processed within 3-5 business days after receiving the original item</span>
             </li>
           </ul>
         </div>
 
         {/* Warranty vs Returns */}
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 mb-8">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 mb-8">
           <div className="flex items-start gap-3 mb-4">
-            <AlertCircle className="w-6 h-6 text-[#FF7A19] flex-shrink-0 mt-1" />
+            <AlertCircle className="w-6 h-6 text-[#00afef] flex-shrink-0 mt-1" />
             <div>
               <h2 className="text-xl font-bold text-[#1A1A1A] mb-3">Returns vs. Warranty</h2>
               <p className="text-[#3A3A3A] mb-3">
@@ -313,21 +313,21 @@ export default function ReturnsPage() {
         </div>
 
         {/* Contact CTA */}
-        <div className="bg-gradient-to-r from-[#FF7A19] to-orange-600 rounded-xl p-8 text-white text-center">
+        <div className="bg-gradient-to-r from-[#00afef] via-[#0d7bc4] to-[#163b86] rounded-xl p-8 text-white text-center">
           <h2 className="text-2xl font-bold mb-4">Need Help With a Return?</h2>
           <p className="mb-6">Our customer service team is here to assist you</p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a
               href="tel:+233551344310"
-              className="bg-white text-[#FF7A19] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               Call: +233 55 134 4310
             </a>
             <a
-              href="mailto:ventechgadgets@gmail.com"
-              className="bg-white text-[#FF7A19] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              href="mailto:hedgehog.technologies1@gmail.com"
+              className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-              Email: ventechgadgets@gmail.com
+              Email: hedgehog.technologies1@gmail.com
             </a>
           </div>
         </div>

@@ -89,19 +89,19 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full">
         {/* Header - Back link */}
         <div className="text-center mb-4">
-          <Link href="/" className="text-sm text-[#FF7A19] hover:underline">
+          <Link href="/" className="text-sm text-[#00afef] hover:underline">
             ← Back to Home
           </Link>
         </div>
 
         {/* Content */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#FF7A19] text-center">
-          <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail className="text-[#FF7A19]" size={40} />
+        <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#00afef] text-center">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Mail className="text-[#00afef]" size={40} />
           </div>
 
           <h1 className="text-2xl font-bold text-[#1A1A1A] mb-3">Verify Your Email</h1>
@@ -113,7 +113,7 @@ export default function VerifyEmailPage() {
             </p>
           )}
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 text-left">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
             <p className="text-sm text-[#3A3A3A] mb-3">
               <strong className="text-[#1A1A1A]">Next steps:</strong>
             </p>
@@ -170,7 +170,7 @@ export default function VerifyEmailPage() {
 
           <p className="text-xs text-[#3A3A3A] mt-6">
             Need help?{' '}
-            <a href="mailto:ventechgadgets@gmail.com" className="text-[#FF7A19] hover:underline font-semibold">
+            <a href="mailto:hedgehog.technologies1@gmail.com" className="text-[#00afef] hover:underline font-semibold">
               Contact Support
             </a>
           </p>
@@ -178,7 +178,7 @@ export default function VerifyEmailPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link href="/" className="text-sm text-[#3A3A3A] hover:text-[#FF7A19]">
+          <Link href="/" className="text-sm text-[#3A3A3A] hover:text-[#00afef]">
             ← Back to Home
           </Link>
         </div>

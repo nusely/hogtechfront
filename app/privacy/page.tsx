@@ -9,7 +9,7 @@ export default function PrivacyPolicyPage() {
         <div className="bg-white rounded-xl shadow-lg p-8 md:p-12">
           {/* Header */}
           <div className="mb-8">
-            <Link href="/" className="text-sm text-[#FF7A19] hover:underline mb-4 inline-block">
+            <Link href="/" className="text-sm text-[#00afef] hover:underline mb-4 inline-block">
               ← Back to Home
             </Link>
             <h1 className="text-4xl font-bold text-[#1A1A1A] mb-4">Privacy Policy</h1>
@@ -19,12 +19,12 @@ export default function PrivacyPolicyPage() {
           {/* Introduction */}
           <section className="mb-8">
             <p className="text-[#3A3A3A] leading-relaxed mb-4">
-              At VENTECH, we respect your privacy and are committed to protecting your personal information. 
+              At Hedgehog Technologies, we respect your privacy and are committed to protecting your personal information. 
               This Privacy Policy explains how we collect, use, disclose, and safeguard your information when 
               you use our website and services.
             </p>
             <p className="text-[#3A3A3A] leading-relaxed">
-              By using VENTECH, you consent to the practices described in this policy.
+              By using Hedgehog Technologies, you consent to the practices described in this policy.
             </p>
           </section>
 
@@ -161,8 +161,8 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p className="text-[#3A3A3A] leading-relaxed mt-3">
               To exercise these rights, contact us at{' '}
-              <a href="mailto:ventechgadgets@gmail.com" className="text-[#FF7A19] hover:underline">
-                ventechgadgets@gmail.com
+              <a href="mailto:hedgehog.technologies1@gmail.com" className="text-[#00afef] hover:underline">
+                hedgehog.technologies1@gmail.com
               </a>
             </p>
           </section>
@@ -182,7 +182,7 @@ export default function PrivacyPolicyPage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">8. Children's Privacy</h2>
             <p className="text-[#3A3A3A] leading-relaxed">
-              VENTECH is not intended for individuals under the age of 18. We do not knowingly collect 
+              Hedgehog Technologies is not intended for individuals under the age of 18. We do not knowingly collect 
               personal information from children. If you believe we have collected information from a 
               child, please contact us immediately.
             </p>
@@ -236,14 +236,14 @@ export default function PrivacyPolicyPage() {
           </section>
 
           {/* Contact */}
-          <section className="mb-8 bg-orange-50 border border-orange-200 rounded-lg p-6">
+          <section className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h2 className="text-xl font-bold text-[#1A1A1A] mb-4">Contact Us About Privacy</h2>
             <p className="text-[#3A3A3A] leading-relaxed mb-3">
               If you have questions or concerns about this Privacy Policy or our data practices, 
               please contact us:
             </p>
             <ul className="space-y-2 text-[#3A3A3A]">
-              <li><strong>Email:</strong> ventechgadgets@gmail.com</li>
+              <li><strong>Email:</strong> hedgehog.technologies1@gmail.com</li>
               <li><strong>Phone:</strong> +233 55 134 4310</li>
               <li><strong>Address:</strong> Ho Civic Center Shop #22, Ho, Ghana</li>
               <li><strong>Address:</strong> Accra, Ghana</li>
@@ -253,8 +253,8 @@ export default function PrivacyPolicyPage() {
           {/* Footer */}
           <div className="pt-8 border-t border-gray-200">
             <p className="text-sm text-[#3A3A3A] text-center">
-              © 2025 VENTECH. All rights reserved. |{' '}
-              <Link href="/terms" className="text-[#FF7A19] hover:underline">
+              © 2025 Hedgehog Technologies. All rights reserved. |{' '}
+              <Link href="/terms" className="text-[#00afef] hover:underline">
                 Terms of Service
               </Link>
             </p>

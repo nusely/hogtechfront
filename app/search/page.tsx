@@ -205,7 +205,7 @@ export default function SearchPage() {
                   )}
                   <button
                     onClick={clearFilters}
-                    className="text-xs text-[#FF7A19] hover:underline"
+                    className="text-xs text-[#00afef] hover:underline"
                   >
                     Clear all
                   </button>
@@ -223,7 +223,7 @@ export default function SearchPage() {
                     const [sortBy, sortOrder] = e.target.value.split('-');
                     handleSortChange(sortBy as SearchFilters['sortBy']);
                   }}
-                  className="text-sm border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                  className="text-sm border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 >
                   <option value="rating-desc">Best Match</option>
                   <option value="name-asc">Name A-Z</option>
@@ -238,13 +238,13 @@ export default function SearchPage() {
               <div className="flex border border-gray-300 rounded">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 ${viewMode === 'grid' ? 'bg-[#FF7A19] text-white' : 'text-gray-600'}`}
+                  className={`p-2 ${viewMode === 'grid' ? 'bg-[#00afef] text-white' : 'text-gray-600'}`}
                 >
                   <Grid size={16} />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 ${viewMode === 'list' ? 'bg-[#FF7A19] text-white' : 'text-gray-600'}`}
+                  className={`p-2 ${viewMode === 'list' ? 'bg-[#00afef] text-white' : 'text-gray-600'}`}
                 >
                   <List size={16} />
                 </button>
@@ -276,7 +276,7 @@ export default function SearchPage() {
                 <select
                   value={filters.category || ''}
                   onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 >
                   <option value="">All Categories</option>
                   {allCategories.map(category => (
@@ -293,7 +293,7 @@ export default function SearchPage() {
                 <select
                   value={filters.brand || ''}
                   onChange={(e) => handleFilterChange('brand', e.target.value || undefined)}
-                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                  className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 >
                   <option value="">All Brands</option>
                   {allBrands.map(brand => (
@@ -313,14 +313,14 @@ export default function SearchPage() {
                     placeholder="Min Price"
                     value={filters.minPrice || ''}
                     onChange={(e) => handleFilterChange('minPrice', e.target.value ? Number(e.target.value) : undefined)}
-                    className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                   />
                   <input
                     type="number"
                     placeholder="Max Price"
                     value={filters.maxPrice || ''}
                     onChange={(e) => handleFilterChange('maxPrice', e.target.value ? Number(e.target.value) : undefined)}
-                    className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full text-sm border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                   />
                 </div>
               </div>
@@ -333,7 +333,7 @@ export default function SearchPage() {
                     type="checkbox"
                     checked={filters.inStock || false}
                     onChange={(e) => handleFilterChange('inStock', e.target.checked || undefined)}
-                    className="w-4 h-4 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                    className="w-4 h-4 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                   />
                   <span className="ml-2 text-sm text-gray-700">In Stock Only</span>
                 </label>

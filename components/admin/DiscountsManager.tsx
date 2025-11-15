@@ -429,7 +429,7 @@ export function DiscountsManager() {
                   <tr key={discount.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#FF7A19]/10 text-[#FF7A19] rounded-lg">
+                        <div className="p-2 bg-[#00afef]/10 text-[#00afef] rounded-lg">
                           <Percent size={18} />
                         </div>
                         <div>
@@ -528,7 +528,7 @@ export function DiscountsManager() {
                         name: e.target.value.toUpperCase(),
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     required
                   />
                 </div>
@@ -542,7 +542,7 @@ export function DiscountsManager() {
                         type: e.target.value as Discount['type'],
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                   >
                     <option value="percentage">Percentage</option>
                     <option value="fixed_amount">Fixed Amount</option>
@@ -561,7 +561,7 @@ export function DiscountsManager() {
                         value: parseFloat(e.target.value) || 0,
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     disabled={newDiscount.type === 'free_shipping'}
                     required={newDiscount.type !== 'free_shipping'}
                   />
@@ -578,7 +578,7 @@ export function DiscountsManager() {
                         minimum_amount: parseFloat(e.target.value) || 0,
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                   />
                 </div>
                 <div>
@@ -593,7 +593,7 @@ export function DiscountsManager() {
                         maximum_discount: parseFloat(e.target.value) || 0,
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     placeholder="Optional"
                   />
                 </div>
@@ -608,7 +608,7 @@ export function DiscountsManager() {
                         usage_limit: parseInt(e.target.value, 10) || 0,
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     placeholder="0 for unlimited"
                   />
                 </div>
@@ -618,7 +618,7 @@ export function DiscountsManager() {
                     type="datetime-local"
                     value={new Date(newDiscount.valid_from || new Date()).toISOString().slice(0, 16)}
                     onChange={(e) => setNewDiscount((prev) => ({ ...prev, valid_from: new Date(e.target.value).toISOString() }))}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     required
                   />
                 </div>
@@ -633,7 +633,7 @@ export function DiscountsManager() {
                         valid_until: e.target.value ? new Date(e.target.value).toISOString() : '',
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     placeholder="Leave empty for no end date"
                   />
                 </div>
@@ -647,7 +647,7 @@ export function DiscountsManager() {
                         applies_to: e.target.value as Discount['applies_to'],
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                   >
                     <option value="all" disabled={newDiscount.type === 'percentage'}>
                       Entire Order
@@ -666,7 +666,7 @@ export function DiscountsManager() {
                     type="checkbox"
                     checked={newDiscount.is_active ?? true}
                     onChange={(e) => setNewDiscount((prev) => ({ ...prev, is_active: e.target.checked }))}
-                    className="rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                    className="rounded border-gray-300 text-[#00afef] focus:ring-[#00afef]"
                   />
                   Discount is active
                 </label>

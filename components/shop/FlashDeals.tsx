@@ -74,7 +74,7 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 4 }) => {
 
   if (isLoading) {
     return (
-      <section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-8">
+      <section className="bg-gradient-to-r from-[#00afef] via-[#0d7bc4] to-[#163b86] py-8">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -115,7 +115,7 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 4 }) => {
   const firstDeal = dealProducts[0]?.deal;
 
   return (
-    <section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-8">
+    <section className="bg-gradient-to-r from-[#00afef] via-[#0d7bc4] to-[#163b86] py-8">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -320,7 +320,7 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 4 }) => {
                       className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-10"
                       aria-label="Previous product"
                     >
-                      <ChevronLeft size={20} className="text-[#FF7A19]" />
+                      <ChevronLeft size={20} className="text-[#00afef]" />
                     </button>
                     <button
                       onClick={scrollRight}
@@ -328,7 +328,7 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 4 }) => {
                       className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed z-10"
                       aria-label="Next product"
                     >
-                      <ChevronRight size={20} className="text-[#FF7A19]" />
+                      <ChevronRight size={20} className="text-[#00afef]" />
                     </button>
                     
                     {/* Dots indicator */}
@@ -347,7 +347,7 @@ export const FlashDeals: React.FC<FlashDealsProps> = ({ limit = 4 }) => {
                             }
                           }}
                           className={`w-2 h-2 rounded-full transition-all ${
-                            index === currentIndex ? 'bg-[#FF7A19] w-6' : 'bg-gray-300'
+                            index === currentIndex ? 'bg-[#00afef] w-6' : 'bg-gray-300'
                           }`}
                           aria-label={`Go to product ${index + 1}`}
                         />

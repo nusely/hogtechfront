@@ -343,7 +343,7 @@ export function ShopContent() {
                   {(filters.category || filters.brand || filters.minPrice || filters.maxPrice || filters.inStock !== undefined) && (
                     <button
                       onClick={clearFilters}
-                      className="text-sm text-[#FF7A19] hover:underline"
+                      className="text-sm text-[#00afef] hover:underline"
                     >
                       Clear All
                     </button>
@@ -369,7 +369,7 @@ export function ShopContent() {
                         type="checkbox"
                         checked={!filters.category}
                         onChange={() => handleFilterChange('category', undefined)}
-                        className="w-4 h-4 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                        className="w-4 h-4 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                       />
                       <span className="text-sm text-gray-700">All Categories</span>
                     </label>
@@ -379,7 +379,7 @@ export function ShopContent() {
                           type="checkbox"
                           checked={filters.category === category.id}
                           onChange={(e) => handleFilterChange('category', e.target.checked ? category.id : undefined)}
-                          className="w-4 h-4 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                          className="w-4 h-4 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                         />
                         <span className="text-sm text-gray-700">{category.name}</span>
                       </label>
@@ -398,7 +398,7 @@ export function ShopContent() {
                         type="checkbox"
                         checked={!filters.brand}
                         onChange={() => handleFilterChange('brand', undefined)}
-                        className="w-4 h-4 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                        className="w-4 h-4 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                       />
                       <span className="text-sm text-gray-700">All Brands</span>
                     </label>
@@ -408,7 +408,7 @@ export function ShopContent() {
                           type="checkbox"
                           checked={filters.brand === brand.id}
                           onChange={(e) => handleFilterChange('brand', e.target.checked ? brand.id : undefined)}
-                          className="w-4 h-4 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                          className="w-4 h-4 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                         />
                         <span className="text-sm text-gray-700">{brand.name}</span>
                       </label>
@@ -427,14 +427,14 @@ export function ShopContent() {
                       placeholder="Min"
                       value={filters.minPrice || ''}
                       onChange={(e) => handleFilterChange('minPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     />
                     <input
                       type="number"
                       placeholder="Max"
                       value={filters.maxPrice || ''}
                       onChange={(e) => handleFilterChange('maxPrice', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     />
                   </div>
                 </div>
@@ -446,7 +446,7 @@ export function ShopContent() {
                       type="checkbox"
                       checked={filters.inStock === true}
                       onChange={(e) => handleFilterChange('inStock', e.target.checked ? true : undefined)}
-                      className="w-4 h-4 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                      className="w-4 h-4 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                     />
                     <span className="text-sm text-gray-700">In Stock Only</span>
                   </label>
@@ -474,7 +474,7 @@ export function ShopContent() {
                     onClick={() => setViewMode('grid')}
                     className={`p-2 rounded transition-colors ${
                       viewMode === 'grid'
-                        ? 'bg-[#FF7A19] text-white'
+                        ? 'bg-[#00afef] text-white'
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
@@ -484,7 +484,7 @@ export function ShopContent() {
                     onClick={() => setViewMode('list')}
                     className={`p-2 rounded transition-colors ${
                       viewMode === 'list'
-                        ? 'bg-[#FF7A19] text-white'
+                        ? 'bg-[#00afef] text-white'
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
@@ -498,7 +498,7 @@ export function ShopContent() {
                   onChange={(e) =>
                     handleFilterChange('sortBy', e.target.value as ProductFilters['sortBy'])
                   }
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 >
                   <option value="newest">Newest First</option>
                   <option value="price_asc">Price: Low to High</option>
@@ -520,7 +520,7 @@ export function ShopContent() {
             {/* Products Grid/List */}
             {isLoading && products.length === 0 ? (
               <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
                 <p className="text-gray-600">Loading products...</p>
               </div>
             ) : filteredProducts.length === 0 ? (

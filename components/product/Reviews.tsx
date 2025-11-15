@@ -169,7 +169,7 @@ export const Reviews: React.FC<ReviewsProps> = ({ productId }) => {
                   <Star className="w-4 h-4 text-yellow-400 fill-current" />
                   <div className="flex-1 bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-[#FF7A19] h-2 rounded-full"
+                      className="bg-gradient-to-r from-[#00afef] to-[#163b86] h-2 rounded-full"
                       style={{
                         width: `${stats.totalReviews > 0 ? (stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution] / stats.totalReviews) * 100 : 0}%`
                       }}
@@ -222,7 +222,7 @@ export const Reviews: React.FC<ReviewsProps> = ({ productId }) => {
                 type="text"
                 value={newReview.title}
                 onChange={(e) => setNewReview({ ...newReview, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 placeholder="Summarize your experience"
               />
             </div>
@@ -235,7 +235,7 @@ export const Reviews: React.FC<ReviewsProps> = ({ productId }) => {
                 value={newReview.comment}
                 onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 placeholder="Share your thoughts about this product"
               />
             </div>
@@ -263,7 +263,7 @@ export const Reviews: React.FC<ReviewsProps> = ({ productId }) => {
           {reviews.map((review) => (
             <div key={review.id} className="bg-white border rounded-lg p-4">
               <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 bg-[#FF7A19] rounded-full flex items-center justify-center text-white font-semibold">
+                <div className="w-10 h-10 bg-gradient-to-r from-[#00afef] to-[#163b86] rounded-full flex items-center justify-center text-white font-semibold">
                   {review.user?.first_name?.[0] || 'U'}
                 </div>
                 <div className="flex-1">

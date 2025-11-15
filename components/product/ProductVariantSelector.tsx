@@ -250,7 +250,7 @@ export function ProductVariantSelector({
                   {attribute.is_required && <span className="text-red-500 ml-1">*</span>}
                 </span>
                 {selectedOption && (
-                  <span className="text-xs text-[#FF7A19] font-medium">
+                  <span className="text-xs text-[#00afef] font-medium">
                     ({selectedOption.label})
                   </span>
                 )}
@@ -282,7 +282,7 @@ export function ProductVariantSelector({
                       className={`
                         w-full px-3 py-2 flex items-center justify-between rounded-lg text-left transition-all
                         ${isSelected
-                          ? 'bg-orange-50 border-2 border-[#FF7A19]'
+                          ? 'bg-blue-50 border-2 border-[#00afef]'
                           : 'bg-gray-50 border-2 border-transparent hover:border-gray-300'
                         }
                         ${!isAvailable
@@ -295,11 +295,11 @@ export function ProductVariantSelector({
                         <div
                           className={`
                             w-4 h-4 rounded-full border-2 flex items-center justify-center
-                            ${isSelected ? 'border-[#FF7A19]' : 'border-gray-300'}
+                            ${isSelected ? 'border-[#00afef]' : 'border-gray-300'}
                           `}
                         >
                           {isSelected && (
-                            <div className="w-2 h-2 rounded-full bg-[#FF7A19]"></div>
+                            <div className="w-2 h-2 rounded-full bg-[#00afef]"></div>
                           )}
                         </div>
                         <div>
@@ -307,7 +307,7 @@ export function ProductVariantSelector({
                         </div>
                       </div>
                       {option.price_modifier !== 0 && (
-                        <span className="text-xs font-semibold text-[#FF7A19]">
+                        <span className="text-xs font-semibold text-[#00afef]">
                           {option.price_modifier > 0 ? '+' : ''}GHS {option.price_modifier.toFixed(2)}
                         </span>
                       )}
@@ -325,7 +325,7 @@ export function ProductVariantSelector({
         <div className="pt-3 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-[#3A3A3A]">Total Price:</span>
-            <span className="text-lg font-bold text-[#FF7A19]">
+            <span className="text-lg font-bold bg-gradient-to-r from-[#00afef] to-[#163b86] bg-clip-text text-transparent">
               GHS {(basePrice + calculateTotalPrice()).toLocaleString()}
             </span>
           </div>

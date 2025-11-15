@@ -22,9 +22,9 @@ export const Button: React.FC<ButtonProps> = ({
   const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variantStyles = {
-    primary: 'bg-[#FF7A19] text-white hover:bg-[#E66600] focus:ring-[#FF7A19] active:bg-[#B34F00]',
-    secondary: 'bg-[#1A1A1A] text-white hover:bg-[#3A3A3A] focus:ring-[#1A1A1A] active:bg-[#000000]',
-    outline: 'border-2 border-[#FF7A19] text-[#FF7A19] hover:bg-orange-50 focus:ring-[#FF7A19]',
+    primary: 'bg-gradient-to-r from-[#00afef] to-[#163b86] text-white hover:from-[#0099d6] hover:to-[#0f2d6b] focus:ring-[#00afef] active:from-[#0083bd] active:to-[#0a1f52] shadow-lg hover:shadow-xl transition-all',
+    secondary: 'bg-gradient-to-r from-[#163b86] to-[#1a4ba0] text-white hover:from-[#0f2d6b] hover:to-[#163b86] focus:ring-[#163b86] active:from-[#0a1f52] active:to-[#0f2d6b] shadow-lg hover:shadow-xl transition-all',
+    outline: 'border-2 border-[#00afef] text-[#00afef] hover:bg-blue-50 focus:ring-[#00afef] hover:border-[#163b86] hover:text-[#163b86]',
     ghost: 'text-[#3A3A3A] hover:bg-gray-100 focus:ring-gray-400',
     danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 active:bg-red-800',
   };

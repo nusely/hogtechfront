@@ -299,7 +299,7 @@ export default function AdminProductsPage() {
         {/* Products Table */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef]"></div>
           </div>
         ) : products.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-12 text-center">
@@ -360,7 +360,7 @@ export default function AdminProductsPage() {
                                     <span title="In Deal">
                                       <Zap 
                                         size={16} 
-                                        className="text-[#FF7A19] fill-[#FF7A19]" 
+                                        className="text-[#00afef] fill-[#00afef]" 
                                       />
                                     </span>
                                   )}
@@ -423,7 +423,7 @@ export default function AdminProductsPage() {
                                 setSelectedProductForDeal(product);
                                 setShowAddToDealModal(true);
                               }}
-                              className="text-gray-600 hover:text-orange-600 p-1"
+                              className="text-gray-600 hover:text-[#00afef] p-1"
                               title="Add to Flash Deal"
                             >
                               <Zap size={16} />

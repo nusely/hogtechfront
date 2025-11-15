@@ -69,7 +69,7 @@ export const MobileBottomNav = () => {
               className={`
                 flex flex-col items-center justify-center gap-0.5 px-1.5 py-1.5 rounded-lg transition-colors flex-shrink-0
                 ${active 
-                  ? 'text-[#FF7A19]' 
+                  ? 'text-[#00afef]' 
                   : 'text-[#3A3A3A]'
                 }
               `}
@@ -77,15 +77,15 @@ export const MobileBottomNav = () => {
               <div className="relative">
                 <Icon 
                   size={22} 
-                  className={active ? 'text-[#FF7A19]' : 'text-[#3A3A3A]'}
+                  className={active ? 'text-[#00afef]' : 'text-[#3A3A3A]'}
                 />
                 {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#FF7A19] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-[#00afef] to-[#163b86] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>
                 )}
               </div>
-              <span className={`text-[9px] font-medium leading-tight ${active ? 'text-[#FF7A19]' : 'text-[#3A3A3A]'}`}>
+              <span className={`text-[9px] font-medium leading-tight ${active ? 'text-[#00afef]' : 'text-[#3A3A3A]'}`}>
                 {item.label}
               </span>
             </Link>

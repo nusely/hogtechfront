@@ -9,7 +9,7 @@ export default function TermsOfServicePage() {
         <div className="bg-white rounded-xl shadow-lg p-8 md:p-12">
           {/* Header */}
           <div className="mb-8">
-            <Link href="/" className="text-sm text-[#FF7A19] hover:underline mb-4 inline-block">
+            <Link href="/" className="text-sm text-[#00afef] hover:underline mb-4 inline-block">
               ← Back to Home
             </Link>
             <h1 className="text-4xl font-bold text-[#1A1A1A] mb-4">Terms of Service</h1>
@@ -19,7 +19,7 @@ export default function TermsOfServicePage() {
           {/* Introduction */}
           <section className="mb-8">
             <p className="text-[#3A3A3A] leading-relaxed mb-4">
-              Welcome to VENTECH. By accessing and using our website (ventechgadgets.com) and services, 
+              Welcome to Hedgehog Technologies. By accessing and using our website (ventechgadgets.com) and services, 
               you agree to be bound by these Terms of Service. Please read them carefully.
             </p>
           </section>
@@ -40,7 +40,7 @@ export default function TermsOfServicePage() {
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">2. Eligibility</h2>
             <p className="text-[#3A3A3A] leading-relaxed">
-              You must be at least 18 years old to use our services. By using VENTECH, you represent and 
+              You must be at least 18 years old to use our services. By using Hedgehog Technologies, you represent and 
               warrant that you meet this age requirement and have the legal capacity to enter into these Terms.
             </p>
           </section>
@@ -109,7 +109,7 @@ export default function TermsOfServicePage() {
             <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">7. Returns & Refunds</h2>
             <p className="text-[#3A3A3A] leading-relaxed mb-3">
               We offer a 7-day return policy for most products. Please see our{' '}
-              <Link href="/returns" className="text-[#FF7A19] hover:underline">
+              <Link href="/returns" className="text-[#00afef] hover:underline">
                 Returns Policy
               </Link>{' '}
               for detailed information.
@@ -119,43 +119,28 @@ export default function TermsOfServicePage() {
             </p>
           </section>
 
-          {/* 8. Laptop Banking */}
+          {/* 8. Intellectual Property */}
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">8. VENTECH Laptop Banking</h2>
-            <p className="text-[#3A3A3A] leading-relaxed mb-3">
-              Our Laptop Banking investment program is subject to separate terms and conditions provided 
-              during the application process. By investing, you acknowledge:
-            </p>
-            <ul className="list-disc list-inside space-y-2 text-[#3A3A3A]">
-              <li>Investment returns are subject to market conditions</li>
-              <li>Terms are 6 months (3 + 3) with early exit options</li>
-              <li>Premium membership benefits are non-transferable</li>
-              <li>Referral bonuses are subject to verification</li>
-            </ul>
-          </section>
-
-          {/* 9. Intellectual Property */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">9. Intellectual Property</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">8. Intellectual Property</h2>
             <p className="text-[#3A3A3A] leading-relaxed">
-              All content on VENTECH, including logos, text, graphics, images, and software, is the property 
-              of VENTECH or its licensors and is protected by Ghanaian and international copyright laws. 
+              All content on Hedgehog Technologies, including logos, text, graphics, images, and software, is the property 
+              of Hedgehog Technologies or its licensors and is protected by Ghanaian and international copyright laws. 
               You may not reproduce, distribute, or create derivative works without our express permission.
             </p>
           </section>
 
-          {/* 10. Limitation of Liability */}
+          {/* 9. Limitation of Liability */}
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">10. Limitation of Liability</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">9. Limitation of Liability</h2>
             <p className="text-[#3A3A3A] leading-relaxed">
-              To the fullest extent permitted by law, VENTECH shall not be liable for any indirect, 
+              To the fullest extent permitted by law, Hedgehog Technologies shall not be liable for any indirect, 
               incidental, special, consequential, or punitive damages arising from your use of our services.
             </p>
           </section>
 
-          {/* 11. Warranty Disclaimer */}
+          {/* 10. Warranty Disclaimer */}
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">11. Warranty Disclaimer</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">10. Warranty Disclaimer</h2>
             <p className="text-[#3A3A3A] leading-relaxed">
               Our services and products are provided "as is" without warranties of any kind. While we provide 
               manufacturer warranties where applicable, we make no additional warranties regarding product 
@@ -163,9 +148,9 @@ export default function TermsOfServicePage() {
             </p>
           </section>
 
-          {/* 12. Governing Law */}
+          {/* 11. Governing Law */}
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">12. Governing Law</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">11. Governing Law</h2>
             <p className="text-[#3A3A3A] leading-relaxed">
               These Terms of Service shall be governed by and construed in accordance with the laws of Ghana. 
               Any disputes arising under these terms shall be subject to the exclusive jurisdiction of the 
@@ -173,9 +158,9 @@ export default function TermsOfServicePage() {
             </p>
           </section>
 
-          {/* 13. Changes to Terms */}
+          {/* 12. Changes to Terms */}
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">13. Changes to Terms</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">12. Changes to Terms</h2>
             <p className="text-[#3A3A3A] leading-relaxed">
               We reserve the right to modify these Terms of Service at any time. We will notify users of 
               material changes via email or website notification. Your continued use of our services after 
@@ -184,13 +169,13 @@ export default function TermsOfServicePage() {
           </section>
 
           {/* Contact */}
-          <section className="mb-8 bg-orange-50 border border-orange-200 rounded-lg p-6">
+          <section className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h2 className="text-xl font-bold text-[#1A1A1A] mb-4">Contact Us</h2>
             <p className="text-[#3A3A3A] leading-relaxed mb-3">
               If you have any questions about these Terms of Service, please contact us:
             </p>
             <ul className="space-y-2 text-[#3A3A3A]">
-              <li><strong>Email:</strong> ventechgadgets@gmail.com</li>
+              <li><strong>Email:</strong> hedgehog.technologies1@gmail.com</li>
               <li><strong>Phone:</strong> +233 55 134 4310</li>
               <li><strong>Address:</strong> Ho Civic Center Shop #22, Ho, Ghana</li>
               <li><strong>Address:</strong> Accra, Ghana</li>
@@ -200,8 +185,8 @@ export default function TermsOfServicePage() {
           {/* Footer */}
           <div className="pt-8 border-t border-gray-200">
             <p className="text-sm text-[#3A3A3A] text-center">
-              © 2025 VENTECH. All rights reserved. |{' '}
-              <Link href="/privacy" className="text-[#FF7A19] hover:underline">
+              © 2025 Hedgehog Technologies. All rights reserved. |{' '}
+              <Link href="/privacy" className="text-[#00afef] hover:underline">
                 Privacy Policy
               </Link>
             </p>

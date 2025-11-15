@@ -201,7 +201,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading profile...</p>
         </div>
       </div>
@@ -229,8 +229,8 @@ export default function ProfilePage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
               <div className="text-center mb-6">
-                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <User className="w-10 h-10 text-[#FF7A19]" />
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <User className="w-10 h-10 text-[#00afef]" />
                 </div>
                 <h2 className="font-bold text-lg text-[#1A1A1A]">
                   {formData.first_name} {formData.last_name}
@@ -247,7 +247,7 @@ export default function ProfilePage() {
                       onClick={() => setActiveTab(tab.id as TabType)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
                         activeTab === tab.id
-                          ? 'bg-[#FF7A19] text-white'
+                          ? 'bg-[#00afef] text-white'
                           : 'text-[#3A3A3A] hover:bg-gray-100'
                       }`}
                     >
@@ -300,7 +300,7 @@ export default function ProfilePage() {
                           type="text"
                           value={formData.first_name}
                           onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                         />
                       </div>
                       <div>
@@ -311,7 +311,7 @@ export default function ProfilePage() {
                           type="text"
                           value={formData.last_name}
                           onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                         />
                       </div>
                     </div>
@@ -338,7 +338,7 @@ export default function ProfilePage() {
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         placeholder="+233 XX XXX XXXX"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                       />
                     </div>
 
@@ -351,7 +351,7 @@ export default function ProfilePage() {
                           type="date"
                           value={formData.date_of_birth}
                           onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                         />
                       </div>
                       <div>
@@ -361,7 +361,7 @@ export default function ProfilePage() {
                         <select
                           value={formData.gender}
                           onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                         >
                           <option value="">Select gender</option>
                           <option value="male">Male</option>
@@ -391,7 +391,7 @@ export default function ProfilePage() {
                           ...formData,
                           shipping_address: { ...formData.shipping_address, street_address: e.target.value }
                         })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                         required
                       />
                     </div>
@@ -408,7 +408,7 @@ export default function ProfilePage() {
                             ...formData,
                             shipping_address: { ...formData.shipping_address, city: e.target.value }
                           })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                           required
                         />
                       </div>
@@ -423,7 +423,7 @@ export default function ProfilePage() {
                             ...formData,
                             shipping_address: { ...formData.shipping_address, region: e.target.value }
                           })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                           required
                         />
                       </div>
@@ -440,7 +440,7 @@ export default function ProfilePage() {
                             ...formData,
                             shipping_address: { ...formData.shipping_address, postal_code: e.target.value }
                           })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                         />
                     </div>
                   </div>
@@ -458,7 +458,7 @@ export default function ProfilePage() {
                         type="checkbox"
                         checked={formData.sameAsShipping}
                         onChange={(e) => setFormData({ ...formData, sameAsShipping: e.target.checked })}
-                        className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                        className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                       />
                       <span className="text-sm text-[#3A3A3A]">Same as shipping address</span>
                     </label>
@@ -478,7 +478,7 @@ export default function ProfilePage() {
                             billing_address: { ...formData.billing_address, address_line1: e.target.value }
                           })}
                           placeholder="Street address, P.O. box, company name"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                         />
                       </div>
 
@@ -494,7 +494,7 @@ export default function ProfilePage() {
                             billing_address: { ...formData.billing_address, address_line2: e.target.value }
                           })}
                           placeholder="Apartment, suite, unit, building, floor, etc."
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                         />
                       </div>
 
@@ -510,7 +510,7 @@ export default function ProfilePage() {
                               ...formData,
                               billing_address: { ...formData.billing_address, city: e.target.value }
                             })}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                           />
                         </div>
                         <div>
@@ -523,7 +523,7 @@ export default function ProfilePage() {
                               ...formData,
                               billing_address: { ...formData.billing_address, region: e.target.value }
                             })}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                           >
                             <option value="">Select region</option>
                             <option value="Greater Accra">Greater Accra</option>
@@ -553,7 +553,7 @@ export default function ProfilePage() {
                               billing_address: { ...formData.billing_address, postal_code: e.target.value }
                             })}
                             placeholder="GA-XXX-XXXX"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
                           />
                         </div>
                         <div>
@@ -584,7 +584,7 @@ export default function ProfilePage() {
                           type="checkbox"
                           checked={formData.email_notifications}
                           onChange={(e) => setFormData({ ...formData, email_notifications: e.target.checked })}
-                          className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19] mt-1"
+                          className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef] mt-1"
                         />
                         <div>
                           <h3 className="font-semibold text-[#1A1A1A] mb-1">Email Notifications</h3>
@@ -601,7 +601,7 @@ export default function ProfilePage() {
                           type="checkbox"
                           checked={formData.sms_notifications}
                           onChange={(e) => setFormData({ ...formData, sms_notifications: e.target.checked })}
-                          className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19] mt-1"
+                          className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef] mt-1"
                         />
                         <div>
                           <h3 className="font-semibold text-[#1A1A1A] mb-1">SMS Notifications</h3>
@@ -618,7 +618,7 @@ export default function ProfilePage() {
                           type="checkbox"
                           checked={formData.newsletter_subscribed}
                           onChange={(e) => setFormData({ ...formData, newsletter_subscribed: e.target.checked })}
-                          className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19] mt-1"
+                          className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef] mt-1"
                         />
                         <div>
                           <h3 className="font-semibold text-[#1A1A1A] mb-1">Newsletter Subscription</h3>

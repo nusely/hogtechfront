@@ -117,7 +117,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           onKeyPress={handleKeyPress}
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
-          className="w-full px-4 py-2.5 pl-12 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm"
+          className="w-full px-4 py-2.5 pl-12 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
           suppressHydrationWarning
         />
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -140,7 +140,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
           {isLoading ? (
             <div className="p-4 text-center text-gray-500">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#FF7A19] mx-auto"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#00afef] mx-auto"></div>
               <p className="mt-2 text-sm">Searching...</p>
             </div>
           ) : query.length >= 2 ? (
@@ -230,7 +230,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   <p className="text-sm">No results found for "{query}"</p>
                   <button
                     onClick={() => handleSearch()}
-                    className="mt-2 text-sm text-[#FF7A19] hover:underline"
+                    className="mt-2 text-sm text-[#00afef] hover:underline"
                   >
                     Search anyway
                   </button>

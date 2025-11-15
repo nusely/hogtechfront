@@ -62,7 +62,7 @@ const getNotificationIcon = (type: string) => {
     case 'order':
       return <ShoppingCart size={16} className="text-blue-600" />;
     case 'stock':
-      return <Package size={16} className="text-orange-600" />;
+      return <Package size={16} className="text-[#00afef]" />;
     case 'user':
       return <Users size={16} className="text-purple-600" />;
     case 'alert':
@@ -79,7 +79,7 @@ const getNotificationAccent = (type: string) => {
     case 'order':
       return 'bg-blue-50 text-blue-600';
     case 'stock':
-      return 'bg-orange-50 text-orange-600';
+      return 'bg-blue-50 text-[#00afef]';
     case 'user':
       return 'bg-purple-50 text-purple-600';
     case 'alert':
@@ -159,12 +159,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         headers.Authorization = `Bearer ${session.access_token}`;
       }
 
-      const response = await fetch(buildApiUrl(`/api/notifications?limit=8`), {
+      const apiUrl = buildApiUrl(`/api/notifications?limit=8`);
+      console.log('Fetching notifications from:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         headers,
+        credentials: 'include', // Include cookies/auth
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch notifications (${response.status})`);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('Notifications API error:', response.status, errorText);
+        throw new Error(`Failed to fetch notifications (${response.status}): ${errorText}`);
       }
 
       const payload = await response.json();
@@ -173,9 +179,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       setNotificationsPreview(preview);
       setUnreadNotificationsCount(unreadCount);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading notifications preview:', error);
-      setNotificationsError('Unable to load notifications right now.');
+      const errorMessage = error?.message || 'Unknown error';
+      console.error('Full error details:', {
+        message: errorMessage,
+        name: error?.name,
+        stack: error?.stack,
+      });
+      setNotificationsError(`Unable to load notifications: ${errorMessage}`);
     } finally {
       setNotificationsLoading(false);
     }
@@ -527,7 +539,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     },
   ];
 
-  const isAuditWhitelisted = user?.email?.toLowerCase() === 'cimons@ventechgadgets.com';
+  const isAuditWhitelisted = user?.email?.toLowerCase() === 'cimons@hogtechgh.com';
 
   if (user?.role === 'superadmin' || (user?.role === 'admin' && isAuditWhitelisted)) {
     menuItems.splice(1, 0, {
@@ -548,7 +560,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50" suppressHydrationWarning>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading...</p>
         </div>
       </div>
@@ -561,7 +573,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Verifying admin access...</p>
         </div>
       </div>
@@ -589,8 +601,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {sidebarOpen && (
             <div className="flex items-center gap-2">
               <img
-                src="/logo/ventech_logo-white.png"
-                alt="VENTECH"
+                src="/logo/hogtechlogo.PNG"
+                alt="Hedgehog Technologies"
                 className="h-8 w-auto object-contain"
               />
             </div>
@@ -607,7 +619,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {sidebarOpen && (
           <div className="p-4 border-b border-gray-700">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#FF7A19] rounded-full flex items-center justify-center font-bold">
+              <div className="w-10 h-10 bg-[#00afef] rounded-full flex items-center justify-center font-bold">
                 {user?.full_name?.charAt(0) || 'A'}
               </div>
               <div className="flex-1 min-w-0">
@@ -650,7 +662,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                           key={child.label}
                           href={child.href || '#'}
                           className={`flex items-center gap-3 px-4 py-2 pl-12 hover:bg-gray-700 transition-colors text-sm ${
-                            isActive(child.href) ? 'bg-gray-700 text-[#FF7A19]' : ''
+                            isActive(child.href) ? 'bg-gray-700 text-[#00afef]' : ''
                           }`}
                         >
                           <child.icon size={16} />
@@ -666,21 +678,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href || '#'}
                   className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-700 transition-colors relative ${
                     !sidebarOpen && 'justify-center'
-                  } ${isActive(item.href) ? 'bg-gray-700 text-[#FF7A19]' : ''}`}
+                  } ${isActive(item.href) ? 'bg-gray-700 text-[#00afef]' : ''}`}
                 >
                   <item.icon size={20} />
                   {sidebarOpen && (
                     <>
                       <span className="flex-1 text-sm">{item.label}</span>
                       {item.badge && (
-                        <span className="bg-[#FF7A19] text-white text-xs px-2 py-1 rounded-full">
+                        <span className="bg-[#00afef] text-white text-xs px-2 py-1 rounded-full">
                           {item.badge}
                         </span>
                       )}
                     </>
                   )}
                   {!sidebarOpen && item.badge && (
-                    <span className="absolute -top-1 -right-1 bg-[#FF7A19] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-[#00afef] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                       {item.badge}
                     </span>
                   )}
@@ -730,7 +742,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 >
                   <Bell size={20} />
                   {unreadNotificationsCount !== undefined && unreadNotificationsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#FF7A19] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 min-w-[18px] flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-[#00afef] text-white text-[10px] font-semibold rounded-full px-1.5 py-0.5 min-w-[18px] flex items-center justify-center">
                       {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
                     </span>
                   )}
@@ -753,7 +765,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             await markAllNotificationsRead();
                             await loadNotifications();
                           }}
-                          className="text-xs text-[#FF7A19] font-semibold hover:underline"
+                          className="text-xs text-[#00afef] font-semibold hover:underline"
                         >
                           Mark all as read
                         </button>
@@ -763,7 +775,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="max-h-80 overflow-y-auto">
                       {notificationsLoading ? (
                         <div className="flex items-center justify-center py-6">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF7A19]"></div>
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00afef]"></div>
                         </div>
                       ) : notificationsError ? (
                         <div className="py-6 text-center text-sm text-red-500 px-4">
@@ -780,7 +792,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                               <button
                                 onClick={() => handleNotificationClick(notification)}
                                 className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${
-                                  notification.is_read ? 'bg-white' : 'bg-orange-50/60'
+                                  notification.is_read ? 'bg-white' : 'bg-blue-50/60'
                                 }`}
                               >
                                 <div className="flex items-start gap-3">
@@ -798,7 +810,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                       <Clock size={12} />
                                       <span>{formatRelativeTime(notification.created_at)}</span>
                                       {!notification.is_read && (
-                                        <span className="ml-2 inline-flex text-[10px] uppercase tracking-wide text-[#FF7A19] font-semibold">
+                                        <span className="ml-2 inline-flex text-[10px] uppercase tracking-wide text-[#00afef] font-semibold">
                                           New
                                         </span>
                                       )}
@@ -815,7 +827,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
                       <Link
                         href="/admin/notifications"
-                        className="text-sm font-medium text-[#FF7A19] hover:underline"
+                        className="text-sm font-medium text-[#00afef] hover:underline"
                         onClick={() => setShowNotificationsDropdown(false)}
                       >
                         View all notifications →

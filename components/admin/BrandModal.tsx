@@ -186,7 +186,7 @@ export function BrandModal({ isOpen, onClose, brand, onSuccess }: BrandModalProp
               value={formData.name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g., Apple, Samsung, Dell"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               required
             />
           </div>
@@ -201,7 +201,7 @@ export function BrandModal({ isOpen, onClose, brand, onSuccess }: BrandModalProp
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
               placeholder="e.g., apple, samsung"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               required
             />
             <p className="text-xs text-[#3A3A3A] mt-1">
@@ -219,7 +219,7 @@ export function BrandModal({ isOpen, onClose, brand, onSuccess }: BrandModalProp
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Brief description of the brand"
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
           </div>
 
@@ -233,7 +233,7 @@ export function BrandModal({ isOpen, onClose, brand, onSuccess }: BrandModalProp
               value={formData.website}
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               placeholder="https://www.example.com"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
           </div>
 
@@ -298,7 +298,7 @@ export function BrandModal({ isOpen, onClose, brand, onSuccess }: BrandModalProp
               onChange={(e) =>
                 setFormData({ ...formData, show_in_mega_menu: e.target.checked })
               }
-              className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+              className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
             />
             <label htmlFor="show_mega_menu" className="text-sm font-medium text-[#1A1A1A]">
               Show in Mega Menu

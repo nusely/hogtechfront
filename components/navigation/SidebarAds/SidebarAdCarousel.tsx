@@ -93,7 +93,7 @@ export const SidebarAdCarousel: React.FC<SidebarAdCarouselProps> = ({ ads }) => 
               onClick={() => emblaApi?.scrollTo(index)}
               className={`w-2 h-2 rounded-full transition-all ${
                 index === selectedIndex
-                  ? 'bg-[#FF7A19] w-6'
+                  ? 'bg-[#00afef] w-6'
                   : 'bg-white/60 hover:bg-white/90'
               }`}
               aria-label={`Go to ad ${index + 1}`}

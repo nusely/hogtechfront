@@ -9,7 +9,7 @@ export default function ShippingInfoPage() {
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <Link href="/" className="text-sm text-[#FF7A19] hover:underline mb-4 inline-block">
+          <Link href="/" className="text-sm text-[#00afef] hover:underline mb-4 inline-block">
             ← Back to Home
           </Link>
           <h1 className="text-4xl md:text-5xl font-bold text-[#1A1A1A] mb-4">
@@ -23,22 +23,22 @@ export default function ShippingInfoPage() {
         {/* Key Features */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
           <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-            <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Truck className="w-8 h-8 text-[#FF7A19]" />
+            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Truck className="w-8 h-8 text-[#00afef]" />
             </div>
             <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">Fast Delivery</h3>
             <p className="text-[#3A3A3A]">1-3 days in Accra & Ho<br/>3-5 days nationwide</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-            <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <DollarSign className="w-8 h-8 text-[#FF7A19]" />
+            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <DollarSign className="w-8 h-8 text-[#00afef]" />
             </div>
             <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">Free Shipping</h3>
             <p className="text-[#3A3A3A]">On orders over<br/>GHS 500</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-lg text-center">
-            <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-[#FF7A19]" />
+            <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-[#00afef]" />
             </div>
             <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">Order Tracking</h3>
             <p className="text-[#3A3A3A]">Real-time updates<br/>via SMS & email</p>
@@ -48,7 +48,7 @@ export default function ShippingInfoPage() {
         {/* Delivery Times */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
-            <Clock className="w-8 h-8 text-[#FF7A19]" />
+            <Clock className="w-8 h-8 text-[#00afef]" />
             <h2 className="text-2xl font-bold text-[#1A1A1A]">Delivery Times</h2>
           </div>
           
@@ -126,7 +126,7 @@ export default function ShippingInfoPage() {
             </table>
           </div>
 
-          <div className="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-[#3A3A3A]">
               <strong>Note:</strong> Orders placed before 2:00 PM are processed the same day. 
               Orders placed after 2:00 PM will be processed the next business day.
@@ -137,14 +137,14 @@ export default function ShippingInfoPage() {
         {/* Shipping Process */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
-            <Package className="w-8 h-8 text-[#FF7A19]" />
+            <Package className="w-8 h-8 text-[#00afef]" />
             <h2 className="text-2xl font-bold text-[#1A1A1A]">How Shipping Works</h2>
           </div>
 
           <div className="space-y-6">
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-[#00afef] text-white flex items-center justify-center font-bold">
                   1
                 </div>
               </div>
@@ -159,7 +159,7 @@ export default function ShippingInfoPage() {
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-[#00afef] text-white flex items-center justify-center font-bold">
                   2
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function ShippingInfoPage() {
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-[#00afef] text-white flex items-center justify-center font-bold">
                   3
                 </div>
               </div>
@@ -189,7 +189,7 @@ export default function ShippingInfoPage() {
 
             <div className="flex gap-4">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-[#FF7A19] text-white flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-full bg-[#00afef] text-white flex items-center justify-center font-bold">
                   4
                 </div>
               </div>
@@ -207,7 +207,7 @@ export default function ShippingInfoPage() {
         {/* Delivery Areas */}
         <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
           <div className="flex items-center gap-3 mb-6">
-            <MapPin className="w-8 h-8 text-[#FF7A19]" />
+            <MapPin className="w-8 h-8 text-[#00afef]" />
             <h2 className="text-2xl font-bold text-[#1A1A1A]">Delivery Coverage</h2>
           </div>
           <p className="text-[#3A3A3A] mb-4">
@@ -254,48 +254,48 @@ export default function ShippingInfoPage() {
         </div>
 
         {/* Important Notes */}
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 mb-8">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 mb-8">
           <h2 className="text-xl font-bold text-[#1A1A1A] mb-4">Important Delivery Information</h2>
           <ul className="space-y-3 text-[#3A3A3A]">
             <li className="flex gap-3">
-              <span className="text-[#FF7A19] font-bold">•</span>
+              <span className="text-[#00afef] font-bold">•</span>
               <span>Please provide accurate delivery address and contact information</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FF7A19] font-bold">•</span>
+              <span className="text-[#00afef] font-bold">•</span>
               <span>Recipient must provide valid ID for verification upon delivery</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FF7A19] font-bold">•</span>
+              <span className="text-[#00afef] font-bold">•</span>
               <span>Inspect your package before signing for delivery</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FF7A19] font-bold">•</span>
+              <span className="text-[#00afef] font-bold">•</span>
               <span>Report any damage or missing items within 24 hours</span>
             </li>
             <li className="flex gap-3">
-              <span className="text-[#FF7A19] font-bold">•</span>
+              <span className="text-[#00afef] font-bold">•</span>
               <span>Delivery times may vary during peak seasons and holidays</span>
             </li>
           </ul>
         </div>
 
         {/* Contact */}
-        <div className="bg-gradient-to-r from-[#FF7A19] to-orange-600 rounded-xl p-8 text-white text-center">
+        <div className="bg-gradient-to-r from-[#00afef] to-[#163b86] rounded-xl p-8 text-white text-center">
           <h2 className="text-2xl font-bold mb-4">Questions About Your Delivery?</h2>
           <p className="mb-6">Contact our support team for assistance</p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a
               href="tel:+233551344310"
-              className="bg-white text-[#FF7A19] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
               Call: +233 55 134 4310
             </a>
             <a
-              href="mailto:ventechgadgets@gmail.com"
-              className="bg-white text-[#FF7A19] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              href="mailto:hedgehog.technologies1@gmail.com"
+              className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-              Email: ventechgadgets@gmail.com
+              Email: hedgehog.technologies1@gmail.com
             </a>
           </div>
         </div>

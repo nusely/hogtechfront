@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
       value: '789',
       change: '+15.3%',
       icon: Users,
-      color: 'bg-orange-500',
+      color: 'bg-[#00afef]',
     },
   ];
 
@@ -167,8 +167,8 @@ export default function AdminDashboardPage() {
               </Link>
 
               <Link href="/admin/banners">
-                <div className="p-4 border-2 border-gray-200 rounded-lg hover:border-orange-500 transition-colors cursor-pointer">
-                  <Eye className="text-orange-600 mb-2" size={32} />
+                <div className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#00afef] transition-colors cursor-pointer">
+                  <Eye className="text-[#163b86] mb-2" size={32} />
                   <p className="font-semibold text-gray-900">Manage Banners</p>
                 </div>
               </Link>

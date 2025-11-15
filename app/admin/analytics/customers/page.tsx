@@ -235,7 +235,7 @@ export default function CustomersAnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading customer analytics...</p>
         </div>
       </div>
@@ -256,7 +256,7 @@ export default function CustomersAnalyticsPage() {
           <select
             value={timeFilter}
             onChange={(e) => setTimeFilter(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
           >
             <option value="7days">Last 7 Days</option>
             <option value="30days">Last 30 Days</option>
@@ -297,15 +297,15 @@ export default function CustomersAnalyticsPage() {
           <p className="text-sm text-purple-700 mt-2">Customer retention</p>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm p-6 border-2 border-orange-200">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm p-6 border-2 border-blue-200">
           <div className="flex items-center gap-3 mb-4">
-            <ShoppingCart className="text-orange-600" size={32} />
+            <ShoppingCart className="text-[#163b86]" size={32} />
           </div>
-          <p className="text-sm text-orange-700 mb-1">Avg. Lifetime Value</p>
-          <p className="text-3xl font-bold text-orange-900">
+          <p className="text-sm text-[#163b86] mb-1">Avg. Lifetime Value</p>
+          <p className="text-3xl font-bold text-[#163b86]">
             GHS {customerData.avgLifetimeValue}
           </p>
-          <p className="text-sm text-orange-700 mt-2">Per customer</p>
+          <p className="text-sm text-[#163b86] mt-2">Per customer</p>
         </div>
       </div>
 
@@ -328,7 +328,7 @@ export default function CustomersAnalyticsPage() {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div
-                  className="bg-[#FF7A19] h-full rounded-full transition-all duration-500"
+                  className="bg-[#00afef] h-full rounded-full transition-all duration-500"
                   style={{ width: `${segment.percentage}%` }}
                 ></div>
               </div>
@@ -383,7 +383,7 @@ export default function CustomersAnalyticsPage() {
                     <span className="font-bold text-[#3A3A3A]">{customer.orders} orders</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-bold text-[#FF7A19]">
+                    <span className="font-bold text-[#00afef]">
                       GHS {customer.spent.toLocaleString()}
                     </span>
                   </td>
@@ -403,10 +403,47 @@ export default function CustomersAnalyticsPage() {
       <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200 p-6">
         <h3 className="font-bold text-purple-900 mb-3">💡 Customer Insights</h3>
         <ul className="space-y-2 text-sm text-purple-700">
-          <li>✓ Nearly 50% of customers are first-time buyers - focus on retention strategies</li>
-          <li>✓ VIP customers (3.6%) contribute significantly to revenue - reward them</li>
-          <li>✓ Returning customer rate is 34.5% - implement loyalty programs</li>
-          <li>✓ Average lifetime value is GHS 456.78 - upselling opportunities exist</li>
+          {(() => {
+            // Calculate first-time buyers (customers with 1 order or no orders)
+            const firstTimeBuyersPercentage = customerData.totalCustomers > 0 
+              ? ((customerData.customerSegments.find(s => s.segment === 'New (1 order)')?.count || 0) + 
+                 (customerData.customerSegments.find(s => s.segment === 'No Orders Yet')?.count || 0)) / customerData.totalCustomers * 100
+              : 0;
+
+            // Get VIP percentage
+            const vipSegment = customerData.customerSegments.find(s => s.segment === 'VIP (10+ orders)');
+            const vipPercentage = vipSegment?.percentage || 0;
+
+            return (
+              <>
+                <li>
+                  ✓ {firstTimeBuyersPercentage >= 1 
+                    ? `Nearly ${Math.round(firstTimeBuyersPercentage)}%` 
+                    : firstTimeBuyersPercentage > 0 
+                    ? `About ${firstTimeBuyersPercentage.toFixed(1)}%`
+                    : 'A small percentage'} of customers are first-time buyers - focus on retention strategies
+                </li>
+                {vipPercentage > 0 && (
+                  <li>
+                    ✓ VIP customers ({vipPercentage.toFixed(1)}%) contribute significantly to revenue - reward them
+                  </li>
+                )}
+                {customerData.returningRate > 0 && (
+                  <li>
+                    ✓ Returning customer rate is {customerData.returningRate.toFixed(1)}% - implement loyalty programs
+                  </li>
+                )}
+                {customerData.avgLifetimeValue > 0 && (
+                  <li>
+                    ✓ Average lifetime value is GHS {customerData.avgLifetimeValue.toLocaleString()} - upselling opportunities exist
+                  </li>
+                )}
+                {customerData.totalCustomers === 0 && (
+                  <li>No customer data available yet. Start by creating some orders!</li>
+                )}
+              </>
+            );
+          })()}
         </ul>
       </div>
     </div>

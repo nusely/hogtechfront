@@ -117,7 +117,15 @@ useEffect(() => {
         .lt('updated_at', twentyFourHoursAgo)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching abandoned carts:', error);
+        // Check if it's a foreign key relationship error
+        if (error.message?.includes('relationship') || error.message?.includes('does not exist')) {
+          console.error('💡 Foreign key relationship missing. Please run the database migration.');
+          throw new Error('Database schema needs to be updated. Please run the migration SQL.');
+        }
+        throw error;
+      }
 
       const rawCarts = (abandonedItems || [])
         .filter((item) => (item.quantity ?? 0) > 0 && item.product)
@@ -234,7 +242,7 @@ useEffect(() => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading cart analytics...</p>
         </div>
       </div>
@@ -280,12 +288,12 @@ useEffect(() => {
       </div>
 
       {/* Info Banner */}
-      <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-6">
+      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
         <div className="flex items-start gap-4">
-          <AlertCircle className="text-orange-600 flex-shrink-0" size={24} />
+          <AlertCircle className="text-[#163b86] flex-shrink-0" size={24} />
           <div>
-            <h3 className="font-bold text-orange-900 mb-2">Recover Lost Sales</h3>
-            <p className="text-sm text-orange-700 mb-3">
+            <h3 className="font-bold text-[#163b86] mb-2">Recover Lost Sales</h3>
+            <p className="text-sm text-[#163b86] mb-3">
               Send personalized recovery emails to customers who abandoned their carts. Offer a
               small discount (5-10%) to encourage them to complete their purchase within 24
               hours!
@@ -326,7 +334,7 @@ useEffect(() => {
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
           />
         </div>
       </div>
@@ -359,7 +367,7 @@ useEffect(() => {
                       <span className="text-[#3A3A3A]">
                         <strong>{cart.items_count}</strong> items
                       </span>
-                      <span className="text-[#FF7A19] font-semibold text-lg">
+                      <span className="text-[#00afef] font-semibold text-lg">
                         GHS {cart.cart_value.toLocaleString()}
                       </span>
                       <span className="flex items-center gap-1 text-[#3A3A3A]">

@@ -294,7 +294,7 @@ export default function AdminCustomersPage() {
               placeholder="Search by name, email, phone or customer ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
           </div>
         </div>
@@ -302,12 +302,12 @@ export default function AdminCustomersPage() {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef]"></div>
             </div>
           ) : filteredCustomers.length === 0 ? (
             <div className="text-center py-20">
-              <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Users className="w-10 h-10 text-[#FF7A19]" />
+              <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="w-10 h-10 text-[#00afef]" />
               </div>
               <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">No Customers Found</h3>
               <p className="text-[#3A3A3A]">No customers match your search criteria</p>
@@ -337,8 +337,8 @@ export default function AdminCustomersPage() {
                       <tr key={customer.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                              <span className="text-[#FF7A19] font-semibold">{initials}</span>
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                              <span className="text-[#00afef] font-semibold">{initials}</span>
                             </div>
                             <div>
                               <p className="font-medium text-sm text-[#1A1A1A]">{customer.full_name}</p>
@@ -378,7 +378,7 @@ export default function AdminCustomersPage() {
                         <td className="px-6 py-4">
                           {customer.user_id ? (
                             <Link href={`/admin/users/${customer.user_id}/orders`}>
-                              <span className="text-sm text-[#FF7A19] hover:underline cursor-pointer flex items-center gap-1">
+                              <span className="text-sm text-[#00afef] hover:underline cursor-pointer flex items-center gap-1">
                                 <Eye size={14} /> View Orders
                               </span>
                             </Link>

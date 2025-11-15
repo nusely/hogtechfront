@@ -539,7 +539,7 @@ export function AddProductToDealModal({
               }}
               className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 mode === 'existing'
-                  ? 'bg-white text-[#FF7A19] shadow-sm'
+                  ? 'bg-white text-[#00afef] shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -555,7 +555,7 @@ export function AddProductToDealModal({
               }}
               className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 mode === 'new'
-                  ? 'bg-white text-[#FF7A19] shadow-sm'
+                  ? 'bg-white text-[#00afef] shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -597,7 +597,7 @@ export function AddProductToDealModal({
                           type="button"
                           onClick={() => handleProductSelect(product)}
                           className={`w-full p-4 text-left hover:bg-gray-50 transition-colors ${
-                            selectedProduct?.id === product.id ? 'bg-orange-50 border-l-4 border-orange-500' : ''
+                            selectedProduct?.id === product.id ? 'bg-blue-50 border-l-4 border-[#00afef]' : ''
                           }`}
                         >
                           <div className="flex items-center gap-4">
@@ -620,7 +620,7 @@ export function AddProductToDealModal({
                             </div>
                             {selectedProduct?.id === product.id && (
                               <div className="flex-shrink-0">
-                                <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+                                <div className="w-5 h-5 rounded-full bg-[#00afef] flex items-center justify-center">
                                   <div className="w-2 h-2 rounded-full bg-white"></div>
                                 </div>
                               </div>
@@ -658,7 +658,7 @@ export function AddProductToDealModal({
                   onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                   placeholder="Product description..."
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 />
               </div>
 
@@ -670,7 +670,7 @@ export function AddProductToDealModal({
                   onChange={(e) => setNewProduct({ ...newProduct, key_features: e.target.value })}
                   placeholder="Enter key features separated by commas (e.g., Fast processor, Long battery life, HD display)"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 />
                 <p className="text-xs text-gray-500 mt-1">Separate each feature with a comma</p>
               </div>
@@ -683,7 +683,7 @@ export function AddProductToDealModal({
                   onChange={(e) => setNewProduct({ ...newProduct, specifications: e.target.value })}
                   placeholder='{"processor": "Intel i7", "ram": "16GB", "storage": "512GB SSD", "screen": "15.6 inch"}'
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono text-sm"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] font-mono text-sm"
                 />
                 <p className="text-xs text-gray-500 mt-1">Enter specifications as JSON object (e.g., {`{"key": "value"}`})</p>
               </div>
@@ -810,7 +810,7 @@ export function AddProductToDealModal({
                             className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
                           />
                           {newProduct.thumbnail === url && (
-                            <div className="absolute top-2 left-2 bg-[#FF7A19] text-white text-xs px-2 py-1 rounded">
+                            <div className="absolute top-2 left-2 bg-[#00afef] text-white text-xs px-2 py-1 rounded">
                               Thumbnail
                             </div>
                           )}
@@ -850,7 +850,7 @@ export function AddProductToDealModal({
                   id="is_flash_deal"
                   checked={isFlashDeal}
                   onChange={(e) => setIsFlashDeal(e.target.checked)}
-                  className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                  className="w-4 h-4 text-[#163b86] border-gray-300 rounded focus:ring-[#00afef]"
                 />
                 <label htmlFor="is_flash_deal" className="text-sm font-medium text-gray-700">
                   Flash Deal (Show on Homepage)

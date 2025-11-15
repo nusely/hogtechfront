@@ -70,7 +70,7 @@ export function SelectTrigger({ children, id, className = '', ...props }: Select
       className={`
         w-full px-4 py-2.5 border border-gray-300 rounded-lg 
         bg-white text-left text-sm
-        focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent
+        focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent
         disabled:bg-gray-100 disabled:cursor-not-allowed
         flex items-center justify-between
         ${className}
@@ -155,7 +155,7 @@ export function SelectItem({ value, children, className = '', disabled = false }
       onClick={handleClick}
       className={`
         px-4 py-2 text-sm cursor-pointer transition-colors
-        ${selectedValue === value ? 'bg-orange-50 text-orange-900' : 'text-gray-900 hover:bg-gray-50'}
+        ${selectedValue === value ? 'bg-blue-50 text-[#163b86]' : 'text-gray-900 hover:bg-gray-50'}
         ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         ${className}
       `}

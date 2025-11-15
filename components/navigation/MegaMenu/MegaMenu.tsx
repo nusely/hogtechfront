@@ -186,7 +186,7 @@ export const MegaMenu: React.FC = () => {
             <Link
               key={category.id}
               href={`/categories/${category.slug}`}
-              className="px-4 py-2 text-sm font-medium text-[#3A3A3A] hover:text-[#FF7A19] transition-colors"
+              className="px-4 py-2 text-sm font-medium text-[#3A3A3A] hover:text-[#00afef] transition-colors"
             >
               {category.name}
             </Link>
@@ -226,7 +226,7 @@ export const MegaMenu: React.FC = () => {
       {/* View All Link */}
       <Link 
         href="/shop"
-        className="px-4 py-2 text-sm font-medium text-[#3A3A3A] hover:text-[#FF7A19] transition-colors"
+        className="px-4 py-2 text-sm font-medium text-[#3A3A3A] hover:text-[#00afef] transition-colors"
       >
         View All
       </Link>

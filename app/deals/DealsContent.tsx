@@ -268,7 +268,7 @@ export function DealsContent() {
           key_features: keyFeatures,
         specifications: specs,
         category_id: (dp.product as Product | undefined)?.category_id || 'standalone',
-        brand: (dp.product as Product | undefined)?.brand || 'VENTECH Deals',
+        brand: (dp.product as Product | undefined)?.brand || 'Hedgehog Technologies Deals',
         brand_id: (dp.product as Product | undefined)?.brand_id,
         original_price: originalPrice || finalDealPrice,
         discount_price: finalDealPrice,
@@ -285,7 +285,7 @@ export function DealsContent() {
         updated_at: createdAt,
         category_name: (dp.product as Product | undefined)?.category_name || null,
         category_slug: (dp.product as Product | undefined)?.category_slug || null,
-        brand_name: (dp.product as Product | undefined)?.brand_name || 'VENTECH Deals',
+        brand_name: (dp.product as Product | undefined)?.brand_name || 'Hedgehog Technologies Deals',
         brand_slug: (dp.product as Product | undefined)?.brand_slug || null,
         base_product_id: dp.product_id || dp.id,
           price_range: {
@@ -329,7 +329,7 @@ export function DealsContent() {
       animate="visible"
     >
       {/* Hero Section */}
-      <motion.section className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] py-16" variants={fadeInUp} custom={0.05}>
+      <motion.section className="bg-gradient-to-r from-[#00afef] to-[#163b86] py-16" variants={fadeInUp} custom={0.05}>
         <div className="container mx-auto px-4 text-center">
           <motion.div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6" variants={fadeInScale}>
             <Zap className="text-white" size={20} />
@@ -354,7 +354,7 @@ export function DealsContent() {
               viewport={{ once: true, amount: 0.25 }}
             >
               {/* Campaign Header */}
-              <motion.div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-xl p-6 md:p-8 mb-6" variants={fadeInScale}>
+              <motion.div className="bg-gradient-to-r from-[#00afef] to-[#163b86] rounded-xl p-6 md:p-8 mb-6" variants={fadeInScale}>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div className="flex-1">
                     <motion.div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4" variants={fadeInUp} custom={0.05}>
@@ -420,7 +420,7 @@ export function DealsContent() {
 
       {/* Newsletter Section */}
       <motion.section className="container mx-auto px-4 py-12" {...sectionMotionProps}>
-        <motion.div className="bg-gradient-to-r from-[#FF7A19] to-[#FF9A19] rounded-2xl p-8 md:p-12 text-center text-white" variants={fadeInScale}>
+        <motion.div className="bg-gradient-to-r from-[#00afef] to-[#163b86] rounded-2xl p-8 md:p-12 text-center text-white" variants={fadeInScale}>
           <Clock className="mx-auto mb-4" size={48} />
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Never Miss a Deal</h2>
           <p className="text-white/90 mb-6 max-w-2xl mx-auto">

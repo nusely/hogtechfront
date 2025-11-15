@@ -102,10 +102,52 @@ export function TaxesManager() {
 
   const handleCreateTax = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!newTax.name || !newTax.name.trim()) {
+      toast.error('Tax name is required');
+      return;
+    }
+    
+    if (newTax.rate === undefined || newTax.rate === null) {
+      toast.error('Tax rate is required');
+      return;
+    }
+    
+    // Validate rate constraints: must be between 0 and 1 for percentage, or >= 0 for fixed
+    if (newTax.type === 'percentage' && (newTax.rate < 0 || newTax.rate > 1)) {
+      toast.error('Percentage rate must be between 0 and 1 (e.g., 0.15 for 15%)');
+      return;
+    }
+    
+    if (newTax.type === 'fixed' && newTax.rate < 0) {
+      toast.error('Fixed rate must be greater than or equal to 0');
+      return;
+    }
+    
     try {
-      const { error } = await supabase.from('taxes').insert([newTax]);
+      // Prepare the tax data with proper formatting
+      const taxData = {
+        name: newTax.name.trim(),
+        description: newTax.description || null,
+        rate: Number(newTax.rate),
+        type: newTax.type || 'percentage',
+        is_active: newTax.is_active ?? true,
+        applies_to: newTax.applies_to || 'all',
+      };
+      
+      console.log('Creating tax with data:', taxData);
+      
+      const { data, error } = await supabase.from('taxes').insert([taxData]).select();
 
       if (error) {
+        console.error('Supabase error creating tax:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        
         const errorStr = String(JSON.stringify(error || {})).toLowerCase();
         const errorMessage = String(error.message || '').toLowerCase();
         const errorCode = String(error.code || '');
@@ -121,14 +163,19 @@ export function TaxesManager() {
           errorStr.includes('does not exist') ||
           errorStr.includes('could not find the table') ||
           errorStr.includes('relation') ||
-          errorStr.includes('not found') ||
-          Object.keys(error || {}).length === 0
+          errorStr.includes('not found')
         ) {
           toast.error('Taxes table does not exist. Please run the create_taxes_discounts_system.sql migration in Supabase.');
-          return;
+        } else if (errorMessage.includes('permission') || errorMessage.includes('policy') || errorCode === '42501') {
+          toast.error('Permission denied. Please ensure you are logged in as an admin.');
+        } else if (errorMessage.includes('check') || errorMessage.includes('constraint')) {
+          toast.error(`Validation error: ${error.message || 'Invalid tax data'}`);
+        } else {
+          toast.error(`Failed to create tax: ${error.message || 'Unknown error'}`);
         }
-        throw error;
+        return;
       }
+      
       toast.success('Tax created successfully!');
       setShowCreateModal(false);
       setNewTax({
@@ -141,6 +188,15 @@ export function TaxesManager() {
       });
       fetchTaxes();
     } catch (error: any) {
+      console.error('Error creating tax:', {
+        message: error?.message || 'Unknown error',
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code,
+        stack: error?.stack,
+        name: error?.name,
+      });
+      
       const errorStr = String(JSON.stringify(error || {})).toLowerCase();
       const errorMessage = String(error?.message || '').toLowerCase();
       const errorCode = String(error?.code || '');
@@ -156,13 +212,11 @@ export function TaxesManager() {
         errorStr.includes('does not exist') ||
         errorStr.includes('could not find the table') ||
         errorStr.includes('relation') ||
-        errorStr.includes('not found') ||
-        Object.keys(error || {}).length === 0
+        errorStr.includes('not found')
       ) {
         toast.error('Taxes table does not exist. Please run the create_taxes_discounts_system.sql migration in Supabase.');
       } else {
-        console.error('Error creating tax:', error);
-        toast.error('Failed to create tax');
+        toast.error(`Failed to create tax: ${error?.message || 'Unknown error'}`);
       }
     }
   };
@@ -384,7 +438,7 @@ export function TaxesManager() {
                   <tr key={tax.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[#FF7A19]/10 text-[#FF7A19] rounded-lg">
+                        <div className="p-2 bg-[#00afef]/10 text-[#00afef] rounded-lg">
                           <Settings size={18} />
                         </div>
                         <div>
@@ -475,7 +529,7 @@ export function TaxesManager() {
                     type="text"
                     value={newTax.name || ''}
                     onChange={(e) => setNewTax((prev) => ({ ...prev, name: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     required
                   />
                 </div>
@@ -486,7 +540,7 @@ export function TaxesManager() {
                     step="0.01"
                     value={newTax.rate || 0}
                     onChange={(e) => setNewTax((prev) => ({ ...prev, rate: parseFloat(e.target.value) }))}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     required
                   />
                 </div>
@@ -495,7 +549,7 @@ export function TaxesManager() {
                   <select
                     value={newTax.type || 'percentage'}
                     onChange={(e) => setNewTax((prev) => ({ ...prev, type: e.target.value as 'percentage' | 'fixed' }))}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                   >
                     <option value="percentage">Percentage</option>
                     <option value="fixed">Fixed Amount</option>
@@ -511,7 +565,7 @@ export function TaxesManager() {
                         applies_to: e.target.value as Tax['applies_to'],
                       }))
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                   >
                     <option value="all">All Orders</option>
                     <option value="products">Products Only</option>
@@ -524,7 +578,7 @@ export function TaxesManager() {
                   <textarea
                     value={newTax.description || ''}
                     onChange={(e) => setNewTax((prev) => ({ ...prev, description: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     rows={3}
                     placeholder="Optional description for internal reference"
                   />
@@ -534,7 +588,7 @@ export function TaxesManager() {
                     type="checkbox"
                     checked={newTax.is_active ?? true}
                     onChange={(e) => setNewTax((prev) => ({ ...prev, is_active: e.target.checked }))}
-                    className="rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                    className="rounded border-gray-300 text-[#00afef] focus:ring-[#00afef]"
                   />
                   Tax is active
                 </label>

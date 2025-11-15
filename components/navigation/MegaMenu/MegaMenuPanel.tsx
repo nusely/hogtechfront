@@ -48,12 +48,12 @@ export const MegaMenuPanel: React.FC<MegaMenuPanelProps> = ({ category }) => {
                       <Link
                         href={item.href}
                         onClick={closeMenu}
-                        className="flex items-center justify-between text-sm text-[#3A3A3A] hover:text-[#FF7A19] hover:translate-x-1 transition-all group"
+                        className="flex items-center justify-between text-sm text-[#3A3A3A] hover:text-[#00afef] hover:translate-x-1 transition-all group"
                       >
                         <span>{item.title}</span>
                         {item.badge && (
                           <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            item.badge.color === 'orange' ? 'bg-orange-100 text-[#FF7A19]' : 'bg-gray-100 text-gray-600'
+                            item.badge.color === 'orange' ? 'bg-blue-100 text-[#00afef]' : 'bg-gray-100 text-gray-600'
                           }`}>
                             {item.badge.text}
                           </span>
@@ -66,7 +66,7 @@ export const MegaMenuPanel: React.FC<MegaMenuPanelProps> = ({ category }) => {
             ))}
 
             {/* Category Image Section - Far Right */}
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
               <Link href={`/categories/${category.slug}`} onClick={closeMenu}>
                 <div className="relative h-32 mb-3 rounded-lg overflow-hidden">
                   <Image
@@ -79,7 +79,7 @@ export const MegaMenuPanel: React.FC<MegaMenuPanelProps> = ({ category }) => {
                 <h4 className="font-bold text-sm text-[#1A1A1A] mb-2">
                   {category.title}
                 </h4>
-                <div className="flex items-center gap-1 text-[#FF7A19] text-xs font-semibold">
+                <div className="flex items-center gap-1 text-[#00afef] text-xs font-semibold">
                   <span>Shop Now</span>
                   <ArrowRight size={12} />
                 </div>

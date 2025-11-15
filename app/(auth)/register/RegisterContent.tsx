@@ -227,7 +227,7 @@ export function RegisterContent() {
         <motion.div className="text-center mb-8" variants={fadeInUp} custom={0.1}>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
           <p className="text-gray-600">
-            Join VENTECH and start shopping for the latest gadgets
+            Join Hedgehog Technologies and start shopping for the latest gadgets
           </p>
         </motion.div>
 
@@ -317,13 +317,13 @@ export function RegisterContent() {
 
             {/* Rate Limit Warning */}
             {isRateLimited && rateLimitCooldown !== null && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center gap-3">
-                <Clock size={20} className="text-orange-600 flex-shrink-0" />
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
+                <Clock size={20} className="text-[#00afef] flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-orange-900">
+                  <p className="text-sm font-medium text-[#163b86]">
                     Too many signup attempts
                   </p>
-                  <p className="text-xs text-orange-700 mt-1">
+                  <p className="text-xs text-[#0d7bc4] mt-1">
                     Please wait {rateLimitCooldown} seconds before trying again.
                   </p>
                 </div>
@@ -362,7 +362,7 @@ export function RegisterContent() {
           <div className="text-center">
             <Link
               href="/login"
-              className="text-[#FF7A19] hover:text-orange-600 font-medium inline-flex items-center gap-2"
+              className="text-[#00afef] hover:text-[#163b86] font-medium inline-flex items-center gap-2"
             >
               Sign in to your account
               <ArrowRight size={16} />
@@ -379,7 +379,7 @@ export function RegisterContent() {
           animate="visible"
         >
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <CheckCircle size={20} className="text-[#FF7A19]" />
+            <CheckCircle size={20} className="text-[#00afef]" />
             Why Create an Account?
           </h3>
           <ul className="space-y-2 text-sm text-gray-600">

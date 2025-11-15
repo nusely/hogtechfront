@@ -59,10 +59,9 @@ export const NavBar = () => {
     { href: '/', label: 'Home' },
     { href: '/shop', label: 'Shop' },
     { href: '/deals', label: 'Deals' },
-    { href: '/track-order', label: 'Track Order' },
     { href: '/about', label: 'About' },
     { href: '/contact', label: 'Contact' },
-    { href: '/laptop-banking', label: '💰 Laptop Banking', highlight: true },
+    { href: '/track-order', label: 'Track Order', highlight: true },
   ];
 
   const handleLogout = async () => {
@@ -101,8 +100,8 @@ export const NavBar = () => {
           <motion.div variants={fadeInUp}>
             <Link href="/" className="flex items-center flex-shrink-0">
               <Image
-                src="https://files.ventechgadgets.com/ventech_logo_1.webp"
-                alt="VENTECH"
+                src="/logo/hogtechlogo.PNG"
+                alt="Hedgehog Technologies"
                 width={120}
                 height={50}
                 className="object-contain h-8 sm:h-10 md:h-12 w-auto"
@@ -126,19 +125,19 @@ export const NavBar = () => {
             <div className="flex flex-col gap-1 pr-4 border-r border-gray-200">
               <a 
                 href="tel:+233551344310" 
-                className="flex items-center gap-2 text-xs text-[#3A3A3A] hover:text-[#FF7A19] transition-colors"
+                className="flex items-center gap-2 text-xs text-[#3A3A3A] hover:text-[#00afef] transition-colors"
                 title="Call us"
               >
                 <Phone size={16} />
                 <span className="hidden xl:inline font-medium">+233 55 134 4310</span>
               </a>
               <a 
-                href="mailto:ventechgadgets@gmail.com" 
-                className="flex items-center gap-2 text-xs text-[#3A3A3A] hover:text-[#FF7A19] transition-colors"
+                href="mailto:hedgehog.technologies1@gmail.com" 
+                className="flex items-center gap-2 text-xs text-[#3A3A3A] hover:text-[#00afef] transition-colors"
                 title="Email us"
               >
                 <Mail size={16} />
-                <span className="hidden xl:inline">ventechgadgets@gmail.com</span>
+                <span className="hidden xl:inline">hedgehog.technologies1@gmail.com</span>
               </a>
             </div>
 
@@ -148,7 +147,7 @@ export const NavBar = () => {
                   <Button variant="ghost" size="sm" className="relative">
                     <Heart size={20} />
                     {wishlistCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-[#FF7A19] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-gradient-to-r from-[#00afef] to-[#163b86] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {wishlistCount}
                       </span>
                     )}
@@ -160,7 +159,7 @@ export const NavBar = () => {
                   <Button variant="ghost" size="sm" className="relative">
                     <ShoppingCart size={20} />
                     {itemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-[#FF7A19] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-gradient-to-r from-[#00afef] to-[#163b86] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {itemCount}
                       </span>
                     )}
@@ -173,7 +172,7 @@ export const NavBar = () => {
                     <User size={18} className="text-[#3A3A3A]" />
                     <div className="flex flex-col items-start">
                       <span className="text-xs font-medium text-[#3A3A3A]">Account</span>
-                      <span className="text-xs text-[#FF7A19] font-semibold">
+                      <span className="text-xs text-[#00afef] font-semibold">
                         {(user as any)?.first_name || user?.full_name?.split(' ')[0] || 'User'}
                       </span>
                     </div>
@@ -195,7 +194,7 @@ export const NavBar = () => {
                       <span>Wishlist</span>
                     </Link>
                     {user && (user.role === 'admin' || user.role === 'superadmin') && (
-                    <Link href="/admin" className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 text-[#FF7A19] text-sm">
+                    <Link href="/admin" className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 text-[#00afef] text-sm">
                       <Settings size={16} />
                       <span>Admin Panel</span>
                     </Link>
@@ -216,7 +215,7 @@ export const NavBar = () => {
                   <Button variant="ghost" size="sm" className="relative">
                     <ShoppingCart size={20} />
                     {itemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-[#FF7A19] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-gradient-to-r from-[#00afef] to-[#163b86] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                         {itemCount}
                       </span>
                     )}
@@ -246,7 +245,7 @@ export const NavBar = () => {
             <Link href="/cart" className="relative p-2 -mr-1">
               <ShoppingCart size={22} className="text-[#3A3A3A]" />
               {itemCount > 0 && (
-                <span className="absolute top-0 right-0 bg-[#FF7A19] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="absolute top-0 right-0 bg-gradient-to-r from-[#00afef] to-[#163b86] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {itemCount > 9 ? '9+' : itemCount}
                 </span>
               )}
@@ -283,10 +282,10 @@ export const NavBar = () => {
                 className={`
                   text-sm font-medium transition-colors
                   ${link.highlight 
-                    ? 'bg-gradient-to-r from-[#FF7A19] to-[#FF8C3A] text-white px-4 py-2 rounded-lg hover:shadow-lg font-bold' 
+                    ? 'bg-gradient-to-r from-[#00afef] to-[#163b86] text-white px-4 py-2 rounded-lg hover:shadow-lg font-bold' 
                     : pathname === link.href 
-                      ? 'text-[#FF7A19]' 
-                      : 'text-[#3A3A3A] hover:text-[#FF7A19]'
+                      ? 'text-[#00afef]' 
+                      : 'text-[#3A3A3A] hover:text-[#00afef]'
                   }
                 `}
               >
@@ -346,10 +345,10 @@ export const NavBar = () => {
                 className={`
                   block px-4 py-3 text-base font-medium transition-colors
                   ${pathname === link.href 
-                    ? 'text-[#FF7A19] bg-orange-50 border-r-2 border-[#FF7A19]' 
-                    : 'text-[#3A3A3A] hover:text-[#FF7A19] hover:bg-gray-50'
+                    ? 'text-[#00afef] bg-blue-50 border-r-2 border-[#00afef]' 
+                    : 'text-[#3A3A3A] hover:text-[#00afef] hover:bg-gray-50'
                   }
-                  ${link.highlight ? 'bg-gradient-to-r from-orange-50 to-orange-100' : ''}
+                  ${link.highlight ? 'bg-gradient-to-r from-blue-50 to-blue-100' : ''}
                 `}
               >
                 {link.label}
@@ -364,7 +363,7 @@ export const NavBar = () => {
               <div className="border-t border-gray-200 py-4">
                 <div className="px-4 mb-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#FF7A19] rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-r from-[#00afef] to-[#163b86] rounded-full flex items-center justify-center">
                       <User size={20} className="text-white" />
                     </div>
                     <div>
@@ -379,7 +378,7 @@ export const NavBar = () => {
                 <Link
                   href="/profile"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-[#3A3A3A] hover:bg-gray-50 hover:text-[#FF7A19] transition-colors"
+                  className="block px-4 py-2.5 text-sm text-[#3A3A3A] hover:bg-gray-50 hover:text-[#00afef] transition-colors"
                 >
                   <User size={16} className="inline mr-2" />
                   My Profile
@@ -387,7 +386,7 @@ export const NavBar = () => {
                 <Link
                   href="/orders"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-4 py-2.5 text-sm text-[#3A3A3A] hover:bg-gray-50 hover:text-[#FF7A19] transition-colors"
+                  className="block px-4 py-2.5 text-sm text-[#3A3A3A] hover:bg-gray-50 hover:text-[#00afef] transition-colors"
                 >
                   <Package size={16} className="inline mr-2" />
                   My Orders
@@ -396,7 +395,7 @@ export const NavBar = () => {
                     <Link
                       href="/admin"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="block px-4 py-2.5 text-sm text-[#FF7A19] hover:bg-orange-50 transition-colors font-medium"
+                      className="block px-4 py-2.5 text-sm text-[#00afef] hover:bg-blue-50 transition-colors font-medium"
                     >
                       <Settings size={16} className="inline mr-2" />
                       Admin Panel
@@ -409,14 +408,14 @@ export const NavBar = () => {
                 <Link
                   href="/wishlist"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-[#FF7A19] transition-colors"
+                  className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-[#00afef] transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <Heart size={20} className="text-[#FF7A19]" />
+                    <Heart size={20} className="text-[#00afef]" />
                     <span className="font-medium text-sm">Wishlist</span>
                   </div>
                   {wishlistCount > 0 && (
-                    <span className="bg-[#FF7A19] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                    <span className="bg-gradient-to-r from-[#00afef] to-[#163b86] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                       {wishlistCount}
                     </span>
                   )}
@@ -424,14 +423,14 @@ export const NavBar = () => {
                 <Link
                   href="/cart"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-[#FF7A19] transition-colors"
+                  className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-[#00afef] transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <ShoppingCart size={20} className="text-[#FF7A19]" />
+                    <ShoppingCart size={20} className="text-[#00afef]" />
                     <span className="font-medium text-sm">Cart</span>
                   </div>
                   {itemCount > 0 && (
-                    <span className="bg-[#FF7A19] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                    <span className="bg-gradient-to-r from-[#00afef] to-[#163b86] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                       {itemCount}
                     </span>
                   )}
@@ -457,14 +456,14 @@ export const NavBar = () => {
               <Link
                 href="/cart"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-[#FF7A19] transition-colors"
+                className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-[#00afef] transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  <ShoppingCart size={20} className="text-[#FF7A19]" />
+                  <ShoppingCart size={20} className="text-[#00afef]" />
                   <span className="font-medium text-sm">Cart</span>
                 </div>
                 {itemCount > 0 && (
-                  <span className="bg-[#FF7A19] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                  <span className="bg-gradient-to-r from-[#00afef] to-[#163b86] text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
                     {itemCount}
                   </span>
                 )}
@@ -472,14 +471,14 @@ export const NavBar = () => {
               <Link
                 href="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block w-full text-center py-3 border border-gray-200 rounded-lg hover:border-[#FF7A19] hover:text-[#FF7A19] transition-colors font-medium text-sm"
+                className="block w-full text-center py-3 border border-gray-200 rounded-lg hover:border-[#00afef] hover:text-[#00afef] transition-colors font-medium text-sm"
               >
                 Login
               </Link>
               <Link
                 href="/register"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block w-full text-center py-3 bg-[#FF7A19] text-white rounded-lg hover:bg-[#FF8C3A] transition-colors font-medium text-sm"
+                className="block w-full text-center py-3 bg-gradient-to-r from-[#00afef] to-[#163b86] text-white rounded-lg hover:from-[#0099d6] hover:to-[#0f2d6b] transition-colors font-medium text-sm"
               >
                 Sign Up
               </Link>
@@ -491,18 +490,18 @@ export const NavBar = () => {
             <a
               href="tel:+233551344310"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-3 text-sm text-[#3A3A3A] hover:text-[#FF7A19] transition-colors"
+              className="flex items-center gap-3 text-sm text-[#3A3A3A] hover:text-[#00afef] transition-colors"
             >
-              <Phone size={18} className="text-[#FF7A19]" />
+              <Phone size={18} className="text-[#00afef]" />
               <span>+233 55 134 4310</span>
             </a>
             <a
-              href="mailto:ventechgadgets@gmail.com"
+              href="mailto:hedgehog.technologies1@gmail.com"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="flex items-center gap-3 text-sm text-[#3A3A3A] hover:text-[#FF7A19] transition-colors"
+              className="flex items-center gap-3 text-sm text-[#3A3A3A] hover:text-[#00afef] transition-colors"
             >
-              <Mail size={18} className="text-[#FF7A19]" />
-              <span>ventechgadgets@gmail.com</span>
+              <Mail size={18} className="text-[#00afef]" />
+              <span>hedgehog.technologies1@gmail.com</span>
             </a>
           </div>
         </div>

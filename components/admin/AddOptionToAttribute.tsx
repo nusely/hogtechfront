@@ -48,7 +48,7 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
     return (
       <button
         onClick={() => setShowForm(true)}
-        className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#FF7A19] transition-colors text-sm text-[#3A3A3A] flex items-center justify-center gap-2"
+        className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#00afef] transition-colors text-sm text-[#3A3A3A] flex items-center justify-center gap-2"
       >
         <Plus size={16} />
         Add Custom Value
@@ -57,7 +57,7 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
   }
 
   return (
-    <div className="p-3 border-2 border-[#FF7A19] rounded-lg bg-orange-50">
+    <div className="p-3 border-2 border-[#00afef] rounded-lg bg-blue-50">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm font-semibold text-[#1A1A1A]">Add New Value for {attributeName}</p>
         <button
@@ -85,7 +85,7 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
                 handleSubmit();
               }
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
             required
           />
         </div>
@@ -101,7 +101,7 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
                 handleSubmit();
               }
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
             required
           />
         </div>
@@ -118,7 +118,7 @@ export function AddOptionToAttribute({ attributeId, attributeName, onAdd, onRefr
                 handleSubmit();
               }
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] text-sm"
           />
           <p className="text-xs text-[#3A3A3A] mt-1">
             Enter positive number for price increase, negative for decrease, or 0 for no change

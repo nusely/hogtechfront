@@ -41,7 +41,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
         <Suspense
           fallback={
             <div className="py-20 flex items-center justify-center">
-              <CheckmarkLoader size={72} color="#FF7A19" speedMs={600} />
+              <CheckmarkLoader size={72} color="#00afef" speedMs={600} />
             </div>
           }
         >

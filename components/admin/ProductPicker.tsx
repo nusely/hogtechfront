@@ -166,7 +166,7 @@ export function ProductPicker({ isOpen, onClose, onSelect }: ProductPickerProps)
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               />
             </div>
           </div>
@@ -174,7 +174,7 @@ export function ProductPicker({ isOpen, onClose, onSelect }: ProductPickerProps)
           {/* Products List */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="animate-spin text-[#FF7A19]" size={32} />
+              <Loader2 className="animate-spin text-[#00afef]" size={32} />
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="text-center py-12 text-[#3A3A3A]">
@@ -188,7 +188,7 @@ export function ProductPicker({ isOpen, onClose, onSelect }: ProductPickerProps)
                   onClick={() => handleSelect(product)}
                   className={`p-4 border-2 rounded-lg text-left transition-all ${
                     selectedProduct?.id === product.id
-                      ? 'border-[#FF7A19] bg-orange-50'
+                      ? 'border-[#00afef] bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
@@ -211,7 +211,7 @@ export function ProductPicker({ isOpen, onClose, onSelect }: ProductPickerProps)
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-[#1A1A1A] truncate">{product.name}</h3>
                       <p className="text-sm text-[#3A3A3A] truncate">{product.slug}</p>
-                      <p className="text-sm font-medium text-[#FF7A19] mt-1">
+                      <p className="text-sm font-medium text-[#00afef] mt-1">
                         GHS {product.discount_price || product.original_price || 0}
                       </p>
                     </div>

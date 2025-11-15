@@ -663,7 +663,7 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center gap-2">
                   <select
                     onChange={(e) => bulkUpdateStatus(e.target.value)}
-                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     defaultValue=""
                   >
                     <option value="" disabled>Bulk Update Status</option>
@@ -675,7 +675,7 @@ export default function AdminOrdersPage() {
                   </select>
                   <select
                     onChange={(e) => bulkUpdatePaymentStatus(e.target.value)}
-                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="text-sm px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                     defaultValue=""
                   >
                     <option value="" disabled>Bulk Update Payment</option>
@@ -728,7 +728,7 @@ export default function AdminOrdersPage() {
                   placeholder="Search by order number, order ID, customer name or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 />
               </div>
             </div>
@@ -738,7 +738,7 @@ export default function AdminOrdersPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -751,7 +751,7 @@ export default function AdminOrdersPage() {
 
             {/* Date Filter */}
             <div>
-              <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]">
+              <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]">
                 <option>Last 30 days</option>
                 <option>Last 7 days</option>
                 <option>Today</option>
@@ -766,13 +766,13 @@ export default function AdminOrdersPage() {
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef]"></div>
             </div>
           ) : orders.length === 0 ? (
             /* Empty State */
             <div className="text-center py-20">
-              <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Package className="w-10 h-10 text-[#FF7A19]" />
+              <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Package className="w-10 h-10 text-[#00afef]" />
               </div>
               <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">No Orders Yet</h3>
               <p className="text-[#3A3A3A] mb-6">
@@ -794,7 +794,7 @@ export default function AdminOrdersPage() {
                             paginatedOrders.every((order) => selectedOrders.has(order.id))
                           }
                           onChange={toggleSelectAll}
-                          className="w-4 h-4 rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                          className="w-4 h-4 rounded border-gray-300 text-[#00afef] focus:ring-[#00afef]"
                         />
                       </th>
                     )}
@@ -817,12 +817,12 @@ export default function AdminOrdersPage() {
                             type="checkbox"
                             checked={selectedOrders.has(order.id)}
                             onChange={() => toggleOrderSelection(order.id)}
-                            className="w-4 h-4 rounded border-gray-300 text-[#FF7A19] focus:ring-[#FF7A19]"
+                            className="w-4 h-4 rounded border-gray-300 text-[#00afef] focus:ring-[#00afef]"
                           />
                         </td>
                       )}
                       <td className="px-6 py-4">
-                        <span className="font-mono text-sm text-[#FF7A19] font-semibold">
+                        <span className="font-mono text-sm text-[#00afef] font-semibold">
                           {order.order_number}
                         </span>
                       </td>
@@ -855,7 +855,7 @@ export default function AdminOrdersPage() {
                             console.log('Payment status changed:', { orderId: order.id, order_number: order.order_number, oldStatus: order.payment_status, newStatus });
                             updatePaymentStatus(order.id, newStatus);
                           }}
-                          className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#FF7A19] bg-white"
+                          className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#00afef] bg-white"
                         >
                           <option value="pending">Pending</option>
                           <option value="paid">Paid</option>
@@ -899,7 +899,7 @@ export default function AdminOrdersPage() {
                           <select
                             value={order.status}
                             onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                            className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#FF7A19]"
+                            className="text-xs px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#00afef]"
                             disabled={order.status === 'delivered' || order.status === 'cancelled'}
                           >
                             <option value="pending">Pending</option>

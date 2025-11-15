@@ -13,7 +13,6 @@ const PUBLIC_PATHS_DURING_MAINTENANCE = [
   '/contact',
   '/privacy-policy',
   '/terms',
-  '/laptop-banking',
   '/blog',
 ];
 

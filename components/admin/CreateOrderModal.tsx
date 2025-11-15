@@ -295,7 +295,7 @@ export function CreateOrderModal({ isOpen, onClose, onCreated, adminEmail }: Cre
     let customerEmail = '';
     let customerPhone = '';
 
-    const fallbackEmail = adminEmail || 'support@ventechgadgets.com';
+    const fallbackEmail = adminEmail || 'hedgehog.technologies1@gmail.com';
 
     const streetAddress = orderAddress.street.trim();
     const city = orderAddress.city.trim();
@@ -568,7 +568,7 @@ export function CreateOrderModal({ isOpen, onClose, onCreated, adminEmail }: Cre
                           type="button"
                           onClick={() => setSelectedCustomer(customer)}
                           className={`w-full text-left px-4 py-3 flex justify-between gap-4 transition-colors ${
-                            isSelected ? 'bg-orange-50 border-l-4 border-[#FF7A19]' : 'hover:bg-gray-50'
+                            isSelected ? 'bg-blue-50 border-l-4 border-[#00afef]' : 'hover:bg-gray-50'
                           }`}
                         >
                           <div>
@@ -634,7 +634,7 @@ export function CreateOrderModal({ isOpen, onClose, onCreated, adminEmail }: Cre
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={4}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 placeholder="Special delivery instructions or remarks"
               />
             </div>
@@ -645,7 +645,7 @@ export function CreateOrderModal({ isOpen, onClose, onCreated, adminEmail }: Cre
                   type="checkbox"
                   checked={requiresDelivery}
                   onChange={(e) => setRequiresDelivery(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                  className="mt-1 w-4 h-4 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                 />
                 <div>
                   <h3 className="text-sm font-semibold text-[#1A1A1A]">

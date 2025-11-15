@@ -140,7 +140,7 @@ export default function CartPage() {
                     <div className="flex-1">
                       <Link
                         href={`/product/${item.slug}`}
-                        className="text-xs sm:text-sm font-semibold text-gray-900 hover:text-[#FF7A19] mb-1 block"
+                        className="text-xs sm:text-sm font-semibold text-gray-900 hover:text-[#00afef] mb-1 block"
                       >
                         {item.name}
                       </Link>
@@ -181,7 +181,7 @@ export default function CartPage() {
 
                       {/* Price - Under quantity selector */}
                       <div className="flex items-center justify-between">
-                        <span className="text-sm sm:text-base font-bold text-[#FF7A19]">
+                        <span className="text-sm sm:text-base font-bold text-[#00afef]">
                           {formatCurrency(item.subtotal)}
                         </span>
                         <button

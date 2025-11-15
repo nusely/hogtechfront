@@ -212,13 +212,13 @@ export function ProductContent({ product }: ProductContentProps) {
       <div className="container mx-auto px-4">
         {/* Breadcrumb */}
         <div className="mb-6 flex items-center gap-2 text-sm text-gray-600">
-          <Link href="/" className="hover:text-[#FF7A19] transition-colors">Home</Link>
+          <Link href="/" className="hover:text-[#00afef] transition-colors">Home</Link>
           <ChevronLeft size={16} className="rotate-180" />
-          <Link href="/shop" className="hover:text-[#FF7A19] transition-colors">Shop</Link>
+          <Link href="/shop" className="hover:text-[#00afef] transition-colors">Shop</Link>
           {product.category_name && (
             <>
               <ChevronLeft size={16} className="rotate-180" />
-              <Link href={`/categories/${product.category_slug}`} className="hover:text-[#FF7A19] transition-colors">
+              <Link href={`/categories/${product.category_slug}`} className="hover:text-[#00afef] transition-colors">
                 <span className="hidden md:inline">{product.category_name}</span>
                 <span className="md:hidden truncate max-w-[12ch]">{product.category_name}</span>
               </Link>
@@ -253,7 +253,7 @@ export function ProductContent({ product }: ProductContentProps) {
                     key={index}
                     onClick={() => setSelectedImage(index)}
                     className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImage === index ? 'border-[#FF7A19]' : 'border-transparent'
+                      selectedImage === index ? 'border-[#00afef]' : 'border-transparent'
                     }`}
                   >
                     <Image
@@ -295,7 +295,7 @@ export function ProductContent({ product }: ProductContentProps) {
 
             <div className="flex flex-col gap-1 mb-6">
               <div className="flex items-center gap-3">
-                <span className="text-2xl font-bold text-[#FF7A19]">
+                <span className="text-2xl font-bold text-[#00afef]">
                   {formatCurrency(finalPrice)}
                 </span>
                 {hasDiscount && (
@@ -313,7 +313,7 @@ export function ProductContent({ product }: ProductContentProps) {
                 </span>
               )}
               {isBackorder && (
-                <div className="flex items-center gap-2 text-sm text-[#FF7A19] font-medium mt-2">
+                <div className="flex items-center gap-2 text-sm text-[#00afef] font-medium mt-2">
                   <Package size={16} /> Ships once restocked — this item is on backorder.
                 </div>
               )}
@@ -382,17 +382,17 @@ export function ProductContent({ product }: ProductContentProps) {
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
               <div className="text-center">
-                <Truck className="mx-auto mb-2 text-[#FF7A19]" size={24} />
+                <Truck className="mx-auto mb-2 text-[#00afef]" size={24} />
                 <p className="text-xs font-semibold">Free Delivery</p>
                 <p className="text-xs text-gray-600">Over GH₵20,000</p>
               </div>
               <div className="text-center">
-                <Shield className="mx-auto mb-2 text-[#FF7A19]" size={24} />
+                <Shield className="mx-auto mb-2 text-[#00afef]" size={24} />
                 <p className="text-xs font-semibold">Warranty</p>
                 <p className="text-xs text-gray-600">Covered</p>
               </div>
               <div className="text-center">
-                <RotateCcw className="mx-auto mb-2 text-[#FF7A19]" size={24} />
+                <RotateCcw className="mx-auto mb-2 text-[#00afef]" size={24} />
                 <p className="text-xs font-semibold">Easy Returns</p>
                 <p className="text-xs text-gray-600">7 Days</p>
               </div>
@@ -409,8 +409,8 @@ export function ProductContent({ product }: ProductContentProps) {
                 onClick={() => setActiveTab(tab as any)}
                 className={`pb-3 px-4 font-semibold transition-colors ${
                   activeTab === tab
-                    ? 'text-[#FF7A19] border-b-2 border-[#FF7A19]'
-                    : 'text-gray-600 hover:text-[#FF7A19]'
+                    ? 'text-[#00afef] border-b-2 border-[#00afef]'
+                    : 'text-gray-600 hover:text-[#00afef]'
                 }`}
               >
                 {tab === 'specs' ? 'Specs' : tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -428,7 +428,7 @@ export function ProductContent({ product }: ProductContentProps) {
                     <ul className="space-y-2">
                       {keyFeatures.map((feature: string, index: number) => (
                         <li key={index} className="flex items-start gap-2">
-                          <Check className="text-[#FF7A19] mt-1 flex-shrink-0" size={18} />
+                          <Check className="text-[#00afef] mt-1 flex-shrink-0" size={18} />
                           <span className="text-gray-700">{feature}</span>
                         </li>
                       ))}

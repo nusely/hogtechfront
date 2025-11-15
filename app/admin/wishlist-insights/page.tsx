@@ -122,7 +122,7 @@ export default function WishlistInsightsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading wishlist insights...</p>
         </div>
       </div>
@@ -147,12 +147,12 @@ export default function WishlistInsightsPage() {
           <p className="text-sm text-purple-700 mb-1">Total Wishlist Items</p>
           <p className="text-3xl font-bold text-purple-900">{totalItems}</p>
         </div>
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm p-6 border-2 border-orange-200">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm p-6 border-2 border-blue-200">
           <div className="flex items-center gap-3 mb-4">
-            <DollarSign className="text-orange-600" size={32} />
+            <DollarSign className="text-[#163b86]" size={32} />
           </div>
-          <p className="text-sm text-orange-700 mb-1">Potential Revenue</p>
-          <p className="text-3xl font-bold text-orange-900">
+          <p className="text-sm text-[#163b86] mb-1">Potential Revenue</p>
+          <p className="text-3xl font-bold text-[#163b86]">
             GHS {totalValue.toLocaleString()}
           </p>
         </div>
@@ -204,7 +204,7 @@ export default function WishlistInsightsPage() {
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
           />
         </div>
       </div>
@@ -232,7 +232,7 @@ export default function WishlistInsightsPage() {
                       <span className="text-[#3A3A3A]">
                         <strong>{user.items_count}</strong> items
                       </span>
-                      <span className="text-[#FF7A19] font-semibold">
+                      <span className="text-[#00afef] font-semibold">
                         GHS {user.total_value.toLocaleString()}
                       </span>
                       <span className="text-[#3A3A3A]">

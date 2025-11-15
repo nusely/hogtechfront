@@ -87,7 +87,7 @@ export const CategoryCarousel: React.FC<CategoryCarouselProps> = ({ categories }
               onClick={() => setCurrentIndex(index)}
               className={`h-2 rounded-full transition-all ${
                 index === currentIndex
-                  ? 'w-6 bg-[#FF7A19]'
+                  ? 'w-6 bg-[#00afef]'
                   : 'w-2 bg-gray-300'
               }`}
               aria-label={`Go to slide ${index + 1}`}

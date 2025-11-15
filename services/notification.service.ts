@@ -149,7 +149,7 @@ export const notificationService = {
         },
         body: JSON.stringify({
           type: 'low_stock',
-          to: 'ventechgadget@gmail.com',
+          to: 'hedgehog.technologies1@gmail.com',
           productName,
           stockQuantity,
         }),
@@ -185,7 +185,7 @@ export const notificationService = {
         },
         body: JSON.stringify({
           type: 'out_of_stock',
-          to: 'ventechgadget@gmail.com',
+          to: 'hedgehog.technologies1@gmail.com',
           productName,
         }),
       });

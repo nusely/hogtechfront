@@ -222,7 +222,15 @@ export default function LoginPage() {
         <motion.div variants={fadeInUp} custom={0.1}>
           <div className="flex justify-center mb-4">
             <Link href="/" className="inline-block">
-              <div className="text-2xl font-bold text-[#FF7A19]">VENTECH</div>
+              <Image
+                src="/logo/hogtechlogo.PNG"
+                alt="Hedgehog Technologies"
+                width={200}
+                height={80}
+                className="object-contain h-12 sm:h-16 w-auto"
+                style={{ width: 'auto', height: 'auto' }}
+                priority
+              />
             </Link>
           </div>
           {maintenanceActiveBanner && (
@@ -237,7 +245,7 @@ export default function LoginPage() {
             Or{' '}
             <Link
               href="/register"
-              className="font-medium text-[#FF7A19] hover:text-orange-600"
+              className="font-medium text-[#00afef] hover:text-[#163b86]"
             >
               create a new account
             </Link>
@@ -269,7 +277,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   suppressHydrationWarning
-                  className="appearance-none rounded-t-lg relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#FF7A19] focus:border-[#FF7A19] focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-t-lg relative block w-full px-3 py-3 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#00afef] focus:border-[#00afef] focus:z-10 sm:text-sm"
                   placeholder="Email address"
                 />
               </div>
@@ -294,13 +302,13 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   suppressHydrationWarning
-                  className="appearance-none rounded-b-lg relative block w-full px-3 py-3 pl-10 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#FF7A19] focus:border-[#FF7A19] focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-b-lg relative block w-full px-3 py-3 pl-10 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#00afef] focus:border-[#00afef] focus:z-10 sm:text-sm"
                   placeholder="Password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3A3A3A] hover:text-[#FF7A19]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#3A3A3A] hover:text-[#00afef]"
                   suppressHydrationWarning
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -318,7 +326,7 @@ export default function LoginPage() {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-[#FF7A19] focus:ring-[#FF7A19] border-gray-300 rounded"
+                className="h-4 w-4 text-[#00afef] focus:ring-[#00afef] border-gray-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
                 Remember me
@@ -328,7 +336,7 @@ export default function LoginPage() {
             <div className="text-sm">
               <Link
                 href="/forgot-password"
-                className="font-medium text-[#FF7A19] hover:text-orange-600"
+                className="font-medium text-[#00afef] hover:text-[#163b86]"
               >
                 Forgot your password?
               </Link>
@@ -403,7 +411,7 @@ export default function LoginPage() {
           <div className="text-center">
             <Link
               href="/"
-              className="text-sm font-medium text-[#FF7A19] hover:text-orange-600"
+                className="text-sm font-medium text-[#00afef] hover:text-[#163b86]"
             >
               ← Back to Home
             </Link>

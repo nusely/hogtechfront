@@ -88,7 +88,7 @@ export const debounce = <T extends (...args: any[]) => any>(
 // Get stock status badge color
 export const getStockStatusColor = (stock: number): string => {
   if (stock === 0) return 'text-red-600 bg-red-50';
-  if (stock < 10) return 'text-orange-600 bg-orange-50';
+  if (stock < 10) return 'text-[#00afef] bg-blue-50';
   return 'text-green-600 bg-green-50';
 };
 

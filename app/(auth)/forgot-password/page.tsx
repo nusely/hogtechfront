@@ -67,9 +67,9 @@ export default function ForgotPasswordPage() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#FF7A19] text-center">
+            <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#00afef] text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Mail className="text-green-600" size={32} />
             </div>
@@ -97,7 +97,7 @@ export default function ForgotPasswordPage() {
               Didn't receive the email?{' '}
               <button
                 onClick={() => setEmailSent(false)}
-                className="text-[#FF7A19] hover:underline font-semibold"
+                className="text-[#00afef] hover:underline font-semibold"
               >
                 Try again
               </button>
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#FF7A19]">
+          <div className="bg-white rounded-2xl shadow-xl p-8 border-t-4 border-[#00afef]">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-[#1A1A1A] mb-2">
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
                     setEmail(e.target.value);
                     setError('');
                   }}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
                   placeholder="Enter your email address"
                   required
                 />
@@ -161,7 +161,7 @@ export default function ForgotPasswordPage() {
             <Button
               variant="ghost"
               size="md"
-              className="w-full mt-4 text-[#3A3A3A] hover:text-[#FF7A19]"
+              className="w-full mt-4 text-[#3A3A3A] hover:text-[#00afef]"
             >
               <ArrowLeft size={18} className="mr-2" />
               Back to Sign In
@@ -171,7 +171,7 @@ export default function ForgotPasswordPage() {
 
         {/* Back to Home */}
         <div className="text-center mt-6">
-          <Link href="/" className="text-sm text-[#3A3A3A] hover:text-[#FF7A19]">
+          <Link href="/" className="text-sm text-[#3A3A3A] hover:text-[#00afef]">
             ← Back to Home
           </Link>
         </div>

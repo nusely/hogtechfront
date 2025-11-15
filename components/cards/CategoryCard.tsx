@@ -15,17 +15,17 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
     <Link href={`/categories/${category.slug}`}>
       <div className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 h-full">
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-orange-50 to-gray-50">
+        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-blue-50 to-gray-50">
           <Image
             src={(category as any).image_url || (category as any).thumbnail_url || category.thumbnail || '/placeholders/placeholder-category.webp'}
-            alt={`${category.name} products in Ghana - Shop ${category.name} at VENTECH`}
+            alt={`${category.name} products in Ghana - Shop ${category.name} at Hedgehog Technologies`}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
             className="object-cover group-hover:scale-110 transition-transform duration-500"
           />
 
           {/* Orange overlay on hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#FF7A19]/80 via-[#FF7A19]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#00afef]/80 via-[#00afef]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
 
         {/* Content */}
@@ -51,9 +51,9 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
 export const CategoryCardSimple: React.FC<CategoryCardProps> = ({ category }) => {
   return (
     <Link href={`/categories/${category.slug}`}>
-      <div className="group flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:border-[#FF7A19] hover:shadow-md transition-all duration-200">
+      <div className="group flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:border-[#00afef] hover:shadow-md transition-all duration-200">
         {/* Icon/Image */}
-        <div className="w-12 h-12 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0 group-hover:bg-orange-100 transition-colors">
+        <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100 transition-colors">
           <Image
             src={(category as any).image_url || (category as any).thumbnail_url || category.thumbnail || '/placeholders/imageplaceholder.webp'}
             alt={`${category.name} icon`}
@@ -65,7 +65,7 @@ export const CategoryCardSimple: React.FC<CategoryCardProps> = ({ category }) =>
 
         {/* Content */}
         <div className="flex-1">
-          <h4 className="font-semibold text-sm text-[#1A1A1A] group-hover:text-[#FF7A19] transition-colors">
+          <h4 className="font-semibold text-sm text-[#1A1A1A] group-hover:text-[#00afef] transition-colors">
             {category.name}
           </h4>
           <p className="text-xs text-[#3A3A3A]">{category.product_count} items</p>
@@ -74,7 +74,7 @@ export const CategoryCardSimple: React.FC<CategoryCardProps> = ({ category }) =>
         {/* Arrow */}
         <ArrowRight
           size={18}
-          className="text-[#3A3A3A] group-hover:text-[#FF7A19] group-hover:translate-x-1 transition-all"
+          className="text-[#3A3A3A] group-hover:text-[#00afef] group-hover:translate-x-1 transition-all"
         />
       </div>
     </Link>

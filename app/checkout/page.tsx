@@ -571,9 +571,9 @@ export default function CheckoutPage() {
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center gap-4">
-            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-[#FF7A19]' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-[#00afef]' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 1 ? 'bg-[#FF7A19] text-white' : 'bg-gray-200'
+                step >= 1 ? 'bg-[#00afef] text-white' : 'bg-gray-200'
               }`}>
                 {step > 1 ? <Check size={20} /> : '1'}
               </div>
@@ -582,9 +582,9 @@ export default function CheckoutPage() {
 
             <div className="w-16 h-0.5 bg-gray-300" />
 
-            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-[#FF7A19]' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-[#00afef]' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 2 ? 'bg-[#FF7A19] text-white' : 'bg-gray-200'
+                step >= 2 ? 'bg-[#00afef] text-white' : 'bg-gray-200'
               }`}>
                 {step > 2 ? <Check size={20} /> : '2'}
               </div>
@@ -593,9 +593,9 @@ export default function CheckoutPage() {
 
             <div className="w-16 h-0.5 bg-gray-300" />
 
-            <div className={`flex items-center gap-2 ${step >= 3 ? 'text-[#FF7A19]' : 'text-gray-400'}`}>
+            <div className={`flex items-center gap-2 ${step >= 3 ? 'text-[#00afef]' : 'text-gray-400'}`}>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 3 ? 'bg-[#FF7A19] text-white' : 'bg-gray-200'
+                step >= 3 ? 'bg-[#00afef] text-white' : 'bg-gray-200'
               }`}>
                 3
               </div>
@@ -771,9 +771,9 @@ export default function CheckoutPage() {
 
                 <div className="space-y-3 mb-6">
                   {/* Cash on Delivery - Only Option */}
-                  <div className="w-full p-4 rounded-lg border-2 border-[#FF7A19] bg-orange-50">
+                  <div className="w-full p-4 rounded-lg border-2 border-[#00afef] bg-blue-50">
                     <div className="flex items-center gap-3">
-                      <Banknote className="text-[#FF7A19]" size={24} />
+                      <Banknote className="text-[#00afef]" size={24} />
                       <div>
                         <p className="font-semibold text-gray-900">Cash on Delivery</p>
                         <p className="text-sm text-gray-600">Pay when you receive your order</p>
@@ -905,7 +905,7 @@ export default function CheckoutPage() {
                     type="text"
                     value={discountCode}
                     onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#FF7A19] focus:ring-2 focus:ring-[#FF7A19]"
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#00afef] focus:ring-2 focus:ring-[#00afef]"
                     placeholder="ENTER CODE"
                   />
                   <Button

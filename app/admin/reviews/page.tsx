@@ -113,7 +113,7 @@ export default function AdminReviewsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef]"></div>
       </div>
     );
   }
@@ -137,7 +137,7 @@ export default function AdminReviewsPage() {
                 placeholder="Search by product, customer, or review content..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent"
               />
             </div>
           </div>
@@ -147,7 +147,7 @@ export default function AdminReviewsPage() {
             <select
               value={filterApproved}
               onChange={(e) => setFilterApproved(e.target.value as 'all' | 'approved' | 'unapproved')}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent"
             >
               <option value="all">All Reviews</option>
               <option value="approved">Approved Only</option>
@@ -185,7 +185,7 @@ export default function AdminReviewsPage() {
                           className="rounded-full"
                         />
                       ) : (
-                        <div className="w-10 h-10 bg-[#FF7A19] rounded-full flex items-center justify-center text-white font-semibold">
+                        <div className="w-10 h-10 bg-[#00afef] rounded-full flex items-center justify-center text-white font-semibold">
                           {userName.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -219,7 +219,7 @@ export default function AdminReviewsPage() {
                       {review.product && (
                         <Link
                           href={`/product/${review.product.slug}`}
-                          className="text-xs text-[#FF7A19] hover:underline mb-2 inline-block"
+                          className="text-xs text-[#00afef] hover:underline mb-2 inline-block"
                         >
                           {review.product.name}
                         </Link>
@@ -270,7 +270,7 @@ export default function AdminReviewsPage() {
         </div>
         <div className="bg-white rounded-xl shadow-sm p-4">
           <p className="text-sm text-[#3A3A3A] mb-1">Pending</p>
-          <p className="text-2xl font-bold text-orange-600">
+          <p className="text-2xl font-bold text-[#163b86]">
             {reviews.filter(r => !r.is_approved).length}
           </p>
         </div>

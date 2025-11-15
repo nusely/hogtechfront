@@ -206,7 +206,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: Category
               value={formData.name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g., Phones, Laptops, Accessories"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               required
             />
           </div>
@@ -221,7 +221,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: Category
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
               placeholder="e.g., phones, laptops"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               required
             />
             <p className="text-xs text-[#3A3A3A] mt-1">
@@ -239,7 +239,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: Category
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Brief description of the category"
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
           </div>
 
@@ -251,7 +251,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: Category
             <select
               value={formData.parent_id}
               onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             >
               <option value="">None (Top Level)</option>
               {categories.map((cat) => (
@@ -346,7 +346,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: Category
               onChange={(e) =>
                 setFormData({ ...formData, show_in_mega_menu: e.target.checked })
               }
-              className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+              className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
             />
             <label htmlFor="show_mega_menu" className="text-sm font-medium text-[#1A1A1A]">
               Show in Mega Menu
@@ -364,7 +364,7 @@ export function CategoryModal({ isOpen, onClose, category, onSuccess }: Category
                 onChange={(e) =>
                   setFormData({ ...formData, mega_menu_column: e.target.value })
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               >
                 <option value="">Select Column</option>
                 <option value="shop-by-type">Shop by Type</option>

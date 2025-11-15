@@ -56,6 +56,8 @@ export const getAllDeals = async (includeInactive: boolean = false): Promise<Dea
   try {
     const base = buildApiUrl('/api/deals');
     const url = includeInactive ? `${base}?includeInactive=true` : base;
+    
+    console.log('Fetching deals from API:', url);
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -66,11 +68,18 @@ export const getAllDeals = async (includeInactive: boolean = false): Promise<Dea
     if (response.ok) {
       const result = await response.json();
       if (result.success) {
+        console.log('Deals fetched successfully from API:', result.data?.length || 0);
         return result.data || [];
+      } else {
+        console.warn('API returned success=false:', result.message);
       }
+    } else {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.warn(`API request failed (${response.status}):`, errorText);
     }
 
     // Fallback to Supabase
+    console.log('Falling back to Supabase for deals...');
     const now = new Date().toISOString();
     let query = supabase
       .from('deals')
@@ -87,10 +96,27 @@ export const getAllDeals = async (includeInactive: boolean = false): Promise<Dea
 
     const { data, error } = await query;
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error fetching deals:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      });
+      throw error;
+    }
+    
+    console.log('Deals fetched successfully from Supabase:', data?.length || 0);
     return data || [];
-  } catch (error) {
-    console.error('Error fetching deals:', error);
+  } catch (error: any) {
+    console.error('Error fetching deals:', {
+      message: error?.message || 'Unknown error',
+      details: error?.details,
+      hint: error?.hint,
+      code: error?.code,
+      stack: error?.stack,
+      name: error?.name,
+    });
     return [];
   }
 };

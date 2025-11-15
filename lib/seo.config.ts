@@ -8,11 +8,11 @@
 export const seoConfig = {
   // Business Information
   business: {
-    name: 'VENTECH',
-    fullName: 'VENTECH Gadgets',
+    name: 'Hedgehog Technologies',
+    fullName: 'Hedgehog Technologies',
     tagline: 'Your trusted tech partner in Ghana',
-    description: 'VENTECH is a leading technology store in Accra, Ghana, offering the latest gadgets, smartphones, laptops, accessories, and electronics. We serve customers nationwide in Ghana and across West Africa with authentic products and exceptional service.',
-    email: 'ventechgadgets@gmail.com',
+    description: 'Hedgehog Technologies is a leading technology store in Accra, Ghana, offering the latest gadgets, smartphones, laptops, accessories, and electronics. We serve customers nationwide in Ghana and across West Africa with authentic products and exceptional service.',
+    email: 'hedgehog.technologies1@gmail.com',
     phone: '+233 55 134 4310',
     location: {
       city: 'Accra',
@@ -58,61 +58,56 @@ export const seoConfig = {
       'tech deals Ghana',
       'electronics delivery Ghana',
       'gadget store Accra',
-      'ventech gadgets',
-      'ventech Ghana',
+      'hedgehog technologies',
+      'hedgehog technologies Ghana',
     ],
   },
 
   // Page-Specific SEO
   pages: {
     homepage: {
-      title: 'VENTECH - Latest Gadgets & Electronics in Ghana | Online Tech Store Accra',
-      description: 'Shop the latest gadgets, smartphones, laptops, and electronics in Ghana. VENTECH offers authentic tech products with nationwide delivery. Best prices on phones, computers, accessories & more in Accra and West Africa.',
+      title: 'Hedgehog Technologies - Latest Gadgets & Electronics in Ghana | Online Tech Store Accra',
+      description: 'Shop the latest gadgets, smartphones, laptops, and electronics in Ghana. Hedgehog Technologies offers authentic tech products with nationwide delivery. Best prices on phones, computers, accessories & more in Accra and West Africa.',
       keywords: 'gadgets Ghana, electronics Accra, smartphones Ghana, laptops Accra, tech store Ghana, buy electronics online Ghana, mobile phones Ghana, computer accessories, technology products West Africa',
     },
     shop: {
-      title: 'Shop All Products - VENTECH Gadgets Store Ghana',
+      title: 'Shop All Products - Hedgehog Technologies Store Ghana',
       description: 'Browse our complete collection of gadgets, smartphones, laptops, tablets, smartwatches, and accessories. Authentic products, best prices, nationwide delivery in Ghana.',
       keywords: 'shop gadgets Ghana, buy electronics Ghana, tech products Ghana, smartphones Ghana, laptops Ghana, tablets Ghana, smartwatches Ghana, accessories Ghana',
     },
     deals: {
-      title: 'Hot Deals & Discounts - VENTECH Gadgets Ghana',
+      title: 'Hot Deals & Discounts - Hedgehog Technologies Ghana',
       description: 'Don\'t miss our amazing deals on smartphones, laptops, gadgets, and electronics. Limited time offers with the best prices in Ghana. Shop now and save!',
       keywords: 'gadget deals Ghana, electronics discounts, smartphone deals Ghana, laptop sales Ghana, tech offers Ghana, electronics promotions, gadget sales Accra',
     },
     about: {
-      title: 'About Us - VENTECH Gadgets | Your Trusted Tech Partner in Ghana',
-      description: 'VENTECH is Ghana\'s trusted technology store. We provide authentic gadgets, smartphones, laptops, and electronics with exceptional service. Serving customers nationwide in Ghana and across West Africa since our founding.',
-      keywords: 'about ventech, ventech gadgets Ghana, tech store Accra, electronics store Ghana, trusted gadget store, technology partner Ghana',
+      title: 'About Us - Hedgehog Technologies | Your Trusted Tech Partner in Ghana',
+      description: 'Hedgehog Technologies is Ghana\'s trusted technology store. We provide authentic gadgets, smartphones, laptops, and electronics with exceptional service. Serving customers nationwide in Ghana and across West Africa since our founding.',
+      keywords: 'about hedgehog technologies, hedgehog technologies Ghana, tech store Accra, electronics store Ghana, trusted gadget store, technology partner Ghana',
     },
     contact: {
-      title: 'Contact Us - VENTECH Gadgets Ghana | Get in Touch',
-      description: 'Contact VENTECH for inquiries, support, or orders. Located in Accra, Ghana. Call +233 55 134 4310 or email ventechgadgets@gmail.com. We\'re here to help!',
-      keywords: 'contact ventech, ventech Ghana contact, electronics store contact, gadget store Accra, tech support Ghana',
+      title: 'Contact Us - Hedgehog Technologies Ghana | Get in Touch',
+      description: 'Contact Hedgehog Technologies for inquiries, support, or orders. Located in Accra, Ghana. Call +233 55 134 4310 or email hedgehog.technologies1@gmail.com. We\'re here to help!',
+      keywords: 'contact hedgehog technologies, hedgehog technologies Ghana contact, electronics store contact, gadget store Accra, tech support Ghana',
     },
     register: {
-      title: 'Create Account - VENTECH Gadgets Ghana',
-      description: 'Create your VENTECH account to shop gadgets, track orders, save addresses, and enjoy exclusive deals. Sign up now for free and start shopping the latest tech!',
-      keywords: 'register ventech, create account Ghana, sign up electronics store, gadget store account, ventech registration',
-    },
-    laptopBanking: {
-      title: 'Laptop Banking - VENTECH Investment Program Ghana',
-      description: 'Invest in VENTECH\'s laptop trade business. Earn 8-9% monthly returns over 6 months. Safe investment backed by real laptop inventory. Starting from GHS 2,500. Sign up now!',
-      keywords: 'laptop banking Ghana, ventech investment, tech investment Ghana, laptop trade investment, investment program Ghana, tech business investment',
+      title: 'Create Account - Hedgehog Technologies Ghana',
+      description: 'Create your Hedgehog Technologies account to shop gadgets, track orders, save addresses, and enjoy exclusive deals. Sign up now for free and start shopping the latest tech!',
+      keywords: 'register hedgehog technologies, create account Ghana, sign up electronics store, gadget store account, hedgehog technologies registration',
     },
   },
 
   // Category SEO Templates
   category: {
-    title: '{category} in Ghana - Buy {category} Online | VENTECH',
+    title: '{category} in Ghana - Buy {category} Online | Hedgehog Technologies',
     description: 'Shop {category} in Ghana. Authentic products, best prices, nationwide delivery. Browse our collection of {category} with genuine products from trusted brands.',
     keywords: '{category} Ghana, buy {category} online Ghana, {category} Accra, {category} prices Ghana, {category} store Ghana',
   },
 
   // Product SEO Templates
   product: {
-    title: '{name} - Buy in Ghana | VENTECH Gadgets',
-    description: 'Buy {name} in Ghana. {brand} {name} with authentic guarantee, best price, and nationwide delivery. Shop now at VENTECH!',
+    title: '{name} - Buy in Ghana | Hedgehog Technologies',
+    description: 'Buy {name} in Ghana. {brand} {name} with authentic guarantee, best price, and nationwide delivery. Shop now at Hedgehog Technologies!',
     keywords: '{name} Ghana, buy {name} Ghana, {brand} {name}, {name} price Ghana, {name} Accra, {category} Ghana',
   },
 };
@@ -235,11 +230,11 @@ export const generateStructuredData = (type: 'Organization' | 'WebSite' | 'Produ
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: data.name,
-        description: data.description || `${data.name} - Buy in Ghana at VENTECH`,
+        description: data.description || `${data.name} - Buy in Ghana at Hedgehog Technologies`,
         image: data.images || [],
         brand: {
           '@type': 'Brand',
-          name: data.brand || 'VENTECH',
+          name: data.brand || 'Hedgehog Technologies',
         },
         category: data.category,
         offers: {

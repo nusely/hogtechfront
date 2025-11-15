@@ -609,7 +609,7 @@ const buildProductFromDealRecord = (record: any, slug: string): Product | null =
     key_features: keyFeatures,
     specifications,
     category_id: record.product?.category_id || 'standalone',
-    brand: record.product?.brand || 'VENTECH Deals',
+    brand: record.product?.brand || 'Hedgehog Technologies Deals',
     brand_id: record.product?.brand_id || null,
     original_price: standaloneOriginalPrice || finalStandaloneDealPrice,
     discount_price: finalStandaloneDealPrice,
@@ -629,7 +629,7 @@ const buildProductFromDealRecord = (record: any, slug: string): Product | null =
     updated_at: timestamp,
     category_name: record.product?.category_name || null,
     category_slug: record.product?.category_slug || null,
-    brand_name: record.product?.brand_name || 'VENTECH Deals',
+    brand_name: record.product?.brand_name || 'Hedgehog Technologies Deals',
     brand_slug: record.product?.brand_slug || null,
     base_product_id: record.product_id || record.id,
     price_range: {

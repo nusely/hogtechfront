@@ -26,6 +26,7 @@ export default function BannersPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -163,6 +164,8 @@ export default function BannersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (saving) return;
+
     const missingFieldLabels: string[] = [];
     if (!formData.title.trim()) {
       missingFieldLabels.push('Title');
@@ -182,6 +185,7 @@ export default function BannersPage() {
     }
 
     try {
+      setSaving(true);
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
@@ -226,6 +230,8 @@ export default function BannersPage() {
     } catch (error: any) {
       console.error('Save error:', error);
       toast.error(error.message || 'Failed to save banner');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -399,7 +405,7 @@ export default function BannersPage() {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g., iPhone 15 Pro Max Now Available"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 />
               </div>
 
@@ -413,7 +419,7 @@ export default function BannersPage() {
                   value={formData.subtitle}
                   onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
                   placeholder="e.g., Starting from GHS 7,999"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 />
               </div>
 
@@ -428,7 +434,7 @@ export default function BannersPage() {
                     value={formData.button_text}
                     onChange={(e) => setFormData({ ...formData, button_text: e.target.value })}
                     placeholder="Shop Now"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                   />
                 </div>
                 <div>
@@ -440,7 +446,7 @@ export default function BannersPage() {
                     value={formData.link_url}
                     onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
                     placeholder="/shop/iphone-15-pro"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                   />
                 </div>
               </div>
@@ -462,7 +468,7 @@ export default function BannersPage() {
                     value={formData.text_color}
                     onChange={(e) => setFormData({ ...formData, text_color: e.target.value })}
                     placeholder="#FFFFFF"
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                   />
                 </div>
                 <p className="text-xs text-[#3A3A3A] mt-1">
@@ -481,7 +487,7 @@ export default function BannersPage() {
                     min="1"
                     value={formData.display_order}
                     onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                   />
                 </div>
                 <div>
@@ -491,7 +497,7 @@ export default function BannersPage() {
                   <select
                     value={formData.active ? 'active' : 'inactive'}
                     onChange={(e) => setFormData({ ...formData, active: e.target.value === 'active' })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -501,7 +507,7 @@ export default function BannersPage() {
 
               {/* Submit */}
               <div className="flex gap-4">
-                <Button type="submit" variant="primary" className="flex-1">
+                <Button type="submit" variant="primary" className="flex-1" isLoading={saving} disabled={uploading}>
                   {editingBanner ? 'Update Banner' : 'Add Banner'}
                 </Button>
                 <Button
@@ -509,6 +515,7 @@ export default function BannersPage() {
                   variant="outline"
                   onClick={handleCancel}
                   className="flex-1"
+                  disabled={saving}
                 >
                   Cancel
                 </Button>

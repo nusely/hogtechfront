@@ -474,7 +474,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                 value={formData.name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="e.g., iPhone 15 Pro"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 required
               />
             </div>
@@ -489,7 +489,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                 value={formData.slug}
                 onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                 placeholder="auto-generated"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 required
               />
             </div>
@@ -504,7 +504,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                 value={formData.sku}
                 onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                 placeholder="auto-generated"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               />
             </div>
 
@@ -531,7 +531,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                 id="product-category"
                 value={formData.category_id}
                 onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 required
               >
                 <option value="">Select Category</option>
@@ -566,7 +566,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                 id="product-brand"
                 value={formData.brand_id}
                 onChange={(e) => setFormData({ ...formData, brand_id: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 required
               >
                 <option value="">Select Brand</option>
@@ -589,7 +589,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Product description..."
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
           </div>
 
@@ -603,7 +603,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
               onChange={(e) => setFormData({ ...formData, key_features: e.target.value })}
               placeholder="Enter key features separated by commas (e.g., Fast processor, Long battery life, HD display)"
               rows={4}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
             <p className="text-xs text-gray-500 mt-1">Separate each feature with a comma</p>
           </div>
@@ -618,7 +618,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
               onChange={(e) => setFormData({ ...formData, specifications: e.target.value })}
               placeholder='{"processor": "Intel i7", "ram": "16GB", "storage": "512GB SSD", "screen": "15.6 inch"}'
               rows={6}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19] font-mono text-sm"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] font-mono text-sm"
             />
             <p className="text-xs text-gray-500 mt-1">Enter specifications as JSON object (e.g., {`{"key": "value"}`})</p>
           </div>
@@ -640,7 +640,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                   }
                 }}
                 placeholder="0.00"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 required
               />
             </div>
@@ -660,7 +660,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                   }
                 }}
                 placeholder="0.00"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               />
             </div>
 
@@ -689,7 +689,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                 value={formData.stock_quantity}
                 onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
                 placeholder="Enter stock quantity (required)"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 min="0"
                 required
               />
@@ -702,7 +702,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                   id="in_stock"
                   checked={formData.in_stock}
                   onChange={(e) => setFormData({ ...formData, in_stock: e.target.checked })}
-                  className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                  className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                 />
                 <label htmlFor="in_stock" className="text-sm font-medium text-[#1A1A1A]">
                   In Stock
@@ -715,7 +715,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                   id="is_featured"
                   checked={formData.is_featured}
                   onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                  className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                  className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                 />
                 <label htmlFor="is_featured" className="text-sm font-medium text-[#1A1A1A]">
                   Featured
@@ -778,7 +778,7 @@ export function ProductModal({ isOpen, onClose, product, onSuccess }: ProductMod
                         className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
                       />
                       {formData.thumbnail === url && (
-                        <div className="absolute top-2 left-2 bg-[#FF7A19] text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute top-2 left-2 bg-[#00afef] text-white text-xs px-2 py-1 rounded">
                           Thumbnail
                         </div>
                       )}

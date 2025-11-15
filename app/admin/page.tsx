@@ -595,9 +595,9 @@ export default function AdminDashboard() {
       value: `GHS ${stats.averageOrderValue.toFixed(2)}`,
       change: 5.8,
       icon: CreditCard,
-      color: 'bg-orange-500',
-      bgColor: 'bg-orange-50',
-      textColor: 'text-orange-600',
+      color: 'bg-[#00afef]',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-[#163b86]',
     },
   ];
 
@@ -687,7 +687,7 @@ export default function AdminDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FF7A19] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
           <p className="text-[#3A3A3A]">Loading dashboard...</p>
         </div>
       </div>
@@ -747,7 +747,7 @@ export default function AdminDashboard() {
               <button
                 key={card.title}
                 onClick={card.onClick}
-                className={`${card.bgColor} rounded-xl p-6 border-2 border-transparent hover:border-[#FF7A19] transition-all text-left cursor-pointer`}
+                className={`${card.bgColor} rounded-xl p-6 border-2 border-transparent hover:border-[#00afef] transition-all text-left cursor-pointer`}
               >
                 {CardInner}
               </button>
@@ -758,7 +758,7 @@ export default function AdminDashboard() {
             <Link
               key={card.title}
               href={card.link ?? '#'}
-              className={`${card.bgColor} rounded-xl p-6 border-2 border-transparent hover:border-[#FF7A19] transition-all cursor-pointer`}
+              className={`${card.bgColor} rounded-xl p-6 border-2 border-transparent hover:border-[#00afef] transition-all cursor-pointer`}
             >
               {CardInner}
             </Link>
@@ -774,7 +774,7 @@ export default function AdminDashboard() {
             <h2 className="text-lg font-bold text-[#1A1A1A]">Recent Transactions</h2>
             <a
               href="/admin/transactions"
-              className="text-sm text-[#FF7A19] hover:underline font-medium"
+              className="text-sm text-[#00afef] hover:underline font-medium"
             >
               View All →
             </a>
@@ -819,7 +819,7 @@ export default function AdminDashboard() {
             <h2 className="text-lg font-bold text-[#1A1A1A]">Top Products</h2>
             <a
               href="/admin/products"
-              className="text-sm text-[#FF7A19] hover:underline font-medium"
+              className="text-sm text-[#00afef] hover:underline font-medium"
             >
               View All →
             </a>
@@ -835,13 +835,13 @@ export default function AdminDashboard() {
                     <p className="font-semibold text-[#1A1A1A] mb-1">{product.name}</p>
                     <p className="text-sm text-[#3A3A3A]">{product.sales} units sold</p>
                   </div>
-                  <p className="font-bold text-[#FF7A19]">
+                  <p className="font-bold text-[#00afef]">
                     GHS {product.revenue.toLocaleString()}
                   </p>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
                   <div
-                    className="bg-[#FF7A19] h-2 rounded-full"
+                    className="bg-[#00afef] h-2 rounded-full"
                         style={{ width: `${(product.sales / maxSales) * 100}%` }}
                   ></div>
                 </div>
@@ -885,7 +885,7 @@ const LowStockModalContent = ({
     return (
       <div className="flex items-center justify-center py-10">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#FF7A19] mx-auto mb-3"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00afef] mx-auto mb-3"></div>
           <p className="text-sm text-[#3A3A3A]">Fetching low stock products...</p>
         </div>
       </div>
@@ -937,7 +937,7 @@ const LowStockModalContent = ({
             </div>
             <Link
               href={`/admin/products?productId=${product.id}`}
-              className="text-sm font-medium text-[#FF7A19] hover:underline"
+              className="text-sm font-medium text-[#00afef] hover:underline"
             >
               Manage
             </Link>

@@ -59,7 +59,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Returns & Refunds',
     question: 'How do I return an item?',
-    answer: 'Contact our customer service at ventechgadgets@gmail.com or call +233 55 134 4310 to initiate a return. We\'ll provide you with a return authorization and instructions.',
+    answer: 'Contact our customer service at hedgehog.technologies1@gmail.com or call +233 55 134 4310 to initiate a return. We\'ll provide you with a return authorization and instructions.',
   },
   {
     category: 'Returns & Refunds',
@@ -76,7 +76,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Products',
     question: 'Are all products brand new?',
-    answer: 'Yes, all products sold on VENTECH are 100% brand new, authentic, and come with manufacturer warranties where applicable.',
+    answer: 'Yes, all products sold on Hedgehog Technologies are 100% brand new, authentic, and come with manufacturer warranties where applicable.',
   },
   {
     category: 'Products',
@@ -111,27 +111,6 @@ const faqs: FAQItem[] = [
     answer: 'Yes! We use industry-standard encryption (SSL/TLS) to protect your data. See our Privacy Policy for complete details on how we protect your information.',
   },
 
-  // Laptop Banking
-  {
-    category: 'Laptop Banking',
-    question: 'What is VENTECH Laptop Banking?',
-    answer: 'Laptop Banking is our investment program where you invest in our laptop trade business and earn monthly returns of 8-9% over 6 months. Your investment helps us bulk-purchase laptops for resale.',
-  },
-  {
-    category: 'Laptop Banking',
-    question: 'How do I start investing?',
-    answer: 'Visit our Laptop Banking page, choose your investment tier (starting from GHS 2,500), fill out the application form, and our team will contact you with the investment agreement.',
-  },
-  {
-    category: 'Laptop Banking',
-    question: 'Is Laptop Banking safe?',
-    answer: 'Your investment is backed by real inventory and trade. We provide monthly returns with proof of payment. However, like any investment, returns are subject to market conditions.',
-  },
-  {
-    category: 'Laptop Banking',
-    question: 'What are Premium Stars?',
-    answer: 'Premium Stars allow investors to purchase up to 5 gadgets at supplier pricing (below retail). You get 5 stars with every investment, redeemable within your 6-month investment period.',
-  },
 ];
 
 export default function FAQPage() {
@@ -149,7 +128,7 @@ export default function FAQPage() {
       <div className="container mx-auto px-4 max-w-5xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <Link href="/" className="text-sm text-[#FF7A19] hover:underline mb-4 inline-block">
+          <Link href="/" className="text-sm text-[#00afef] hover:underline mb-4 inline-block">
             ← Back to Home
           </Link>
           <h1 className="text-4xl md:text-5xl font-bold text-[#1A1A1A] mb-4">
@@ -168,7 +147,7 @@ export default function FAQPage() {
               onClick={() => setActiveCategory(category)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                 activeCategory === category
-                  ? 'bg-[#FF7A19] text-white'
+                  ? 'bg-[#00afef] text-white'
                   : 'bg-white text-[#3A3A3A] hover:bg-gray-100'
               }`}
             >
@@ -186,7 +165,7 @@ export default function FAQPage() {
                 className="w-full px-6 py-5 flex items-center justify-between hover:bg-gray-50 transition-colors text-left"
               >
                 <div className="flex-1">
-                  <span className="text-xs font-semibold text-[#FF7A19] uppercase tracking-wide">
+                  <span className="text-xs font-semibold text-[#00afef] uppercase tracking-wide">
                     {faq.category}
                   </span>
                   <h3 className="text-lg font-semibold text-[#1A1A1A] mt-1">
@@ -209,7 +188,7 @@ export default function FAQPage() {
         </div>
 
         {/* Still Have Questions */}
-        <div className="bg-gradient-to-r from-[#FF7A19] to-orange-600 rounded-xl p-8 md:p-12 text-white text-center">
+        <div className="bg-gradient-to-r from-[#00afef] to-[#163b86] rounded-xl p-8 md:p-12 text-white text-center">
           <MessageCircle className="w-12 h-12 mx-auto mb-4" />
           <h2 className="text-3xl font-bold mb-4">Still have questions?</h2>
           <p className="text-lg mb-6 opacity-90">
@@ -217,22 +196,22 @@ export default function FAQPage() {
           </p>
           <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
             <a
-              href="mailto:ventechgadgets@gmail.com"
-              className="bg-white text-[#FF7A19] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+              href="mailto:hedgehog.technologies1@gmail.com"
+              className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
             >
               <Mail className="w-5 h-5" />
               Email Us
             </a>
             <a
               href="tel:+233551344310"
-              className="bg-white text-[#FF7A19] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+              className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />
               Call Us
             </a>
             <Link
               href="/contact"
-              className="bg-white text-[#FF7A19] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+              className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
             >
               <MapPin className="w-5 h-5" />
               Visit Us
