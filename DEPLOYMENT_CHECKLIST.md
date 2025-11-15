@@ -20,14 +20,16 @@ https://your-project-name.vercel.app
 ### B. Redirect URLs
 **Location:** Same page, add these URLs one by one:
 
-**Production:**
+**⚠️ IMPORTANT: Add BOTH Production AND Development URLs**
+
+**Production (Vercel):**
 ```
 https://your-project-name.vercel.app/auth/callback
 https://your-project-name.vercel.app/reset-password
 https://your-project-name.vercel.app/verify-email
 ```
 
-**Development (optional):**
+**Development (Localhost - Required for local dev):**
 ```
 http://localhost:3000/auth/callback
 http://localhost:3000/reset-password
@@ -54,8 +56,8 @@ Add these for **Production** environment:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 
-# Backend API (Required)
-NEXT_PUBLIC_API_URL=https://your-backend-url.onrender.com
+# Backend API (Required - Render.com)
+NEXT_PUBLIC_API_URL=https://your-backend-name.onrender.com
 
 # Paystack (If using payments)
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_test_your_key_here
@@ -70,9 +72,11 @@ NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_test_your_key_here
    - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
    - **anon/public key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-**Backend API URL:**
-- Your Render/Railway backend URL
-- Example: `https://hogtech-backend.onrender.com`
+**Backend API URL (Render.com):**
+1. Go to [Render Dashboard](https://dashboard.render.com)
+2. Find your backend service
+3. Copy the service URL
+4. Example: `https://hogtech-backend.onrender.com`
 
 ---
 
@@ -135,18 +139,32 @@ After deployment, test:
 
 Replace these with your actual values:
 
+### Supabase Configuration:
 ```
 Site URL: https://hogtech-frontend.vercel.app
 
-Redirect URLs:
-✅ https://hogtech-frontend.vercel.app/auth/callback
-✅ https://hogtech-frontend.vercel.app/reset-password
-✅ https://hogtech-frontend.vercel.app/verify-email
+Redirect URLs (Add ALL of these):
+✅ https://hogtech-frontend.vercel.app/auth/callback (Production)
+✅ https://hogtech-frontend.vercel.app/reset-password (Production)
+✅ https://hogtech-frontend.vercel.app/verify-email (Production)
+✅ http://localhost:3000/auth/callback (Development)
+✅ http://localhost:3000/reset-password (Development)
+✅ http://localhost:3000/verify-email (Development)
+```
 
-Vercel Env Vars:
+### Vercel Environment Variables (Production):
+```
 NEXT_PUBLIC_SUPABASE_URL=https://hrmxchfwiozifgpmjemf.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 NEXT_PUBLIC_API_URL=https://hogtech-backend.onrender.com
+```
+
+### Local Development (.env.local):
+Create `.env.local` file in project root:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://hrmxchfwiozifgpmjemf.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
 ---

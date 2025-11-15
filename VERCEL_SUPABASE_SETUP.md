@@ -20,24 +20,40 @@ After deploying to Vercel, you'll get a URL like:
    ```
    https://your-project-name.vercel.app
    ```
+   
+   **Note:** This is your production URL. Development will use `http://localhost:3000` automatically.
 
 ### B. Add Redirect URLs
 
 In the same **URL Configuration** section, add these redirect URLs **one by one**:
 
-**Production URLs:**
+**⚠️ IMPORTANT: Add BOTH Production AND Development URLs**
+
+**Production URLs (Vercel):**
 ```
 https://your-project-name.vercel.app/auth/callback
 https://your-project-name.vercel.app/reset-password
 https://your-project-name.vercel.app/verify-email
 ```
 
-**Development URLs (if you want local development to work):**
+**Development URLs (Localhost - Required for local development):**
 ```
 http://localhost:3000/auth/callback
 http://localhost:3000/reset-password
 http://localhost:3000/verify-email
 ```
+
+**Custom Domain URLs (if you have a custom domain):**
+```
+https://yourdomain.com/auth/callback
+https://yourdomain.com/reset-password
+https://yourdomain.com/verify-email
+```
+
+**Why both?**
+- **Production URLs** → For your live Vercel deployment
+- **Development URLs** → For local development (`npm run dev`)
+- **Custom Domain** → If you add a custom domain to Vercel later
 
 **Important:**
 - Add each URL separately by clicking "Add URL"
@@ -64,20 +80,27 @@ Add these variables for **Production** environment:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 
-# Backend API URL
-NEXT_PUBLIC_API_URL=https://your-backend-url.onrender.com
+# Backend API URL (Render.com)
+NEXT_PUBLIC_API_URL=https://your-backend-name.onrender.com
 
 # Paystack (if using payments)
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_test_your_key_here
 ```
 
-### How to Get Supabase Credentials:
+### How to Get Values:
 
+**Supabase Credentials:**
 1. Go to Supabase Dashboard → Your Project
 2. Navigate to **Settings** → **API**
 3. Copy:
    - **Project URL** → Use for `NEXT_PUBLIC_SUPABASE_URL`
    - **anon/public key** → Use for `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+**Backend API URL (Render.com):**
+1. Go to [Render Dashboard](https://dashboard.render.com)
+2. Find your backend service
+3. Copy the service URL (format: `https://your-service-name.onrender.com`)
+4. Use this for `NEXT_PUBLIC_API_URL`
 
 ### Optional Variables (if needed):
 
@@ -230,12 +253,28 @@ Redirect URLs:
 ✅ http://localhost:3000/verify-email (for dev)
 ```
 
-### Vercel Environment Variables:
+### Vercel Environment Variables (Production):
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://hrmxchfwiozifgpmjemf.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 NEXT_PUBLIC_API_URL=https://hogtech-backend.onrender.com
 ```
+
+### Local Development Environment Variables (.env.local):
+Create a `.env.local` file in your project root for local development:
+
+```env
+# Supabase (same as production)
+NEXT_PUBLIC_SUPABASE_URL=https://hrmxchfwiozifgpmjemf.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Backend API (local development - use local backend or Render URL)
+NEXT_PUBLIC_API_URL=http://localhost:5000
+# OR use Render URL for development too:
+# NEXT_PUBLIC_API_URL=https://hogtech-backend.onrender.com
+```
+
+**Note:** `.env.local` is gitignored and won't be committed to your repository.
 
 ---
 
