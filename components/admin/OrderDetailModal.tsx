@@ -301,7 +301,7 @@ export function OrderDetailModal({ isOpen, onClose, orderId, onStatusUpdate }: O
       }
 
       if (Object.keys(updateData).length === 0) {
-        toast.info('No changes to save');
+        toast('No changes to save');
         setIsEditing(false);
         return;
       }
