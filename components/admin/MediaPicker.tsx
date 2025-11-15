@@ -50,7 +50,9 @@ export function MediaPicker({
   const fetchFiles = async () => {
     try {
       setLoading(true);
-      const mediaFiles = await mediaService.listFiles(folder);
+      // Show all images from R2 regardless of folder
+      // folder is only used for uploading new images
+      const mediaFiles = await mediaService.listFiles(undefined);
       setFiles(mediaFiles);
       setFilteredFiles(mediaFiles);
     } catch (error: any) {
@@ -131,7 +133,7 @@ export function MediaPicker({
           <div>
             <h2 className="text-xl font-bold text-[#1A1A1A]">Select Media</h2>
             <p className="text-sm text-[#3A3A3A] mt-1">
-              {multiple ? 'Select multiple images' : 'Choose an image or upload a new one'}
+              {multiple ? 'Select multiple images from all R2 folders' : 'Choose an image from all R2 folders or upload a new one'}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -144,16 +146,21 @@ export function MediaPicker({
               id="media-picker-upload"
               disabled={uploading}
             />
-            <label htmlFor="media-picker-upload">
-              <Button
-                variant="outline"
-                icon={uploading ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
-                disabled={uploading}
-                className="cursor-pointer"
-              >
-                {uploading ? 'Uploading...' : 'Upload New'}
-              </Button>
-            </label>
+            <Button
+              variant="outline"
+              icon={uploading ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
+              disabled={uploading}
+              onClick={() => {
+                if (!uploading) {
+                  const input = document.getElementById('media-picker-upload') as HTMLInputElement;
+                  if (input) {
+                    input.click();
+                  }
+                }
+              }}
+            >
+              {uploading ? 'Uploading...' : 'Upload New'}
+            </Button>
             {multiple && selectedFiles.length > 0 && (
               <Button
                 variant="primary"
@@ -181,7 +188,7 @@ export function MediaPicker({
               placeholder="Search images..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
           </div>
         </div>
@@ -190,7 +197,7 @@ export function MediaPicker({
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="animate-spin text-[#FF7A19]" size={48} />
+              <Loader2 className="animate-spin text-[#00afef]" size={48} />
             </div>
           ) : filteredFiles.length === 0 ? (
             <div className="text-center py-12">
@@ -216,7 +223,7 @@ export function MediaPicker({
                     key={file.url}
                     className={`group relative aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
                       isSelected
-                        ? 'border-[#FF7A19] ring-2 ring-[#FF7A19]'
+                        ? 'border-[#00afef] ring-2 ring-[#00afef]'
                         : 'border-transparent hover:border-gray-300'
                     }`}
                     onClick={() => handleSelect(file.url)}
@@ -232,8 +239,8 @@ export function MediaPicker({
                       }}
                     />
                     {isSelected && (
-                      <div className="absolute inset-0 bg-[#FF7A19]/20 flex items-center justify-center">
-                        <div className="w-8 h-8 bg-[#FF7A19] rounded-full flex items-center justify-center">
+                      <div className="absolute inset-0 bg-[#00afef]/20 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-[#00afef] rounded-full flex items-center justify-center">
                           <Check size={20} className="text-white" />
                         </div>
                       </div>
@@ -241,7 +248,7 @@ export function MediaPicker({
                     {!isSelected && (
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors opacity-0 group-hover:opacity-100 flex items-center justify-center">
                         <div className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center">
-                          <Check size={20} className="text-[#FF7A19]" />
+                          <Check size={20} className="text-[#00afef]" />
                         </div>
                       </div>
                     )}

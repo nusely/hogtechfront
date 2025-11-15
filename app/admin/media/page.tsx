@@ -162,7 +162,7 @@ export default function MediaLibraryPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <Loader2 className="animate-spin text-[#FF7A19] mx-auto mb-4" size={48} />
+          <Loader2 className="animate-spin text-[#00afef] mx-auto mb-4" size={48} />
           <p className="text-[#3A3A3A]">Loading media library...</p>
         </div>
       </div>
@@ -199,16 +199,18 @@ export default function MediaLibraryPage() {
             id="media-upload"
             disabled={uploading}
           />
-          <label htmlFor="media-upload">
-            <Button
-              variant="primary"
-              icon={uploading ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
-              disabled={uploading}
-              className="cursor-pointer"
-            >
-              {uploading ? 'Uploading...' : 'Upload Media'}
-            </Button>
-          </label>
+          <Button
+            variant="primary"
+            icon={uploading ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
+            disabled={uploading}
+            onClick={() => {
+              if (!uploading && fileInputRef.current) {
+                fileInputRef.current.click();
+              }
+            }}
+          >
+            {uploading ? 'Uploading...' : 'Upload Media'}
+          </Button>
         </div>
       </div>
 
@@ -219,7 +221,7 @@ export default function MediaLibraryPage() {
           <select
             value={folderFilter}
             onChange={(e) => setFolderFilter(e.target.value as FolderFilter)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
           >
             <option value="all">All Folders</option>
             <option value="products">Products</option>
@@ -237,7 +239,7 @@ export default function MediaLibraryPage() {
               placeholder="Search files..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
           </div>
 
@@ -273,7 +275,7 @@ export default function MediaLibraryPage() {
         </div>
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <p className="text-sm text-[#3A3A3A] mb-1">Filtered Results</p>
-          <p className="text-3xl font-bold text-[#FF7A19]">{filteredFiles.length}</p>
+          <p className="text-3xl font-bold text-[#00afef]">{filteredFiles.length}</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
           <p className="text-sm text-[#3A3A3A] mb-1">Total Size</p>
@@ -292,11 +294,17 @@ export default function MediaLibraryPage() {
             {searchQuery ? 'Try adjusting your search filters' : 'Upload your first media file to get started'}
           </p>
           {!searchQuery && (
-            <label htmlFor="media-upload">
-              <Button variant="primary" icon={<Upload size={18} />} className="cursor-pointer">
-                Upload Media
-              </Button>
-            </label>
+            <Button
+              variant="primary"
+              icon={<Upload size={18} />}
+              onClick={() => {
+                if (!uploading && fileInputRef.current) {
+                  fileInputRef.current.click();
+                }
+              }}
+            >
+              Upload Media
+            </Button>
           )}
         </div>
       ) : viewMode === 'grid' ? (
@@ -329,7 +337,7 @@ export default function MediaLibraryPage() {
                     {selectedFile === file.url ? (
                       <Check size={18} className="text-green-600" />
                     ) : (
-                      <ImageIcon size={18} className="text-[#FF7A19]" />
+                      <ImageIcon size={18} className="text-[#00afef]" />
                     )}
                   </button>
                   <button
@@ -415,7 +423,7 @@ export default function MediaLibraryPage() {
                         {selectedFile === file.url ? (
                           <Check size={16} className="text-green-600" />
                         ) : (
-                          <ImageIcon size={16} className="text-[#FF7A19]" />
+                          <ImageIcon size={16} className="text-[#00afef]" />
                         )}
                       </button>
                       <button

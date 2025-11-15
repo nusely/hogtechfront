@@ -180,7 +180,7 @@ export function SidebarAdModal({ isOpen, onClose, ad, onSuccess }: SidebarAdModa
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="e.g., iPhone 15 Pro Launch"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
               required
             />
           </div>
@@ -203,7 +203,7 @@ export function SidebarAdModal({ isOpen, onClose, ad, onSuccess }: SidebarAdModa
                 value={formData.link}
                 onChange={(e) => setFormData({ ...formData, link: e.target.value })}
                 placeholder="Or enter URL: /product/iphone-15-pro or https://..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
                 required
               />
             </div>
@@ -277,7 +277,7 @@ export function SidebarAdModal({ isOpen, onClose, ad, onSuccess }: SidebarAdModa
                     id={`page-${page.value}`}
                     checked={formData.show_on.includes(page.value)}
                     onChange={() => handleShowOnChange(page.value)}
-                    className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+                    className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
                   />
                   <label
                     htmlFor={`page-${page.value}`}
@@ -302,7 +302,7 @@ export function SidebarAdModal({ isOpen, onClose, ad, onSuccess }: SidebarAdModa
                 setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })
               }
               placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF7A19]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
             />
             <p className="text-xs text-[#3A3A3A] mt-1">
               Lower numbers appear first (0, 1, 2, etc.)
@@ -316,7 +316,7 @@ export function SidebarAdModal({ isOpen, onClose, ad, onSuccess }: SidebarAdModa
               id="active"
               checked={formData.active}
               onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-              className="w-5 h-5 text-[#FF7A19] border-gray-300 rounded focus:ring-[#FF7A19]"
+              className="w-5 h-5 text-[#00afef] border-gray-300 rounded focus:ring-[#00afef]"
             />
             <label htmlFor="active" className="text-sm font-medium text-[#1A1A1A]">
               Active (Show on website)
@@ -362,7 +362,7 @@ export function SidebarAdModal({ isOpen, onClose, ad, onSuccess }: SidebarAdModa
             setFormData(prev => ({ ...prev, image_url: url }));
             setShowMediaPicker(false);
           }}
-          folder="uploads"
+          folder="sidebar-ads"
         />
 
         {/* Product Picker */}
