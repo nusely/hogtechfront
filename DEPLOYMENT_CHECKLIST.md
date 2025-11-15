@@ -157,6 +157,7 @@ Redirect URLs (Add ALL of these):
 NEXT_PUBLIC_SUPABASE_URL=https://hrmxchfwiozifgpmjemf.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 NEXT_PUBLIC_API_URL=https://hogtech-backend.onrender.com
+
 ```
 
 ### Local Development (.env.local):

@@ -241,7 +241,7 @@ export default function AdminProductsPage() {
               <p className="text-gray-600">{pagination.total} products total</p>
             </div>
             <div className="flex gap-2">
-              <Link href="/admin/dashboard">
+              <Link href="/admin">
                 <Button variant="outline" size="sm">
                   Back to Dashboard
                 </Button>
