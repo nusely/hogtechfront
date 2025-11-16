@@ -199,15 +199,19 @@ export default function RevenueAnalyticsPage() {
       
       const growth = previousTotal > 0 ? ((total - previousTotal) / previousTotal) * 100 : 0;
 
-      // Group by day
-      const byDayMap: { [key: string]: number } = {};
+      // Group by day with revenue and transaction count
+      const byDayMap: { [key: string]: { revenue: number; transactions: number } } = {};
       orders.forEach(order => {
         const date = new Date(order.created_at).toISOString().split('T')[0];
-        byDayMap[date] = (byDayMap[date] || 0) + (parseFloat(order.total) || 0);
+        if (!byDayMap[date]) {
+          byDayMap[date] = { revenue: 0, transactions: 0 };
+        }
+        byDayMap[date].revenue += parseFloat(order.total) || 0;
+        byDayMap[date].transactions += 1;
       });
 
       const byDay = Object.entries(byDayMap)
-        .map(([date, revenue]) => ({ date, revenue }))
+        .map(([date, data]) => ({ date, revenue: data.revenue, transactions: data.transactions }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
       // Calculate revenue by category from order_items
