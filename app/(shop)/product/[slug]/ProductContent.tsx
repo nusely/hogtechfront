@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { r2ImageLoader } from '@/lib/imageLoader';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ProductCard } from '@/components/cards/ProductCard';
@@ -239,11 +240,13 @@ export function ProductContent({ product }: ProductContentProps) {
           <div>
             <div className="relative aspect-square mb-4 bg-white rounded-xl overflow-hidden">
               <Image
+                loader={r2ImageLoader}
                 src={productImages[selectedImage] || productImages[0]}
                 alt={`${product.name} - Image ${selectedImage + 1}`}
                 fill
                 className="object-cover"
                 priority
+                unoptimized={productImages[selectedImage]?.includes('files.hogtechgh.com') || productImages[selectedImage]?.includes('.r2.dev')}
               />
             </div>
             {productImages.length > 1 && (
@@ -257,10 +260,12 @@ export function ProductContent({ product }: ProductContentProps) {
                     }`}
                   >
                     <Image
+                      loader={r2ImageLoader}
                       src={image}
                       alt={`${product.name} thumbnail ${index + 1}`}
                       fill
                       className="object-cover"
+                      unoptimized={image?.includes('files.hogtechgh.com') || image?.includes('.r2.dev')}
                     />
                   </button>
                 ))}

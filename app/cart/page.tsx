@@ -128,11 +128,13 @@ export default function CartPage() {
                     {/* Product Image */}
                     <div className="relative w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                       <Image
+                        loader={r2ImageLoader}
                         src={item.thumbnail || '/placeholder-product.webp'}
                         alt={item.name}
                         fill
                         sizes="96px"
                         className="object-cover"
+                        unoptimized={item.thumbnail?.includes('files.hogtechgh.com') || item.thumbnail?.includes('.r2.dev')}
                       />
                     </div>
 

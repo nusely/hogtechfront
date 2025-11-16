@@ -6,7 +6,8 @@ import Image from 'next/image';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Badge } from '../ui/Badge';
-import { formatCurrency, calculateDiscountPercentage } from '@/lib/helpers';
+import { formatCurrency, calculateDiscountPercentage, getImageUrl } from '@/lib/helpers';
+import { r2ImageLoader } from '@/lib/imageLoader';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { addToCart } from '@/store/cartSlice';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -180,12 +181,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           {/* Image Container */}
           <div className="relative aspect-square overflow-hidden bg-gray-50">
             <Image
-              src={product.thumbnail || '/placeholders/placeholder-product.webp'}
+              loader={r2ImageLoader}
+              src={getImageUrl(product.thumbnail || '/placeholders/placeholder-product.webp')}
               alt={`${product.name}${product.brand ? ` by ${product.brand}` : ''} - Buy in Ghana`}
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
               className="object-cover group-hover:scale-110 transition-transform duration-500"
               loading="eager"
+              unoptimized={product.thumbnail?.includes('files.hogtechgh.com') || product.thumbnail?.includes('.r2.dev')}
             />
 
             {/* Badges */}

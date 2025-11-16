@@ -62,14 +62,35 @@ export const calculateCartTotal = (
   return items.reduce((total, item) => total + item.price * item.quantity, 0);
 };
 
-// Get image URL from Supabase storage
+// Get image URL - handles both R2 and Supabase storage
 export const getImageUrl = (path: string, bucket: string = 'products'): string => {
   if (!path) return '/placeholders/placeholder-product.webp';
   
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl) return path;
+  // If it's already a full URL (R2 or other), return as-is
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
   
-  return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+  // If it starts with /, it's a local path
+  if (path.startsWith('/')) {
+    return path;
+  }
+  
+  // Check if R2_PUBLIC_URL is set (preferred for R2)
+  const r2PublicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://files.hogtechgh.com';
+  if (r2PublicUrl && !path.includes('supabase')) {
+    // Assume R2 storage
+    const cleanPath = path.replace(/^\//, ''); // Remove leading slash if present
+    return `${r2PublicUrl.replace(/\/$/, '')}/${cleanPath}`;
+  }
+  
+  // Fallback to Supabase storage
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (supabaseUrl) {
+    return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+  }
+  
+  return path;
 };
 
 // Debounce function for search
