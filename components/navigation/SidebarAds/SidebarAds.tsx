@@ -5,6 +5,7 @@ import { SidebarAdCarousel } from './SidebarAdCarousel';
 import { SidebarAd, SidebarAdGroup } from '@/types/sidebar';
 import Link from 'next/link';
 import Image from 'next/image';
+import { r2ImageLoader } from '@/lib/imageLoader';
 import { Button } from '@/components/ui/Button';
 import { ShoppingCart } from 'lucide-react';
 import { useAppDispatch } from '@/store';
@@ -172,13 +173,14 @@ export const SidebarAds: React.FC<SidebarAdsProps> = ({ position, page }) => {
                 <Link href={group.ads[0].link}>
                   <div className="relative aspect-square">
                     <Image
+                      loader={r2ImageLoader}
                       src={group.ads[0].image_url || '/placeholders/placeholder-ad.webp'}
                       alt={group.ads[0].title || 'Advertisement'}
                       fill
                       sizes="(max-width: 1200px) 0vw, 13vw"
                       className="object-cover"
                       loading="lazy"
-                      unoptimized
+                      unoptimized={group.ads[0].image_url?.includes('files.hogtechgh.com') || group.ads[0].image_url?.includes('.r2.dev') || true}
                     />
                   </div>
                 </Link>

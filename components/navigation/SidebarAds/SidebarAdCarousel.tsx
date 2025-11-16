@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { SidebarAd } from '@/types/sidebar';
 import Autoplay from 'embla-carousel-autoplay';
+import { r2ImageLoader } from '@/lib/imageLoader';
 
 interface SidebarAdCarouselProps {
   ads: SidebarAd[];
@@ -49,13 +50,14 @@ export const SidebarAdCarousel: React.FC<SidebarAdCarouselProps> = ({ ads }) => 
               <Link href={ad.link}>
                 <div className="relative aspect-square">
                   <Image
+                    loader={r2ImageLoader}
                     src={ad.image_url || '/placeholders/placeholder-ad.webp'}
                     alt={ad.title || 'Advertisement'}
                     fill
                     sizes="(max-width: 1200px) 0vw, 13vw"
                     className="object-cover"
                     loading="lazy"
-                    unoptimized
+                    unoptimized={ad.image_url?.includes('files.hogtechgh.com') || ad.image_url?.includes('.r2.dev') || true}
                   />
                 </div>
               </Link>
