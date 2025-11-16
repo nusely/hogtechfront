@@ -55,6 +55,11 @@ export default function MediaLibraryPage() {
       const folder = (isSync || folderFilter === 'all') ? undefined : folderFilter;
       const mediaFiles = await mediaService.listFiles(folder, 10000); // Large limit to get all files
       
+      console.log('Media files fetched:', mediaFiles.length);
+      if (mediaFiles.length > 0) {
+        console.log('Sample file URLs:', mediaFiles.slice(0, 3).map(f => ({ key: f.key, url: f.url })));
+      }
+      
       setFiles(mediaFiles);
       setFilteredFiles(mediaFiles);
       
@@ -321,9 +326,14 @@ export default function MediaLibraryPage() {
                   alt={file.key}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  crossOrigin="anonymous"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
+                    console.error('Image failed to load:', file.url, file.key);
                     target.src = '/placeholders/placeholder-image.webp';
+                  }}
+                  onLoad={() => {
+                    console.log('Image loaded successfully:', file.url);
                   }}
                 />
                 
@@ -390,9 +400,14 @@ export default function MediaLibraryPage() {
                         alt={file.key}
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        crossOrigin="anonymous"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
+                          console.error('Image failed to load:', file.url, file.key);
                           target.src = '/placeholders/placeholder-image.webp';
+                        }}
+                        onLoad={() => {
+                          console.log('Image loaded successfully:', file.url);
                         }}
                       />
                     </div>
