@@ -2,8 +2,9 @@
 
 ## Quick Setup Steps
 
-### 1. Get Your Vercel URL
-After deploying, you'll get: `https://your-project-name.vercel.app`
+### 1. Your Production Domain
+- **Custom Domain:** `https://hogtechgh.com` (primary)
+- **Vercel URL:** `https://hogtechfront.vercel.app` (fallback)
 
 ---
 
@@ -14,7 +15,7 @@ After deploying, you'll get: `https://your-project-name.vercel.app`
 
 Set to:
 ```
-https://your-project-name.vercel.app
+https://hogtechgh.com
 ```
 
 ### B. Redirect URLs
@@ -22,11 +23,18 @@ https://your-project-name.vercel.app
 
 **⚠️ IMPORTANT: Add BOTH Production AND Development URLs**
 
-**Production (Vercel):**
+**Production (Custom Domain):**
 ```
-https://your-project-name.vercel.app/auth/callback
-https://your-project-name.vercel.app/reset-password
-https://your-project-name.vercel.app/verify-email
+https://hogtechgh.com/auth/callback
+https://hogtechgh.com/reset-password
+https://hogtechgh.com/verify-email
+```
+
+**Production (Vercel - Optional fallback):**
+```
+https://hogtechfront.vercel.app/auth/callback
+https://hogtechfront.vercel.app/reset-password
+https://hogtechfront.vercel.app/verify-email
 ```
 
 **Development (Localhost - Required for local dev):**
@@ -141,12 +149,15 @@ Replace these with your actual values:
 
 ### Supabase Configuration:
 ```
-Site URL: https://hogtech-frontend.vercel.app
+Site URL: https://hogtechgh.com
 
 Redirect URLs (Add ALL of these):
-✅ https://hogtech-frontend.vercel.app/auth/callback (Production)
-✅ https://hogtech-frontend.vercel.app/reset-password (Production)
-✅ https://hogtech-frontend.vercel.app/verify-email (Production)
+✅ https://hogtechgh.com/auth/callback (Production - Custom Domain)
+✅ https://hogtechgh.com/reset-password (Production - Custom Domain)
+✅ https://hogtechgh.com/verify-email (Production - Custom Domain)
+✅ https://hogtechfront.vercel.app/auth/callback (Production - Vercel fallback)
+✅ https://hogtechfront.vercel.app/reset-password (Production - Vercel fallback)
+✅ https://hogtechfront.vercel.app/verify-email (Production - Vercel fallback)
 ✅ http://localhost:3000/auth/callback (Development)
 ✅ http://localhost:3000/reset-password (Development)
 ✅ http://localhost:3000/verify-email (Development)

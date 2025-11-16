@@ -1,11 +1,12 @@
 # 🚀 Vercel + Supabase Setup Guide
 
-## Step 1: Get Your Vercel Production URL
+## Step 1: Your Production Domain
 
-After deploying to Vercel, you'll get a URL like:
-- `https://your-project-name.vercel.app`
+Your production domain is:
+- **Custom Domain:** `https://hogtechgh.com` (primary)
+- **Vercel URL:** `https://hogtechfront.vercel.app` (fallback)
 
-**Note:** Replace `your-project-name` with your actual Vercel project name throughout this guide.
+**Note:** Use `hogtechgh.com` as your primary domain for all configurations.
 
 --- hogtechfront.vercel.app
 
@@ -16,12 +17,12 @@ After deploying to Vercel, you'll get a URL like:
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
 2. Select your project
 3. Navigate to: **Authentication** → **URL Configuration**
-4. Set **Site URL** to your Vercel production URL:
+4. Set **Site URL** to your custom domain:
    ```
-   https://your-project-name.vercel.app
+   https://hogtechgh.com
    ```
    
-   **Note:** This is your production URL. Development will use `http://localhost:3000` automatically.
+   **Note:** This is your production domain. Development will use `http://localhost:3000` automatically.
 
 ### B. Add Redirect URLs
 
@@ -29,11 +30,18 @@ In the same **URL Configuration** section, add these redirect URLs **one by one*
 
 **⚠️ IMPORTANT: Add BOTH Production AND Development URLs**
 
-**Production URLs (Vercel):**
+**Production URLs (Custom Domain):**
 ```
-https://your-project-name.vercel.app/auth/callback
-https://your-project-name.vercel.app/reset-password
-https://your-project-name.vercel.app/verify-email
+https://hogtechgh.com/auth/callback
+https://hogtechgh.com/reset-password
+https://hogtechgh.com/verify-email
+```
+
+**Production URLs (Vercel - Optional fallback):**
+```
+https://hogtechfront.vercel.app/auth/callback
+https://hogtechfront.vercel.app/reset-password
+https://hogtechfront.vercel.app/verify-email
 ```
 
 **Development URLs (Localhost - Required for local development):**
@@ -50,10 +58,10 @@ https://yourdomain.com/reset-password
 https://yourdomain.com/verify-email
 ```
 
-**Why both?**
-- **Production URLs** → For your live Vercel deployment
+**Why all of them?**
+- **Custom Domain URLs** → For your live production site (`hogtechgh.com`)
+- **Vercel URLs** → Fallback if custom domain has issues
 - **Development URLs** → For local development (`npm run dev`)
-- **Custom Domain** → If you add a custom domain to Vercel later
 
 **Important:**
 - Add each URL separately by clicking "Add URL"
@@ -242,15 +250,18 @@ Before going live:
 
 ### Supabase URL Configuration:
 ```
-Site URL: https://hogtech-frontend.vercel.app
+Site URL: https://hogtechgh.com
 
 Redirect URLs:
-✅ https://hogtech-frontend.vercel.app/auth/callback
-✅ https://hogtech-frontend.vercel.app/reset-password
-✅ https://hogtech-frontend.vercel.app/verify-email
-✅ http://localhost:3000/auth/callback (for dev)
-✅ http://localhost:3000/reset-password (for dev)
-✅ http://localhost:3000/verify-email (for dev)
+✅ https://hogtechgh.com/auth/callback (Production - Custom Domain)
+✅ https://hogtechgh.com/reset-password (Production - Custom Domain)
+✅ https://hogtechgh.com/verify-email (Production - Custom Domain)
+✅ https://hogtechfront.vercel.app/auth/callback (Production - Vercel fallback)
+✅ https://hogtechfront.vercel.app/reset-password (Production - Vercel fallback)
+✅ https://hogtechfront.vercel.app/verify-email (Production - Vercel fallback)
+✅ http://localhost:3000/auth/callback (Development)
+✅ http://localhost:3000/reset-password (Development)
+✅ http://localhost:3000/verify-email (Development)
 ```
 
 ### Vercel Environment Variables (Production):

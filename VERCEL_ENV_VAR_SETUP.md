@@ -3,11 +3,13 @@
 ## Problem
 If you're seeing CORS errors like:
 ```
-Access to fetch at 'http://localhost:5000/api/...' from origin 'https://hogtechfront.vercel.app' 
+Access to fetch at 'http://localhost:5000/api/...' from origin 'https://hogtechgh.com' 
 has been blocked by CORS policy
 ```
 
 This means `NEXT_PUBLIC_API_URL` is **NOT SET** in your Vercel environment variables.
+
+**Note:** Your production domain is `https://hogtechgh.com` (custom domain).
 
 ---
 
