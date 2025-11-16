@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { r2ImageLoader } from '@/lib/imageLoader';
 import { Button } from '@/components/ui/Button';
 import { useAppSelector, useAppDispatch } from '@/store';
 import { removeFromCart, updateQuantity } from '@/store/cartSlice';
