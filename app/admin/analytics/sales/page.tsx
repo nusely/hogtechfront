@@ -204,6 +204,28 @@ export default function SalesAnalyticsPage() {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 5);
 
+      // Group by day
+      const byDayMap: { [key: string]: { orders: number; units: number } } = {};
+      orders.forEach(order => {
+        const orderDate = new Date(order.created_at || new Date()).toISOString().split('T')[0];
+        if (!byDayMap[orderDate]) {
+          byDayMap[orderDate] = { orders: 0, units: 0 };
+        }
+        byDayMap[orderDate].orders += 1;
+        
+        const orderItems = order.order_items || [];
+        orderItems.forEach((item: any) => {
+          const quantity = parseInt(item.quantity) || 0;
+          if (quantity > 0) {
+            byDayMap[orderDate].units += quantity;
+          }
+        });
+      });
+
+      const byDay = Object.entries(byDayMap)
+        .map(([date, data]) => ({ date, orders: data.orders, units: data.units }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
       // Conversion rate (orders / total users * 100) - simplified
       const { count: totalUsers } = await supabase
         .from('users')
