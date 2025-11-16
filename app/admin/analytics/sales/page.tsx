@@ -1,17 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, Package, ShoppingBag, Star, Download } from 'lucide-react';
+import { TrendingUp, Package, ShoppingBag, Star, Download, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { buildApiUrl } from '@/lib/api';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface SalesData {
   totalOrders: number;
   totalUnits: number;
   conversionRate: number;
   topProducts: Array<{ name: string; units: number; revenue: number }>;
+  byDay: Array<{ date: string; orders: number; units: number }>;
 }
 
 export default function SalesAnalyticsPage() {
@@ -22,6 +35,7 @@ export default function SalesAnalyticsPage() {
     totalUnits: 0,
     conversionRate: 0,
     topProducts: [],
+    byDay: [],
   });
 
   useEffect(() => {
@@ -205,6 +219,7 @@ export default function SalesAnalyticsPage() {
         totalUnits,
         conversionRate: parseFloat(conversionRate.toFixed(1)),
         topProducts,
+        byDay,
       });
     } catch (error) {
       console.error('Error fetching sales data:', error);
@@ -245,6 +260,14 @@ export default function SalesAnalyticsPage() {
             <option value="30days">Last 30 Days</option>
             <option value="90days">Last 90 Days</option>
           </select>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<RefreshCw size={16} />}
+            onClick={() => fetchSalesData()}
+          >
+            Refresh
+          </Button>
           <Button variant="outline" icon={<Download size={18} />}>
             Export Report
           </Button>
@@ -279,6 +302,120 @@ export default function SalesAnalyticsPage() {
           <p className="text-3xl font-bold text-[#163b86]">{salesData.conversionRate}%</p>
           <p className="text-sm text-[#163b86] mt-2">Visitors to buyers</p>
         </div>
+      </div>
+
+      {/* Sales Volume Chart */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-[#1A1A1A]">Sales Volume</h2>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={salesData.byDay}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }}
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <Tooltip
+              formatter={(value: number, name: string) => {
+                if (name === 'orders') {
+                  return [value, 'Orders'];
+                }
+                return [value, 'Units Sold'];
+              }}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+              }}
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+            />
+            <Legend />
+            <Bar
+              dataKey="orders"
+              fill="#00afef"
+              radius={[8, 8, 0, 0]}
+              name="Orders"
+            />
+            <Bar
+              dataKey="units"
+              fill="#163b86"
+              radius={[8, 8, 0, 0]}
+              name="Units Sold"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Performance Metrics Line Chart */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-[#1A1A1A]">Performance Metrics</h2>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={salesData.byDay}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }}
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <Tooltip
+              formatter={(value: number, name: string) => {
+                if (name === 'orders') {
+                  return [value, 'Orders'];
+                }
+                return [value, 'Units Sold'];
+              }}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+              }}
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+            />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="orders"
+              stroke="#00afef"
+              strokeWidth={3}
+              dot={{ fill: '#00afef', r: 4 }}
+              name="Orders"
+            />
+            <Line
+              type="monotone"
+              dataKey="units"
+              stroke="#163b86"
+              strokeWidth={3}
+              dot={{ fill: '#163b86', r: 4 }}
+              name="Units Sold"
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Top Selling Products */}

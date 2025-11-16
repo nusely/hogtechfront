@@ -7,11 +7,24 @@ import {
   TrendingDown,
   Calendar,
   Download,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { buildApiUrl } from '@/lib/api';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface RevenueData {
   total: number;
@@ -327,29 +340,128 @@ export default function RevenueAnalyticsPage() {
         </div>
       </div>
 
-      {/* Revenue Chart Placeholder */}
+      {/* Revenue Trend Chart */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-bold text-[#1A1A1A] mb-6">Revenue Trend</h2>
-        <div className="h-64 flex items-end justify-between gap-2">
-          {revenueData.byDay.map((day, index) => {
-            const maxRevenue = Math.max(...revenueData.byDay.map((d) => d.revenue));
-            const height = (day.revenue / maxRevenue) * 100;
-            return (
-              <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full flex flex-col justify-end" style={{ height: '200px' }}>
-                  <div
-                    className="w-full bg-[#00afef] rounded-t-lg hover:bg-[#FF8A29] transition-colors cursor-pointer"
-                    style={{ height: `${height}%` }}
-                    title={`GHS ${day.revenue}`}
-                  ></div>
-                </div>
-                <span className="text-xs text-[#3A3A3A]">
-                  {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
-                </span>
-              </div>
-            );
-          })}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-[#1A1A1A]">Revenue Trend</h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<RefreshCw size={16} />}
+              onClick={() => fetchRevenueData()}
+            >
+              Refresh
+            </Button>
+          </div>
         </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={revenueData.byDay}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }}
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              tickFormatter={(value) => `GHS ${value}`}
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <Tooltip
+              formatter={(value: number) => [`GHS ${value.toLocaleString()}`, 'Revenue']}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+              }}
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+            />
+            <Legend />
+            <Bar
+              dataKey="revenue"
+              fill="#00afef"
+              radius={[8, 8, 0, 0]}
+              name="Revenue"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Revenue and Transactions Line Chart */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-bold text-[#1A1A1A]">Revenue & Transactions</h2>
+        </div>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={revenueData.byDay}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              }}
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              yAxisId="left"
+              tickFormatter={(value) => `GHS ${value}`}
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              stroke="#6b7280"
+              style={{ fontSize: '12px' }}
+            />
+            <Tooltip
+              formatter={(value: number, name: string) => {
+                if (name === 'revenue') {
+                  return [`GHS ${value.toLocaleString()}`, 'Revenue'];
+                }
+                return [value, 'Transactions'];
+              }}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+              }}
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+              }}
+            />
+            <Legend />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="revenue"
+              stroke="#00afef"
+              strokeWidth={3}
+              dot={{ fill: '#00afef', r: 4 }}
+              name="Revenue"
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="transactions"
+              stroke="#163b86"
+              strokeWidth={3}
+              dot={{ fill: '#163b86', r: 4 }}
+              name="Transactions"
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Revenue by Category */}
@@ -365,7 +477,7 @@ export default function RevenueAnalyticsPage() {
                     GHS {category.revenue.toLocaleString()}
                   </span>
                   <span className="text-sm text-[#3A3A3A] ml-2">
-                    ({category.percentage}%)
+                    ({category.percentage.toFixed(1)}%)
                   </span>
                 </div>
               </div>
