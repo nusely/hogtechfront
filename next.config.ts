@@ -44,6 +44,28 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Add redirects for SEO fixes
+  async redirects() {
+    return [
+      // Redirect old product-category URLs to categories
+      {
+        source: '/product-category/:category/:subcategory*',
+        destination: '/categories/:category',
+        permanent: true,
+      },
+      {
+        source: '/product-category/:category',
+        destination: '/categories/:category',
+        permanent: true,
+      },
+      // Redirect old product URLs if they exist
+      {
+        source: '/product-category/:path*',
+        destination: '/categories',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
