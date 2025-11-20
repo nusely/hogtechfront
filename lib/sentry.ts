@@ -4,8 +4,8 @@ const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || process.env.NODE_ENV || 'development';
 
 export const initSentry = () => {
-  if (!SENTRY_DSN) {
-    console.warn('⚠️ Sentry DSN not configured. Error tracking disabled.');
+  if (!SENTRY_DSN || ENVIRONMENT === 'production') {
+    console.warn('⚠️ Sentry temporarily disabled for deployment.');
     return;
   }
 
@@ -30,15 +30,14 @@ export const initSentry = () => {
     // sessions when an error occurs.
     replaysOnErrorSampleRate: 1.0,
 
-    // Set `tracePropagationTargets` to control which requests have tracing headers added
-    tracePropagationTargets: [
-      'localhost',
-      /^https:\/\/hogtechgh\.com/,
-      /^https:\/\/.*\.hogtechgh\.com/,
-    ],
-
     integrations: [
-      Sentry.browserTracingIntegration(),
+      Sentry.browserTracingIntegration({
+        tracePropagationTargets: [
+          'localhost',
+          /^https:\/\/hogtechgh\.com/,
+          /^https:\/\/.*\.hogtechgh\.com/,
+        ],
+      }),
       Sentry.replayIntegration({
         // Mask all text content, block all media content
         maskAllText: true,
