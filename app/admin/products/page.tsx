@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 import { CSVExporter, ProductColumns } from '@/lib/csvExport';
+import { settingsService } from '@/lib/settings.service';
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -40,6 +41,7 @@ export default function AdminProductsPage() {
   const [showAddToDealModal, setShowAddToDealModal] = useState(false);
   const [selectedProductForDeal, setSelectedProductForDeal] = useState<Product | null>(null);
   const [productsInDeals, setProductsInDeals] = useState<Set<string>>(new Set());
+  const [lowStockThreshold, setLowStockThreshold] = useState<number>(3);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 20,
@@ -59,6 +61,23 @@ export default function AdminProductsPage() {
     
     return () => clearTimeout(timeoutId);
   }, [isAuthenticated, user, pagination.page, searchQuery]);
+
+  useEffect(() => {
+    // Fetch low stock threshold
+    const fetchThreshold = async () => {
+      try {
+        const thresholdSetting = await settingsService.getSetting('inventory_low_stock_threshold');
+        const parsed = parseInt(thresholdSetting || '', 10);
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          setLowStockThreshold(parsed);
+        }
+      } catch (error) {
+        // Use default threshold of 3
+        console.warn('Failed to fetch low stock threshold, using default:', error);
+      }
+    };
+    fetchThreshold();
+  }, []);
 
   useEffect(() => {
     // Fetch products in deals
@@ -346,7 +365,7 @@ export default function AdminProductsPage() {
                           <div className="flex items-center gap-3">
                             <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                               <Image
-                                src={product.thumbnail || '/placeholder-product.webp'}
+                                src={product.thumbnail || '/placeholders/placeholder-product.webp'}
                                 alt={product.name}
                                 fill
                                 className="object-cover"
@@ -404,12 +423,32 @@ export default function AdminProductsPage() {
                           <span className="text-sm text-gray-900">{product.stock_quantity}</span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge
-                            variant={product.in_stock ? 'success' : 'error'}
-                            size="sm"
-                          >
-                            {product.in_stock ? 'In Stock' : 'Out of Stock'}
-                          </Badge>
+                          {(() => {
+                            const stockQuantity = Number(product.stock_quantity ?? 0);
+                            const isLowStock = product.in_stock && stockQuantity > 0 && stockQuantity <= lowStockThreshold;
+                            
+                            if (!product.in_stock || stockQuantity <= 0) {
+                              return (
+                                <Badge variant="error" size="sm">
+                                  Out of Stock
+                                </Badge>
+                              );
+                            }
+                            
+                            if (isLowStock) {
+                              return (
+                                <Badge variant="warning" size="sm" className="bg-orange-500 text-white">
+                                  Low Stock
+                                </Badge>
+                              );
+                            }
+                            
+                            return (
+                              <Badge variant="success" size="sm">
+                                In Stock
+                              </Badge>
+                            );
+                          })()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end gap-2">

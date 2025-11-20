@@ -77,15 +77,29 @@ export const cartService = {
         return [];
       }
 
-      const response = await fetch(buildApiUrl('/api/cart'), {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const apiUrl = buildApiUrl('/api/cart');
+      console.log('🛒 Fetching cart from:', apiUrl);
+      
+      let response;
+      try {
+        response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (!response.ok) {
-        console.warn('Failed to fetch cart from backend:', response.statusText);
+        if (!response.ok) {
+          console.warn('⚠️ Failed to fetch cart from backend:', response.status, response.statusText);
+          return [];
+        }
+      } catch (error: any) {
+        console.error('❌ Cart fetch error:', {
+          message: error?.message,
+          name: error?.name,
+          apiUrl,
+          error,
+        });
         return [];
       }
 

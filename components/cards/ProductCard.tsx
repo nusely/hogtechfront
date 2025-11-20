@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import { useAllowBackorders } from '@/hooks/useAllowBackorders';
 import { motion } from 'framer-motion';
 import { fadeInScale, scaleHover } from '@/lib/motion';
+import { settingsService } from '@/lib/settings.service';
 
 interface ProductCardProps {
   product: Product;
@@ -28,6 +29,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const { isInWishlist, toggleItem, removeItem } = useWishlist();
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [lowStockThreshold, setLowStockThreshold] = useState<number>(3);
   const { allowBackorders } = useAllowBackorders();
   
   const isInCart = items.some(item => item.id === product.id);
@@ -35,6 +37,43 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   const stockQuantity = Number(product.stock_quantity ?? 0);
   const isBackorder = allowBackorders && (!product.in_stock || stockQuantity <= 0);
   const canPurchase = product.in_stock || isBackorder;
+  
+  // Fetch low stock threshold setting
+  useEffect(() => {
+    const fetchThreshold = async () => {
+      try {
+        const thresholdSetting = await settingsService.getSetting('inventory_low_stock_threshold');
+        const parsed = parseInt(thresholdSetting || '', 10);
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          setLowStockThreshold(parsed);
+        }
+      } catch (error) {
+        // Use default threshold of 3
+        console.warn('Failed to fetch low stock threshold, using default:', error);
+      }
+    };
+    fetchThreshold();
+  }, []);
+  
+  // Check if product is low in stock (products with stock <= threshold)
+  // Stock of 3 and below should show "Low Stock" when threshold is 3
+  // Use the current threshold value (defaults to 3, updates when fetched)
+  const isLowStock = product.in_stock && stockQuantity > 0 && stockQuantity <= lowStockThreshold;
+  
+  // Debug logging - always log for products with stock <= 5 to help debug
+  if (stockQuantity <= 5) {
+    console.log('📦 Product stock check:', {
+      productName: product.name,
+      productId: product.id,
+      stockQuantity,
+      stockQuantityType: typeof product.stock_quantity,
+      stockQuantityRaw: product.stock_quantity,
+      lowStockThreshold,
+      in_stock: product.in_stock,
+      isLowStock,
+      thresholdFetched: lowStockThreshold !== 3 || stockQuantity <= 3, // Log if threshold is custom or stock is low
+    });
+  }
 
   // Check for deal price first (highest priority)
   const rawDealPrice = (product as any).deal_price;
@@ -163,6 +202,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
     }
   };
 
+  // Validate required fields
+  if (!product || !product.id) {
+    console.error('ProductCard: Invalid product', product);
+    return null;
+  }
+
+  // Ensure slug exists, fallback to id if missing
+  const productSlug = product.slug || product.id;
+
   return (
     <>
       <LoginPromptModal
@@ -170,7 +218,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         onClose={() => setShowLoginModal(false)}
         action="wishlist"
       />
-      <Link href={`/product/${product.slug}`}>
+      <Link href={`/product/${productSlug}`}>
         <motion.div
           className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 h-full flex flex-col"
           variants={fadeInScale}
@@ -192,7 +240,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             />
 
             {/* Badges */}
-            <div className="absolute top-3 left-3 flex flex-col gap-2">
+            <div className="absolute top-3 left-3 flex flex-col gap-2 z-20">
               {hasDiscount && discountPercentage > 0 && (
                 <Badge variant="error" size="sm">
                   -{Math.round(discountPercentage)}%
@@ -201,6 +249,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
               {product.featured && (
                 <Badge variant="warning" size="sm">
                   Featured
+                </Badge>
+              )}
+              {/* Low Stock badge - show for products with stock <= threshold */}
+              {isLowStock && (
+                <Badge variant="warning" size="sm" className="bg-orange-500 text-white">
+                  Low Stock
                 </Badge>
               )}
               {!product.in_stock && (

@@ -138,7 +138,7 @@ export default function ReturnsPage() {
                 </p>
                 <ul className="text-[#3A3A3A] space-y-1">
                   <li>📧 Email: <a href="mailto:hedgehog.technologies1@gmail.com" className="text-[#00afef] hover:underline">hedgehog.technologies1@gmail.com</a></li>
-                  <li>📞 Phone: <a href="tel:+233551344310" className="text-[#00afef] hover:underline">+233 55 134 4310</a></li>
+                  <li>📞 Phone: <a href="tel:+2335538865804" className="text-[#00afef] hover:underline">+233 553 886 5804</a></li>
                 </ul>
               </div>
             </div>
@@ -318,10 +318,10 @@ export default function ReturnsPage() {
           <p className="mb-6">Our customer service team is here to assist you</p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a
-              href="tel:+233551344310"
+              href="tel:+2335538865804"
               className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-              Call: +233 55 134 4310
+              Call: +233 553 886 5804
             </a>
             <a
               href="mailto:hedgehog.technologies1@gmail.com"

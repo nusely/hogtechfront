@@ -342,7 +342,6 @@ export default function AdminCustomersPage() {
                             </div>
                             <div>
                               <p className="font-medium text-sm text-[#1A1A1A]">{customer.full_name}</p>
-                              <p className="text-xs text-gray-500">ID: {customer.id}</p>
                             </div>
                           </div>
                         </td>

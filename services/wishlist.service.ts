@@ -48,7 +48,13 @@ export const wishlistService = {
         const checkErrorWithCode = checkError as any;
         // PGRST116 = no rows found (not an error)
         if (checkErrorWithCode.code !== 'PGRST116') {
-          console.error('Error checking wishlist:', checkError);
+          console.error('Error checking wishlist:', {
+            error: checkError,
+            code: checkErrorWithCode.code,
+            message: checkErrorWithCode.message,
+            userId,
+            productId,
+          });
           throw checkError;
         }
       }
@@ -57,12 +63,13 @@ export const wishlistService = {
         return false; // Already in wishlist
       }
 
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('wishlists')
         .insert({
           user_id: userId,
           product_id: productId,
-        });
+        })
+        .select();
 
       if (error) {
         const errorWithCode = error as any;
@@ -76,12 +83,46 @@ export const wishlistService = {
           console.warn('Product already in wishlist (race condition)');
           return false;
         }
-        console.error('Error adding to wishlist:', error);
+        // PGRST301 = RLS policy violation
+        if (errorWithCode.code === 'PGRST301' || errorWithCode.message?.includes('RLS') || errorWithCode.message?.includes('policy')) {
+          console.error('RLS policy violation when adding to wishlist:', {
+            code: errorWithCode.code,
+            message: errorWithCode.message,
+            details: errorWithCode.details,
+            hint: errorWithCode.hint,
+            userId,
+            productId,
+          });
+          return false;
+        }
+        console.error('Error adding to wishlist:', {
+          error,
+          code: errorWithCode.code,
+          message: errorWithCode.message,
+          details: errorWithCode.details,
+          hint: errorWithCode.hint,
+          userId,
+          productId,
+        });
         throw error;
       }
-      return true;
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
+      
+      if (data && data.length > 0) {
+        return true;
+      }
+      
+      return false;
+    } catch (error: any) {
+      console.error('Error adding to wishlist (catch block):', {
+        error,
+        errorMessage: error?.message,
+        errorCode: error?.code,
+        errorDetails: error?.details,
+        errorHint: error?.hint,
+        stack: error?.stack,
+        userId,
+        productId,
+      });
       return false;
     }
   },

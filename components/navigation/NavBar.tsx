@@ -60,6 +60,7 @@ export const NavBar = () => {
     { href: '/shop', label: 'Shop' },
     { href: '/deals', label: 'Deals' },
     { href: '/about', label: 'About' },
+    { href: '/services', label: 'Services' },
     { href: '/contact', label: 'Contact' },
     { href: '/track-order', label: 'Track Order', highlight: true },
   ];
@@ -124,12 +125,12 @@ export const NavBar = () => {
             {/* Contact Info */}
             <div className="flex flex-col gap-1 pr-4 border-r border-gray-200">
               <a 
-                href="tel:+233551344310" 
+                href="tel:+2335538865804" 
                 className="flex items-center gap-2 text-xs text-[#3A3A3A] hover:text-[#00afef] transition-colors"
                 title="Call us"
               >
                 <Phone size={16} />
-                <span className="hidden xl:inline font-medium">+233 55 134 4310</span>
+                <span className="hidden xl:inline font-medium">+233 553 886 5804</span>
               </a>
               <a 
                 href="mailto:hedgehog.technologies1@gmail.com" 
@@ -488,12 +489,12 @@ export const NavBar = () => {
           {/* Contact Info */}
           <div className="border-t border-gray-200 px-4 py-4 space-y-3 bg-gray-50">
             <a
-              href="tel:+233551344310"
+              href="tel:+2335538865804"
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex items-center gap-3 text-sm text-[#3A3A3A] hover:text-[#00afef] transition-colors"
             >
               <Phone size={18} className="text-[#00afef]" />
-              <span>+233 55 134 4310</span>
+              <span>+233 553 886 5804</span>
             </a>
             <a
               href="mailto:hedgehog.technologies1@gmail.com"

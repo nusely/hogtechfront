@@ -1,199 +1,207 @@
 import { supabase } from '@/lib/supabase';
-import { Coupon, CreateCouponData } from '@/types/coupon';
+import { buildApiUrl } from '@/lib/api';
 
-// Get all coupons (admin only)
-export const getAllCoupons = async (): Promise<Coupon[]> => {
+// Helper function to get auth token
+const getAuthToken = async (): Promise<string | null> => {
   try {
-    const { data, error } = await supabase
-      .from('coupons')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching coupons:', error);
-      throw error;
-    }
-
-    return data || [];
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
   } catch (error) {
-    console.error('Failed to fetch coupons:', error);
-    return [];
+    console.error('Error getting auth token:', error);
+    return null;
   }
 };
 
-// Get active coupons
-export const getActiveCoupons = async (): Promise<Coupon[]> => {
+export interface Coupon {
+  id: string;
+  code: string;
+  description?: string;
+  discount_type: 'percentage' | 'fixed_amount' | 'free_shipping';
+  discount_value: number;
+  min_purchase_amount: number;
+  max_discount_amount?: number | null;
+  start_date: string;
+  end_date?: string | null;
+  usage_limit?: number | null;
+  used_count: number;
+  per_user_limit?: number | null;
+  is_active: boolean;
+  applicable_products?: string[] | null;
+  applicable_categories?: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCouponDto extends Omit<Coupon, 'id' | 'created_at' | 'updated_at' | 'used_count'> {
+  // id, created_at, updated_at, used_count are generated/managed by backend
+}
+
+export interface UpdateCouponDto extends Partial<CreateCouponDto> {}
+
+export interface PaginationResult<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+// List all coupons
+export const listCoupons = async (
+  page: number = 1, 
+  limit: number = 10, 
+  search?: string, 
+  status?: string
+): Promise<PaginationResult<Coupon>> => {
   try {
-    const { data, error } = await supabase
-      .from('coupons')
-      .select('*')
-      .eq('is_active', true)
-      .gte('valid_until', new Date().toISOString())
-      .order('created_at', { ascending: false });
+    const token = await getAuthToken();
+    if (!token) throw new Error('Not authenticated');
 
-    if (error) {
-      console.error('Error fetching active coupons:', error);
-      throw error;
-    }
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
 
-    return data || [];
-  } catch (error) {
-    console.error('Failed to fetch active coupons:', error);
-    return [];
-  }
-};
-
-// Validate coupon code
-export const validateCoupon = async (code: string, cartAmount: number = 0) => {
-  try {
-    const { data, error } = await supabase.rpc('validate_coupon', {
-      coupon_code: code,
-      cart_amount: cartAmount
+    const response = await fetch(buildApiUrl(`/api/coupons?${params.toString()}`), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
     });
 
-    if (error) {
-      console.error('Error validating coupon:', error);
-      throw error;
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to fetch coupons');
     }
 
-    return data[0] || { is_valid: false, discount_amount: 0, error_message: 'Invalid coupon' };
-  } catch (error) {
-    console.error('Failed to validate coupon:', error);
-    return { is_valid: false, discount_amount: 0, error_message: 'Failed to validate coupon' };
+    // Map backend response structure
+    // Backend returns { success: true, data: { coupons: [], pagination: {} } }
+    return {
+      data: result.data.coupons,
+      pagination: result.data.pagination,
+    };
+  } catch (error: any) {
+    console.error('Error listing coupons:', error);
+    throw error;
   }
 };
 
-// Generate new coupon code
-export const generateCouponCode = async (): Promise<string> => {
+// Get single coupon
+export const getCoupon = async (id: string): Promise<Coupon> => {
   try {
-    const { data, error } = await supabase.rpc('generate_coupon_code');
+    const token = await getAuthToken();
+    if (!token) throw new Error('Not authenticated');
 
-    if (error) {
-      console.error('Error generating coupon code:', error);
-      throw error;
+    const response = await fetch(buildApiUrl(`/api/coupons/${id}`), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to fetch coupon');
     }
 
-    return data;
-  } catch (error) {
-    console.error('Failed to generate coupon code:', error);
-    // Fallback: generate random code (exactly 8 characters)
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 8; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+    return result.data;
+  } catch (error: any) {
+    console.error('Error fetching coupon:', error);
+    throw error;
   }
 };
 
-// Create new coupon
-export const createCoupon = async (couponData: CreateCouponData): Promise<Coupon | null> => {
+// Create coupon
+export const createCoupon = async (couponData: CreateCouponDto): Promise<Coupon> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User must be authenticated to create coupons');
+    const token = await getAuthToken();
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(buildApiUrl('/api/coupons'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(couponData),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      // If validation errors, format them
+      if (result.errors) {
+        const errorMsg = Object.values(result.errors).flat().join(', ');
+        throw new Error(errorMsg || 'Validation failed');
+      }
+      throw new Error(result.message || 'Failed to create coupon');
     }
 
-    const { data, error } = await supabase
-      .from('coupons')
-      .insert({
-        ...couponData,
-        minimum_amount: couponData.minimum_amount ?? 0,
-        is_active: couponData.is_active ?? true,
-        valid_from: couponData.valid_from || new Date().toISOString(),
-        created_by: user.id
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating coupon:', error);
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Failed to create coupon:', error);
+    return result.data;
+  } catch (error: any) {
+    console.error('Error creating coupon:', error);
     throw error;
   }
 };
 
 // Update coupon
-export const updateCoupon = async (couponId: string, updates: Partial<Coupon>): Promise<Coupon | null> => {
+export const updateCoupon = async (id: string, updates: UpdateCouponDto): Promise<Coupon> => {
   try {
-    const { data, error } = await supabase
-      .from('coupons')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', couponId)
-      .select()
-      .single();
+    const token = await getAuthToken();
+    if (!token) throw new Error('Not authenticated');
 
-    if (error) {
-      console.error('Error updating coupon:', error);
-      throw error;
+    const response = await fetch(buildApiUrl(`/api/coupons/${id}`), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(updates),
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      if (result.errors) {
+        const errorMsg = Object.values(result.errors).flat().join(', ');
+        throw new Error(errorMsg || 'Validation failed');
+      }
+      throw new Error(result.message || 'Failed to update coupon');
     }
 
-    return data;
-  } catch (error) {
-    console.error('Failed to update coupon:', error);
+    return result.data;
+  } catch (error: any) {
+    console.error('Error updating coupon:', error);
     throw error;
   }
 };
 
 // Delete coupon
-export const deleteCoupon = async (couponId: string): Promise<boolean> => {
+export const deleteCoupon = async (id: string): Promise<void> => {
   try {
-    const { error } = await supabase
-      .from('coupons')
-      .delete()
-      .eq('id', couponId);
+    const token = await getAuthToken();
+    if (!token) throw new Error('Not authenticated');
 
-    if (error) {
-      console.error('Error deleting coupon:', error);
-      throw error;
+    const response = await fetch(buildApiUrl(`/api/coupons/${id}`), {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || 'Failed to delete coupon');
     }
-
-    return true;
-  } catch (error) {
-    console.error('Failed to delete coupon:', error);
+  } catch (error: any) {
+    console.error('Error deleting coupon:', error);
     throw error;
   }
 };
 
-// Increment coupon usage
-export const incrementCouponUsage = async (couponId: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('coupons')
-      .update({
-        used_count: (await supabase.from('coupons').select('used_count').eq('id', couponId).single()).data?.used_count + 1 || 1,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', couponId);
-
-    if (error) {
-      console.error('Error incrementing coupon usage:', error);
-      throw error;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Failed to increment coupon usage:', error);
-    throw error;
-  }
-};
-
-// Export as object for convenience
-export const couponService = {
-  getAllCoupons,
-  getActiveCoupons,
-  validateCoupon,
-  generateCouponCode,
-  createCoupon,
-  updateCoupon,
-  deleteCoupon,
-  incrementCouponUsage,
-};

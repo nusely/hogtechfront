@@ -31,6 +31,7 @@ interface DashboardStats {
   ordersChange: number;
   customersChange: number;
   averageOrderValue: number;
+  aovChange?: number; // Average Order Value change
 }
 
 interface RecentTransaction {
@@ -103,29 +104,93 @@ export default function AdminDashboard() {
       const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-      // Fetch total revenue (from paid orders)
-      const { data: paidOrders, error: revenueError } = await supabase
-        .from('orders')
-        .select('total, created_at')
-        .eq('payment_status', 'paid');
+      // Fetch total revenue from transactions table (source of truth)
+      // Try transactions first, fallback to paid orders if transactions don't exist
+      let totalRevenue = 0;
+      let paidOrders: any[] = [];
+      
+      try {
+        const { data: transactions, error: transactionsError } = await supabase
+          .from('transactions')
+          .select('amount, created_at, payment_status')
+          .in('payment_status', ['paid', 'success']);
 
-      if (revenueError) {
-        console.error('Error fetching paid orders:', revenueError);
-        // Continue with empty array - don't break the whole dashboard
+        if (!transactionsError && transactions && transactions.length > 0) {
+          // Use transactions as source of truth for revenue
+          totalRevenue = transactions.reduce((sum, tx) => sum + (parseFloat(String(tx.amount)) || 0), 0);
+          console.log('Revenue calculated from transactions:', totalRevenue, 'transactions:', transactions.length);
+        } else {
+          // Fallback to paid orders if transactions table is empty or doesn't exist
+          const { data: paidOrdersData, error: revenueError } = await supabase
+            .from('orders')
+            .select('total, created_at')
+            .eq('payment_status', 'paid');
+
+          if (revenueError) {
+            console.error('Error fetching paid orders:', revenueError);
+          } else {
+            paidOrders = paidOrdersData || [];
+            totalRevenue = paidOrders.reduce((sum, order) => sum + (parseFloat(String(order.total)) || 0), 0);
+            console.log('Revenue calculated from paid orders:', totalRevenue, 'orders:', paidOrders.length);
+          }
+        }
+      } catch (error) {
+        console.error('Error calculating revenue:', error);
+        // Continue with 0 revenue
       }
-
-      const totalRevenue = paidOrders?.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0) || 0;
       
       // Calculate current month vs last month revenue
-      const currentMonthRevenue = paidOrders?.filter(order => {
-        const orderDate = new Date(order.created_at);
-        return orderDate >= currentMonthStart;
-      }).reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0) || 0;
+      // Try transactions first, fallback to orders
+      let currentMonthRevenue = 0;
+      let lastMonthRevenue = 0;
+      
+      try {
+        const { data: allTransactions, error: txError } = await supabase
+          .from('transactions')
+          .select('amount, created_at, payment_status')
+          .in('payment_status', ['paid', 'success']);
 
-      const lastMonthRevenue = paidOrders?.filter(order => {
-        const orderDate = new Date(order.created_at);
-        return orderDate >= lastMonthStart && orderDate <= lastMonthEnd;
-      }).reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0) || 0;
+        if (!txError && allTransactions && allTransactions.length > 0) {
+          currentMonthRevenue = allTransactions
+            .filter(tx => {
+              const txDate = new Date(tx.created_at);
+              return txDate >= currentMonthStart;
+            })
+            .reduce((sum, tx) => sum + (parseFloat(String(tx.amount)) || 0), 0);
+
+          lastMonthRevenue = allTransactions
+            .filter(tx => {
+              const txDate = new Date(tx.created_at);
+              return txDate >= lastMonthStart && txDate <= lastMonthEnd;
+            })
+            .reduce((sum, tx) => sum + (parseFloat(String(tx.amount)) || 0), 0);
+        } else {
+          // Fallback to orders
+          if (paidOrders.length === 0) {
+            const { data: paidOrdersData } = await supabase
+              .from('orders')
+              .select('total, created_at')
+              .eq('payment_status', 'paid');
+            paidOrders = paidOrdersData || [];
+          }
+          
+          currentMonthRevenue = paidOrders
+            .filter(order => {
+              const orderDate = new Date(order.created_at);
+              return orderDate >= currentMonthStart;
+            })
+            .reduce((sum, order) => sum + (parseFloat(String(order.total)) || 0), 0);
+
+          lastMonthRevenue = paidOrders
+            .filter(order => {
+              const orderDate = new Date(order.created_at);
+              return orderDate >= lastMonthStart && orderDate <= lastMonthEnd;
+            })
+            .reduce((sum, order) => sum + (parseFloat(String(order.total)) || 0), 0);
+        }
+      } catch (error) {
+        console.error('Error calculating revenue change:', error);
+      }
 
       const revenueChange = lastMonthRevenue > 0 
         ? ((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
@@ -234,9 +299,74 @@ export default function AdminDashboard() {
 
       if (productsError) throw productsError;
 
-      // Calculate average order value
-      const averageOrderValue = totalOrdersCount && totalOrdersCount > 0 
-        ? totalRevenue / totalOrdersCount 
+      // Calculate average order value from paid orders only
+      // Get count of paid orders for accurate AOV calculation
+      let paidOrdersCount = 0;
+      try {
+        const { count, error: paidCountError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('payment_status', 'paid');
+        
+        if (!paidCountError && count !== null) {
+          paidOrdersCount = count;
+        } else {
+          // Fallback: use transactions count if available
+          const { count: txCount, error: txCountError } = await supabase
+            .from('transactions')
+            .select('*', { count: 'exact', head: true })
+            .in('payment_status', ['paid', 'success']);
+          
+          if (!txCountError && txCount !== null) {
+            paidOrdersCount = txCount;
+          }
+        }
+      } catch (error) {
+        console.error('Error calculating paid orders count:', error);
+      }
+
+      const averageOrderValue = paidOrdersCount > 0 
+        ? totalRevenue / paidOrdersCount 
+        : 0;
+      
+      // Calculate AOV change (current month vs last month)
+      // Use paid orders count for accurate AOV calculation
+      let currentMonthPaidOrders = 0;
+      let lastMonthPaidOrders = 0;
+      
+      try {
+        // Get paid orders for current month
+        const { data: currentMonthPaidData } = await supabase
+          .from('orders')
+          .select('id, created_at')
+          .eq('payment_status', 'paid')
+          .gte('created_at', currentMonthStart.toISOString());
+        
+        currentMonthPaidOrders = currentMonthPaidData?.length || 0;
+        
+        // Get paid orders for last month
+        const { data: lastMonthPaidData } = await supabase
+          .from('orders')
+          .select('id, created_at')
+          .eq('payment_status', 'paid')
+          .gte('created_at', lastMonthStart.toISOString())
+          .lte('created_at', lastMonthEnd.toISOString());
+        
+        lastMonthPaidOrders = lastMonthPaidData?.length || 0;
+      } catch (error) {
+        console.error('Error calculating paid orders for AOV:', error);
+      }
+      
+      const currentMonthAOV = currentMonthPaidOrders > 0 
+        ? currentMonthRevenue / currentMonthPaidOrders 
+        : 0;
+      
+      const lastMonthAOV = lastMonthPaidOrders > 0 
+        ? lastMonthRevenue / lastMonthPaidOrders 
+        : 0;
+      
+      const aovChange = lastMonthAOV > 0 
+        ? ((currentMonthAOV - lastMonthAOV) / lastMonthAOV) * 100 
         : 0;
 
       // Update stats
@@ -272,6 +402,7 @@ export default function AdminDashboard() {
         ordersChange: parseFloat(ordersChange.toFixed(1)),
         customersChange: parseFloat(customersChange.toFixed(1)),
         averageOrderValue: parseFloat(averageOrderValue.toFixed(2)),
+        aovChange: parseFloat(aovChange.toFixed(1)), // Store AOV change for use in card
       });
 
       // Fetch recent transactions (recent orders) - simplified query without join
@@ -352,13 +483,16 @@ export default function AdminDashboard() {
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data) {
-            // Get all orders (paid and pending)
-            const allOrders = (result.data || []).filter((order: any) => 
-              order.payment_status === 'paid' || order.payment_status === 'pending'
+            // Only get PAID orders for top products calculation
+            // Pending orders don't count until they're paid
+            const paidOrders = (result.data || []).filter((order: any) => 
+              order.payment_status === 'paid' || order.payment_status === 'success'
             );
 
-            // Extract order items from all orders
-            allOrders.forEach((order: any) => {
+            console.log('📊 Top Products: Using', paidOrders.length, 'paid orders (excluding pending)');
+
+            // Extract order items from paid orders only
+            paidOrders.forEach((order: any) => {
               if (order.order_items && Array.isArray(order.order_items)) {
                 orderItems.push(...order.order_items);
               }
@@ -381,6 +515,7 @@ export default function AdminDashboard() {
       // Fallback to Supabase if API didn't return data
       if (orderItems.length === 0) {
         // Try transactions first (source of truth for revenue)
+        // Only count PAID transactions for top products
         const { data: transactions, error: transactionsError } = await supabase
           .from('transactions')
           .select(`
@@ -388,7 +523,7 @@ export default function AdminDashboard() {
             amount,
             order:orders!transactions_order_id_fkey(id, order_items(product_name, quantity, unit_price))
           `)
-          .in('payment_status', ['paid', 'pending'])
+          .in('payment_status', ['paid', 'success'])
           .limit(1000); // Limit to prevent huge queries
 
         if (!transactionsError && transactions && transactions.length > 0) {
@@ -449,7 +584,7 @@ export default function AdminDashboard() {
       let uniqueWishlistUsers = 0;
       try {
       const { data: wishlistData, error: wishlistError } = await supabase
-        .from('wishlists')
+        .from('wishlist')
         .select('user_id', { count: 'exact' });
 
         if (!wishlistError && wishlistData) {
@@ -459,10 +594,10 @@ export default function AdminDashboard() {
         console.error('Error fetching wishlist users:', error);
       }
 
-      // Abandoned carts - users who added to cart but have been inactive for 24h+
+      // Abandoned carts - users who added to cart but have been inactive for 12h+
       let abandonedCount = 0;
       try {
-        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
         const { data: abandonedItems, error: abandonedError } = await supabase
           .from('cart_items')
           .select(`
@@ -474,7 +609,7 @@ export default function AdminDashboard() {
             product:products(id),
             user:users!cart_items_user_id_fkey(id, email)
           `)
-          .lt('updated_at', twentyFourHoursAgo)
+          .lt('updated_at', twelveHoursAgo)
           .order('updated_at', { ascending: false });
 
         if (abandonedError) {
@@ -532,16 +667,44 @@ export default function AdminDashboard() {
         console.error('Error fetching low stock products:', error);
       }
 
-      // Pending orders
+      // Pending orders - check both payment_status and status
       let pendingOrdersCount = 0;
       try {
-        const { count, error: pendingOrdersError } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
+        // First try: orders with pending payment_status
+        const { count: pendingPaymentCount, error: pendingPaymentError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('payment_status', 'pending');
 
-        if (!pendingOrdersError) {
-          pendingOrdersCount = count || 0;
+        if (!pendingPaymentError && pendingPaymentCount !== null) {
+          pendingOrdersCount = pendingPaymentCount;
+        }
+
+        // Also check orders with status = 'pending' (in case payment_status is different)
+        const { count: pendingStatusCount, error: pendingStatusError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending')
+          .neq('payment_status', 'paid'); // Exclude already paid orders
+
+        if (!pendingStatusError && pendingStatusCount !== null) {
+          // Use the higher count (might have orders with status=pending but payment_status=paid)
+          pendingOrdersCount = Math.max(pendingOrdersCount, pendingStatusCount);
+        }
+
+        // If both queries failed, try getting all orders and filtering client-side
+        if (pendingPaymentError && pendingStatusError) {
+          const { data: allOrdersData, error: allOrdersError } = await supabase
+            .from('orders')
+            .select('id, payment_status, status');
+
+          if (!allOrdersError && allOrdersData) {
+            pendingOrdersCount = allOrdersData.filter(
+              (order: any) => 
+                order.payment_status === 'pending' || 
+                (order.status === 'pending' && order.payment_status !== 'paid')
+            ).length;
+          }
         }
       } catch (error) {
         console.error('Error fetching pending orders:', error);
@@ -593,7 +756,7 @@ export default function AdminDashboard() {
     {
       title: 'Avg Order Value',
       value: `GHS ${stats.averageOrderValue.toFixed(2)}`,
-      change: 5.8,
+      change: stats.aovChange || 0,
       icon: CreditCard,
       color: 'bg-[#00afef]',
       bgColor: 'bg-blue-50',
@@ -905,7 +1068,8 @@ const LowStockModalContent = ({
     <div className="max-h-[60vh] overflow-y-auto divide-y divide-gray-200">
       {products.map((product) => {
         const imageUrl = product.thumbnail || (product.images && product.images[0]) || '/placeholders/placeholder-product.webp';
-        const price = product.discount_price ?? product.original_price ?? 0;
+        // Backend returns 'price' field, not 'original_price'
+        const price = product.discount_price ?? product.price ?? 0;
 
         return (
           <div key={product.id} className="flex items-start gap-4 py-4">

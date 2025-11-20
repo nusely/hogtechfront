@@ -23,10 +23,16 @@ interface Transaction {
   customer_name: string;
   customer_email: string;
   amount: number;
-  status: 'completed' | 'pending' | 'failed' | 'refunded';
+  status: 'completed' | 'pending' | 'failed' | 'refunded' | 'cancelled';
   payment_method: string;
   date: string;
   created_at: string;
+  order?: {
+    id: string;
+    order_number: string;
+    status: string;
+    payment_status: string;
+  };
 }
 
 export default function TransactionsPage() {
@@ -63,6 +69,7 @@ export default function TransactionsPage() {
           const dbStatus = statusFilter === 'completed' ? 'paid' : 
                           statusFilter === 'pending' ? 'pending' : 
                           statusFilter === 'failed' ? 'failed' : 
+                          statusFilter === 'cancelled' ? 'cancelled' :
                           statusFilter === 'refunded' ? 'refunded' : statusFilter;
           apiUrl += `?status=${dbStatus}`;
         }
@@ -75,47 +82,76 @@ export default function TransactionsPage() {
           },
         });
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.data) {
-            const formattedTransactions: Transaction[] = (result.data || []).map((tx: any) => {
-              // Get payment_status from transaction, order, or default to 'pending'
-              const paymentStatus = tx.payment_status || tx.order?.payment_status || 'pending';
-              
-              return {
-                id: tx.id,
-                order_number: tx.order?.order_number || tx.metadata?.order_number || 'N/A',
-                order_id: tx.order_id || tx.order?.id,
-                customer_name: tx.customer_name || tx.metadata?.customer_name || tx.user 
-                  ? `${tx.user?.first_name || ''} ${tx.user?.last_name || ''}`.trim() || tx.customer_email || 'Unknown'
-                  : tx.customer_email || 'Guest',
-                customer_email: tx.customer_email || tx.user?.email || 'No email',
-                amount: typeof tx.amount === 'string' ? parseFloat(tx.amount) || 0 : (tx.amount || 0),
-                status: paymentStatus === 'paid' ? 'completed' : paymentStatus === 'pending' ? 'pending' : paymentStatus === 'failed' ? 'failed' : 'refunded',
-                payment_method: tx.payment_method || 'paystack',
-                date: new Date(tx.paid_at || tx.created_at).toLocaleDateString(),
-                created_at: tx.created_at,
-              };
+        if (!response.ok) {
+          let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          const responseText = await response.text();
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.message || errorData.error || errorMessage;
+            console.error('Backend API error response:', {
+              status: response.status,
+              statusText: response.statusText,
+              error: errorData,
+              url: apiUrl,
             });
-            setTransactions(formattedTransactions);
-            return;
+          } catch (parseError) {
+            console.error('Backend API error (non-JSON):', {
+              status: response.status,
+              statusText: response.statusText,
+              responseText,
+              url: apiUrl,
+            });
           }
+          throw new Error(errorMessage);
+        }
+
+        const result = await response.json();
+        if (result.success && result.data) {
+          const formattedTransactions: Transaction[] = (result.data || []).map((tx: any) => {
+            // Get payment_status from transaction, order, or default to 'pending'
+            const paymentStatus = tx.payment_status || tx.order?.payment_status || 'pending';
+            
+            return {
+              id: tx.id,
+              order_number: tx.order?.order_number || tx.metadata?.order_number || 'N/A',
+              order_id: tx.order_id || tx.order?.id,
+              customer_name: tx.customer_name || tx.metadata?.customer_name || tx.user 
+                ? `${tx.user?.first_name || ''} ${tx.user?.last_name || ''}`.trim() || tx.customer_email || 'Unknown'
+                : tx.customer_email || 'Guest',
+              customer_email: tx.customer_email || tx.user?.email || 'No email',
+              amount: typeof tx.amount === 'string' ? parseFloat(tx.amount) || 0 : (tx.amount || 0),
+              status: paymentStatus === 'paid' ? 'completed' : paymentStatus === 'pending' ? 'pending' : paymentStatus === 'failed' ? 'failed' : 'refunded',
+              payment_method: tx.payment_method || 'paystack',
+              date: new Date(tx.paid_at || tx.created_at).toLocaleDateString(),
+              created_at: tx.created_at,
+            };
+          });
+          setTransactions(formattedTransactions);
+          return;
+        } else {
+          console.warn('Backend API returned unsuccessful response:', result);
+          throw new Error(result.message || 'Backend API returned unsuccessful response');
         }
       } catch (apiError: any) {
         if (apiError?.message === 'Missing authentication token') {
           console.warn('Skipping backend transactions fetch: no auth token available yet.');
         } else {
-          console.warn('Backend API failed, trying Supabase:', apiError);
+          console.warn('Backend API failed, trying Supabase:', {
+            error: apiError,
+            message: apiError?.message,
+            stack: apiError?.stack,
+          });
         }
       }
 
       // Fallback: Fetch transactions from Supabase
+      // Try with foreign key relationships first, fallback to simple query if that fails
       let query = supabase
         .from('transactions')
         .select(`
           *,
-          order:orders!transactions_order_id_fkey(id, order_number, payment_status),
-          user:users!transactions_user_id_fkey(id, first_name, last_name, email)
+          order:orders(id, order_number, status, payment_status),
+          user:users(id, first_name, last_name, email)
         `)
         .order('created_at', { ascending: false });
 
@@ -125,27 +161,66 @@ export default function TransactionsPage() {
         const dbStatus = statusFilter === 'completed' ? 'paid' : 
                         statusFilter === 'pending' ? 'pending' : 
                         statusFilter === 'failed' ? 'failed' : 
+                        statusFilter === 'cancelled' ? 'cancelled' :
                         statusFilter === 'refunded' ? 'refunded' : statusFilter;
         query = query.eq('payment_status', dbStatus);
       }
 
-      const { data, error } = await query;
+      let { data, error } = await query;
 
+      // If foreign key join fails, try without joins
       if (error) {
-        console.error('Error fetching transactions:', error);
-        // Check if table doesn't exist
         const errorWithCode = error as any;
-        if (errorWithCode.code === '42P01' || errorWithCode.code === 'PGRST116' || error.message?.includes('does not exist')) {
-          console.error('Transactions table does not exist or RLS is blocking access');
-          toast.error('Transactions table not accessible. Please check database setup.');
+        console.warn('Error fetching transactions with joins, trying without joins:', {
+          code: errorWithCode.code,
+          message: errorWithCode.message,
+          details: errorWithCode.details,
+          hint: errorWithCode.hint,
+        });
+        
+        // Try simpler query without foreign key relationships
+        let simpleQuery = supabase
+          .from('transactions')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (statusFilter !== 'all') {
+          const dbStatus = statusFilter === 'completed' ? 'paid' : 
+                          statusFilter === 'pending' ? 'pending' : 
+                          statusFilter === 'failed' ? 'failed' : 
+                          statusFilter === 'cancelled' ? 'cancelled' :
+                          statusFilter === 'refunded' ? 'refunded' : statusFilter;
+          simpleQuery = simpleQuery.eq('payment_status', dbStatus);
         }
-        throw error;
+        
+        const simpleResult = await simpleQuery;
+        if (simpleResult.error) {
+          console.error('Error fetching transactions (simple query):', {
+            error: simpleResult.error,
+            code: (simpleResult.error as any)?.code,
+            message: (simpleResult.error as any)?.message,
+            details: (simpleResult.error as any)?.details,
+            hint: (simpleResult.error as any)?.hint,
+          });
+          // Check if table doesn't exist
+          const simpleErrorWithCode = simpleResult.error as any;
+          if (simpleErrorWithCode.code === '42P01' || simpleErrorWithCode.code === 'PGRST116' || simpleResult.error.message?.includes('does not exist')) {
+            console.error('Transactions table does not exist or RLS is blocking access');
+            toast.error('Transactions table not accessible. Please check database setup.');
+          }
+          throw simpleResult.error;
+        }
+        data = simpleResult.data;
+        error = null;
       }
 
       // Format transactions for display
       const formattedTransactions: Transaction[] = (data || []).map((tx: any) => {
-        // Get payment_status from transaction, order, or default to 'pending'
-        const paymentStatus = tx.payment_status || tx.order?.payment_status || 'pending';
+        // If order status is cancelled, payment_status should be cancelled
+        let paymentStatus = tx.payment_status || tx.order?.payment_status || 'pending';
+        if (tx.order?.status === 'cancelled') {
+          paymentStatus = 'cancelled';
+        }
         
         return {
           id: tx.id,
@@ -156,18 +231,42 @@ export default function TransactionsPage() {
             : tx.customer_email || 'Guest',
           customer_email: tx.customer_email || tx.user?.email || 'No email',
           amount: typeof tx.amount === 'string' ? parseFloat(tx.amount) || 0 : (tx.amount || 0),
-          status: paymentStatus === 'paid' ? 'completed' : paymentStatus === 'pending' ? 'pending' : paymentStatus === 'failed' ? 'failed' : 'refunded',
+          status: paymentStatus === 'paid' ? 'completed' : paymentStatus === 'pending' ? 'pending' : paymentStatus === 'failed' ? 'failed' : paymentStatus === 'cancelled' ? 'cancelled' : 'refunded',
           payment_method: tx.payment_method || 'paystack',
-          date: new Date(tx.paid_at || tx.created_at).toLocaleDateString(),
+          date: new Date(tx.paid_at || tx.created_at).toLocaleString(),
           created_at: tx.created_at,
+          order: tx.order ? {
+            id: tx.order.id,
+            order_number: tx.order.order_number,
+            status: tx.order.status,
+            payment_status: tx.order.payment_status,
+          } : undefined,
         };
       });
 
       setTransactions(formattedTransactions);
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
+    } catch (error: any) {
+      console.error('Error fetching transactions (catch block):', {
+        error,
+        errorMessage: error?.message,
+        errorCode: error?.code,
+        errorDetails: error?.details,
+        errorHint: error?.hint,
+        stack: error?.stack,
+        errorString: String(error),
+        errorJSON: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+      });
       setTransactions([]);
-      toast.error('Failed to load transactions. Please check console for details.');
+      
+      // Show more specific error message
+      const errorMessage = error?.message || error?.details || 'Unknown error';
+      if (error?.code === '42P01' || error?.code === 'PGRST116') {
+        toast.error('Transactions table not accessible. Please check database setup.');
+      } else if (error?.code === 'PGRST301' || error?.message?.includes('RLS') || error?.message?.includes('policy')) {
+        toast.error('Access denied. Please check RLS policies for transactions table.');
+      } else {
+        toast.error(`Failed to load transactions: ${errorMessage}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -181,6 +280,8 @@ export default function TransactionsPage() {
         return <Clock size={16} className="text-yellow-600" />;
       case 'failed':
         return <XCircle size={16} className="text-red-600" />;
+      case 'cancelled':
+        return <XCircle size={16} className="text-gray-600" />;
       case 'refunded':
         return <CheckCircle size={16} className="text-blue-600" />;
       default:
@@ -196,6 +297,8 @@ export default function TransactionsPage() {
         return 'bg-yellow-100 text-yellow-700';
       case 'failed':
         return 'bg-red-100 text-red-700';
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-700';
       case 'refunded':
         return 'bg-blue-100 text-blue-700';
       default:
@@ -239,6 +342,51 @@ export default function TransactionsPage() {
     (sum, t) => sum + (t.status === 'completed' ? t.amount : 0),
     0
   );
+
+  const updateTransactionStatus = async (transactionId: string, newStatus: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      // Map frontend status to backend payment_status
+      const paymentStatusMap: Record<string, string> = {
+        'completed': 'paid',
+        'pending': 'pending',
+        'failed': 'failed',
+        'cancelled': 'cancelled',
+        'refunded': 'refunded',
+      };
+
+      const paymentStatus = paymentStatusMap[newStatus] || newStatus;
+
+      const response = await fetch(`${buildApiUrl('/api/transactions')}/${transactionId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          payment_status: paymentStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update transaction status');
+      }
+
+      toast.success('Transaction status updated successfully');
+      fetchTransactions(); // Refresh transactions
+    } catch (error: any) {
+      console.error('Error updating transaction status:', error);
+      toast.error(error.message || 'Failed to update transaction status');
+    }
+  };
 
   if (loading) {
     return (
@@ -310,6 +458,7 @@ export default function TransactionsPage() {
             <option value="completed">Completed</option>
             <option value="pending">Pending</option>
             <option value="failed">Failed</option>
+            <option value="cancelled">Cancelled</option>
             <option value="refunded">Refunded</option>
           </select>
 
@@ -382,18 +531,48 @@ export default function TransactionsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                          transaction.status
-                        )}`}
-                      >
-                        {getStatusIcon(transaction.status)}
-                        {transaction.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
+                            transaction.status
+                          )}`}
+                        >
+                          {getStatusIcon(transaction.status)}
+                          {transaction.status}
+                        </span>
+                        {transaction.status !== 'completed' && transaction.status !== 'cancelled' && (
+                          <select
+                            value={transaction.status}
+                            onChange={(e) => {
+                              const newStatus = e.target.value;
+                              if (newStatus === 'completed') {
+                                // Check if order is paid before allowing completion
+                                if (transaction.order_id) {
+                                  // We'll validate on backend, but show a warning
+                                  if (confirm('Transaction can only be marked as completed if the order is paid. Continue?')) {
+                                    updateTransactionStatus(transaction.id, newStatus);
+                                  }
+                                } else {
+                                  updateTransactionStatus(transaction.id, newStatus);
+                                }
+                              } else {
+                                updateTransactionStatus(transaction.id, newStatus);
+                              }
+                            }}
+                            className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#00afef]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="failed">Failed</option>
+                            <option value="refunded">Refunded</option>
+                          </select>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-[#3A3A3A]">
-                        {new Date(transaction.created_at).toLocaleDateString()}
+                        {new Date(transaction.created_at).toLocaleString()}
                       </span>
                     </td>
                   </tr>

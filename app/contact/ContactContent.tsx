@@ -91,7 +91,7 @@ export function ContactContent() {
     };
   }, []);
 
-  const storePhone = settings.store_phone || '+233 55 134 4310';
+  const storePhone = settings.store_phone || '0553 886 5804';
   const storeEmail = settings.store_email || 'hedgehog.technologies1@gmail.com';
   // For migration: check new key first, then fallback to old keys
   const address = settings.store_address || 
@@ -221,10 +221,17 @@ export function ContactContent() {
               <p className="text-sm text-[#3A3A3A] mb-4">
                 Our customer support team is available to assist you with any questions or concerns.
               </p>
-              <Button variant="primary" size="sm" className="w-full">
-                <MessageSquare size={16} />
-                Start Live Chat
-              </Button>
+              <a 
+                href="https://wa.me/233538865804" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block w-full"
+              >
+                <Button variant="primary" size="sm" className="w-full">
+                  <MessageSquare size={16} />
+                  Start Live Chat
+                </Button>
+              </a>
             </motion.div>
           </motion.div>
 
@@ -275,7 +282,7 @@ export function ContactContent() {
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef] focus:border-transparent text-sm"
-                      placeholder="+233 55 134 4310"
+                      placeholder="+233 553 886 5804"
                     />
                   </div>
                 </div>
@@ -333,18 +340,31 @@ export function ContactContent() {
       </motion.section>
 
       {/* Map Section */}
-      <section className="bg-gray-100 py-16">
+      <motion.section className="bg-gray-100 py-16" variants={fadeInUp} custom={0.15}>
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto">
+          <div className="text-center max-w-4xl mx-auto mb-8">
             <MapPin className="mx-auto mb-4 text-[#00afef]" size={48} />
             <h2 className="text-2xl font-bold text-[#1A1A1A] mb-3">Visit Our Store</h2>
             <p className="text-[#3A3A3A] text-sm mb-6">
               Come see our products in person. Our friendly staff is ready to help you find exactly what you need.
             </p>
-            <Button variant="outline">Get Directions</Button>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="rounded-xl overflow-hidden shadow-lg border border-gray-200">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3097.2231529858846!2d-0.3079048!3d5.5575211!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdfbd0037ffbc5b%3A0x951289c75a6182e2!2sHEDGEHOG%20TECHNOLOGIES!5e1!3m2!1sen!2sgh!4v1763538508267!5m2!1sen!2sgh" 
+                width="100%" 
+                height="450" 
+                style={{ border: 0 }} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
-      </section>
+      </motion.section>
     </motion.main>
   );
 }

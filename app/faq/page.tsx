@@ -30,7 +30,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Orders & Shipping',
     question: 'Can I change or cancel my order?',
-    answer: 'Yes, you can cancel or modify your order within 2 hours of placing it. After that, the order enters processing and cannot be changed. Contact us immediately at +233 55 134 4310 if you need assistance.',
+    answer: 'Yes, you can cancel or modify your order within 2 hours of placing it. After that, the order enters processing and cannot be changed. Contact us immediately at +233 553 886 5804 if you need assistance.',
   },
 
   // Payment
@@ -59,7 +59,7 @@ const faqs: FAQItem[] = [
   {
     category: 'Returns & Refunds',
     question: 'How do I return an item?',
-    answer: 'Contact our customer service at hedgehog.technologies1@gmail.com or call +233 55 134 4310 to initiate a return. We\'ll provide you with a return authorization and instructions.',
+    answer: 'Contact our customer service at hedgehog.technologies1@gmail.com or call +233 553 886 5804 to initiate a return. We\'ll provide you with a return authorization and instructions.',
   },
   {
     category: 'Returns & Refunds',
@@ -203,7 +203,7 @@ export default function FAQPage() {
               Email Us
             </a>
             <a
-              href="tel:+233551344310"
+              href="tel:+2335538865804"
               className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />

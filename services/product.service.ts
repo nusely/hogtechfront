@@ -171,6 +171,12 @@ export const getProducts = async (params: GetProductsParams = {}): Promise<Produ
 
     if (error) {
       console.error('Error fetching products with relations:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+      });
       
       // Fallback: Try fetching without explicit foreign key
       console.log('Attempting to fetch products with simple relations...');
@@ -210,6 +216,8 @@ export const getProducts = async (params: GetProductsParams = {}): Promise<Produ
         return (productsBasic || []).map((p: any) => ({
           ...p,
           original_price: p.price,
+          // Ensure stock_quantity is preserved and is a number
+          stock_quantity: Number(p.stock_quantity ?? 0),
           category_name: null,
           brand: p.brand_name || '',
           featured: p.is_featured || false,
@@ -221,6 +229,8 @@ export const getProducts = async (params: GetProductsParams = {}): Promise<Produ
         ...p,
         // Always use 'price' field from DB as original_price (source of truth)
         original_price: p.price || 0,
+        // Ensure stock_quantity is preserved and is a number
+        stock_quantity: Number(p.stock_quantity ?? 0),
         category_name: p.categories?.name || p.category_name || null,
         category_slug: p.categories?.slug || p.category_slug || null,
         brand: p.brands?.name || p.brand || '',
@@ -234,6 +244,8 @@ export const getProducts = async (params: GetProductsParams = {}): Promise<Produ
       // Always use 'price' field from DB as original_price (source of truth)
       // Ignore product.original_price if it exists (it might be stale or wrong)
       original_price: product.price || 0,
+      // Ensure stock_quantity is preserved and is a number
+      stock_quantity: Number(product.stock_quantity ?? 0),
       category_name: product.categories?.name || product.category_name || null,
       category_slug: product.categories?.slug || product.category_slug || null,
       brand: product.brands?.name || product.brand || '',

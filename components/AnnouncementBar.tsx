@@ -19,7 +19,13 @@ export function AnnouncementBar() {
 
   const fetchAnnouncement = async () => {
     try {
-      const response = await fetch(buildApiUrl(SETTINGS_ENDPOINT), {
+      const apiUrl = buildApiUrl(SETTINGS_ENDPOINT);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Fetching announcement from:', apiUrl);
+      }
+      
+      const response = await fetch(apiUrl, {
         cache: 'no-store',
       });
 
@@ -42,8 +48,9 @@ export function AnnouncementBar() {
         setDismissed(false);
       }
     } catch (error) {
+      // Silently fail - announcement bar is not critical
       if (process.env.NODE_ENV === 'development') {
-        console.error('Failed to fetch announcement settings:', error);
+        console.warn('Failed to fetch announcement settings (non-critical):', error);
       }
     } finally {
       setIsLoading(false);

@@ -286,10 +286,10 @@ export default function ShippingInfoPage() {
           <p className="mb-6">Contact our support team for assistance</p>
           <div className="flex flex-wrap gap-4 justify-center">
             <a
-              href="tel:+233551344310"
+              href="tel:+2335538865804"
               className="bg-white text-[#00afef] px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
             >
-              Call: +233 55 134 4310
+              Call: +233 553 886 5804
             </a>
             <a
               href="mailto:hedgehog.technologies1@gmail.com"

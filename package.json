@@ -3,13 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NEXT_PRIVATE_SKIP_TURBO=1 next dev",
+    "dev:turbo": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.2",
+    "@sentry/nextjs": "^10.26.0",
     "@supabase/supabase-js": "^2.76.1",
     "axios": "^1.13.0",
     "embla-carousel-autoplay": "^8.6.0",
@@ -29,6 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
     "tailwindcss": "^4",

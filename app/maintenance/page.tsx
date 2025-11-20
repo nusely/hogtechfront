@@ -76,7 +76,7 @@ export default function MaintenancePage() {
               Email Support
             </Link>
             <Link
-              href="tel:+233551344310"
+              href="tel:+2335538865804"
               className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-[#1A1A1A] rounded-lg font-medium transition-colors shadow"
             >
               Call Us

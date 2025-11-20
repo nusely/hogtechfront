@@ -38,7 +38,7 @@ export function Footer() {
 
   const storeName = settings.store_name || 'Hedgehog Technologies';
   const storeTagline = settings.store_tagline || 'Your trusted tech partner in Ghana';
-  const storePhone = settings.store_phone || '+233 55 134 4310';
+  const storePhone = settings.store_phone || '0553 886 5804';
   const storeEmail = settings.store_email || 'hedgehog.technologies1@gmail.com';
   // For migration: check new key first, then fallback to old keys
   const address = settings.store_address || 

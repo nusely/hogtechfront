@@ -42,19 +42,19 @@ export const SidebarAdCarousel: React.FC<SidebarAdCarouselProps> = ({ ads }) => 
   }, [emblaApi, onSelect]);
 
   return (
-    <div className="relative rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow group">
+    <div className="relative rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
           {ads.map((ad) => (
             <div key={ad.id} className="flex-[0_0_100%]">
               <Link href={ad.link}>
-                <div className="relative aspect-square">
+                <div className="relative aspect-[3/4]">
                   <Image
                     loader={r2ImageLoader}
                     src={ad.image_url || '/placeholders/placeholder-ad.webp'}
                     alt={ad.title || 'Advertisement'}
                     fill
-                    sizes="(max-width: 1200px) 0vw, 13vw"
+                    sizes="(max-width: 1280px) 0vw, 200px"
                     className="object-cover"
                     loading="lazy"
                     unoptimized={ad.image_url?.includes('files.hogtechgh.com') || ad.image_url?.includes('.r2.dev') || true}
@@ -71,31 +71,31 @@ export const SidebarAdCarousel: React.FC<SidebarAdCarouselProps> = ({ ads }) => 
         <>
           <button
             onClick={scrollPrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+            className="absolute left-1.5 top-1/2 -translate-y-1/2 w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
             aria-label="Previous ad"
           >
-            <ChevronLeft size={18} className="text-[#1A1A1A]" />
+            <ChevronLeft size={14} className="text-[#1A1A1A]" />
           </button>
           <button
             onClick={scrollNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
             aria-label="Next ad"
           >
-            <ChevronRight size={18} className="text-[#1A1A1A]" />
+            <ChevronRight size={14} className="text-[#1A1A1A]" />
           </button>
         </>
       )}
 
       {/* Dots */}
       {ads.length > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
           {ads.map((_, index) => (
             <button
               key={index}
               onClick={() => emblaApi?.scrollTo(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
+              className={`w-1.5 h-1.5 rounded-full transition-all ${
                 index === selectedIndex
-                  ? 'bg-[#00afef] w-6'
+                  ? 'bg-[#00afef] w-4'
                   : 'bg-white/60 hover:bg-white/90'
               }`}
               aria-label={`Go to ad ${index + 1}`}

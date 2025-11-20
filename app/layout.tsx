@@ -6,6 +6,12 @@ import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { Toaster } from "react-hot-toast";
 import { seoConfig } from "@/lib/seo.config";
 import { DataSync } from "@/components/DataSync";
+import { initSentry } from "@/lib/sentry";
+
+// Initialize Sentry (only in browser)
+if (typeof window !== 'undefined') {
+  initSentry();
+}
 
 const inter = Inter({
   subsets: ["latin"],

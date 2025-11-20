@@ -195,18 +195,39 @@ export const getDealProducts = async (dealId: string): Promise<DealProduct[]> =>
 // Get all products in active deals (for deals page)
 export const getActiveDealProducts = async (): Promise<DealProduct[]> => {
   try {
-    const response = await fetch(`${buildApiUrl('/api/deals')}/active/products`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const apiUrl = `${buildApiUrl('/api/deals')}/active/products`;
+    console.log('🎯 Fetching active deal products from:', apiUrl);
+    
+    let response;
+    try {
+      response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error: any) {
+      console.error('❌ Failed to fetch active deal products:', {
+        message: error?.message,
+        name: error?.name,
+        apiUrl,
+        error,
+      });
+      // Return empty array instead of throwing
+      return [];
+    }
 
     if (response.ok) {
       const result = await response.json();
       if (result.success) {
+        console.log('Active deal products fetched from API:', result.data?.length || 0);
         return result.data || [];
+      } else {
+        console.warn('API returned success=false for active deal products:', result.message);
       }
+    } else {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.warn(`API request failed (${response.status}) for active deal products:`, errorText);
     }
 
     // Fallback to Supabase
@@ -428,9 +449,14 @@ export const getFlashDealProducts = async (limit: number = 4): Promise<DealProdu
     if (response.ok) {
       const result = await response.json();
       if (result.success) {
-        console.log('Flash deal products from API:', result.data);
+        console.log('Flash deal products fetched from API:', result.data?.length || 0, result.data);
         return result.data || [];
+      } else {
+        console.warn('API returned success=false for flash deal products:', result.message);
       }
+    } else {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.warn(`API request failed (${response.status}) for flash deal products:`, errorText);
     }
 
     console.warn('API call failed, falling back to Supabase');

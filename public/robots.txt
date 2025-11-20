@@ -1,19 +1,18 @@
-# https://www.robotstxt.org/robotstxt.html
+# Robots.txt for Hedgehog Technologies
+# https://ventechgadgets.com
+
 User-agent: *
 Allow: /
-
-# Disallow admin dashboard
-Disallow: /admin/
-
-# Allow all other pages
-Allow: /shop
-Allow: /categories
-Allow: /product/
-Allow: /deals
-Allow: /about
-Allow: /contact
-Allow: /register
+Disallow: /admin
+Disallow: /api/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /profile
+Disallow: /orders
+Disallow: /auth/
 
 # Sitemap
 Sitemap: https://ventechgadgets.com/sitemap.xml
 
+# Crawl-delay for good bots
+Crawl-delay: 1

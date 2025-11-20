@@ -134,7 +134,10 @@ export default function AuthCallbackPage() {
 
                       if (createError2) {
                         // Check if it's a duplicate key error (profile already exists)
-                        if (createError2.code === '23505' || createError2.message?.includes('duplicate') || createError2.message?.includes('unique')) {
+                        const errorCode = createError2?.code || createError2?.error_code;
+                        const errorMessage = createError2?.message || createError2?.error_description || String(createError2);
+                        
+                        if (errorCode === '23505' || errorMessage?.includes('duplicate') || errorMessage?.includes('unique') || errorMessage?.includes('already exists')) {
                           console.log('Profile already exists (duplicate), fetching existing profile');
                           // Fetch the existing profile
                           const { data: existing, error: fetchError } = await supabase
@@ -145,56 +148,88 @@ export default function AuthCallbackPage() {
 
                           if (existing && !fetchError) {
                             console.log('User profile fetched successfully (existing):', existing);
-                          } else {
+                          } else if (fetchError) {
                             console.error('Error fetching existing profile:', fetchError);
                           }
                         } else {
+                          // Only log non-duplicate errors
                           console.error('Error creating user profile (with name field):', {
                             error: createError2,
-                            message: createError2.message,
-                            code: createError2.code,
-                            details: createError2.details,
+                            message: errorMessage,
+                            code: errorCode,
+                            details: createError2?.details || createError2?.hint,
+                            fullError: JSON.stringify(createError2, Object.getOwnPropertyNames(createError2), 2),
                           });
                         }
-                      } else {
+                      } else if (newProfile2) {
                         console.log('User profile created successfully (with name field):', newProfile2);
                       }
-                    } else {
-                      // Check if it's a duplicate key error (profile already exists)
-                      if (createError.code === '23505' || createError.message?.includes('duplicate') || createError.message?.includes('unique')) {
-                        console.log('Profile already exists (duplicate), fetching existing profile');
-                        // Fetch the existing profile
-                        const { data: existing, error: fetchError } = await supabase
-                          .from('users')
-                          .select('*')
-                          .eq('id', user.id)
-                          .single();
-
-                        if (existing && !fetchError) {
-                          console.log('User profile fetched successfully (existing):', existing);
-                        } else {
-                          console.error('Error fetching existing profile:', fetchError);
-                        }
                       } else {
-                        console.error('Error creating user profile:', {
-                          error: createError,
-                          message: createError.message,
-                          code: createError.code,
-                          details: createError.details,
-                        });
+                        // Check if it's a duplicate key error (profile already exists)
+                        const errorCode = createError?.code || createError?.error_code;
+                        const errorMessage = createError?.message || createError?.error_description || String(createError);
+                        
+                        if (errorCode === '23505' || errorMessage?.includes('duplicate') || errorMessage?.includes('unique') || errorMessage?.includes('already exists')) {
+                          console.log('Profile already exists (duplicate), fetching existing profile');
+                          // Fetch the existing profile
+                          const { data: existing, error: fetchError } = await supabase
+                            .from('users')
+                            .select('*')
+                            .eq('id', user.id)
+                            .single();
+
+                          if (existing && !fetchError) {
+                            console.log('User profile fetched successfully (existing):', existing);
+                          } else if (fetchError) {
+                            console.error('Error fetching existing profile:', fetchError);
+                          }
+                        } else {
+                          // Only log non-duplicate errors
+                          console.error('Error creating user profile:', {
+                            error: createError,
+                            message: errorMessage,
+                            code: errorCode,
+                            details: createError?.details || createError?.hint,
+                            fullError: JSON.stringify(createError, Object.getOwnPropertyNames(createError), 2),
+                          });
+                        }
                       }
-                    }
                   } else {
                     console.log('User profile created successfully:', newProfile);
                   }
                 }
               } catch (insertError: any) {
-                console.error('Error inserting user profile:', {
-                  error: insertError,
-                  message: insertError?.message,
-                  code: insertError?.code,
-                  details: insertError?.details,
-                });
+                // Check if it's a duplicate key error (profile already exists)
+                const errorCode = insertError?.code || insertError?.error_code;
+                const errorMessage = insertError?.message || insertError?.error_description || String(insertError);
+                
+                if (errorCode === '23505' || errorMessage?.includes('duplicate') || errorMessage?.includes('unique') || errorMessage?.includes('already exists')) {
+                  console.log('Profile already exists (caught in try-catch), fetching existing profile');
+                  // Fetch the existing profile
+                  try {
+                    const { data: existing, error: fetchError } = await supabase
+                      .from('users')
+                      .select('*')
+                      .eq('id', user.id)
+                      .single();
+
+                    if (existing && !fetchError) {
+                      console.log('User profile fetched successfully (existing):', existing);
+                    } else if (fetchError) {
+                      console.error('Error fetching existing profile:', fetchError);
+                    }
+                  } catch (fetchErr) {
+                    console.error('Error in fetch after insert error:', fetchErr);
+                  }
+                } else {
+                  console.error('Error inserting user profile:', {
+                    error: insertError,
+                    message: errorMessage,
+                    code: errorCode,
+                    details: insertError?.details || insertError?.hint,
+                    fullError: JSON.stringify(insertError, Object.getOwnPropertyNames(insertError), 2),
+                  });
+                }
               }
             }
           } catch (error) {

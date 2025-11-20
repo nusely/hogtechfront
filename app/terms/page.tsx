@@ -176,7 +176,7 @@ export default function TermsOfServicePage() {
             </p>
             <ul className="space-y-2 text-[#3A3A3A]">
               <li><strong>Email:</strong> hedgehog.technologies1@gmail.com</li>
-              <li><strong>Phone:</strong> +233 55 134 4310</li>
+              <li><strong>Phone:</strong> +233 553 886 5804</li>
               <li><strong>Address:</strong> Ho Civic Center Shop #22, Ho, Ghana</li>
               <li><strong>Address:</strong> Accra, Ghana</li>
             </ul>

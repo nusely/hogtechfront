@@ -53,14 +53,17 @@ export const orderService = {
     // Map items for backend
     const order_items = checkoutData.items.map((item) => {
       const isStandalone = item.category_id === 'standalone';
+      const unitPrice = item.discount_price || item.original_price || 0;
+      const subtotal = item.subtotal ?? (unitPrice * item.quantity);
+      
       return {
         product_id: isStandalone ? null : item.id,
         product_name: item.name,
         product_image: item.thumbnail,
         quantity: item.quantity,
-        unit_price: item.discount_price || item.original_price,
-        subtotal: item.subtotal,
-        selected_variants: item.selected_variants,
+        unit_price: unitPrice,
+        subtotal: Number(subtotal.toFixed(2)),
+        selected_variants: item.selected_variants || {},
         standalone_source_id: isStandalone ? item.id : null,
       };
     });
@@ -92,13 +95,19 @@ export const orderService = {
     console.log('Creating order via backend API:', {
       API_URL,
       endpoint: `${API_URL}/orders`,
-      payload: {
-        ...orderPayload,
-        order_items: orderPayload.order_items.map((item) => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-        })),
+      payload: orderPayload,
+      payloadSummary: {
+        subtotal: orderPayload.subtotal,
+        discount: orderPayload.discount,
+        tax: orderPayload.tax,
+        delivery_fee: orderPayload.delivery_fee,
+        total: orderPayload.total,
+        payment_method: orderPayload.payment_method,
+        order_items_count: orderPayload.order_items.length,
+        has_delivery_address: !!orderPayload.delivery_address,
+        delivery_address: orderPayload.delivery_address,
+        has_delivery_option: !!orderPayload.delivery_option,
+        first_order_item: orderPayload.order_items[0],
       },
     });
 
@@ -121,19 +130,40 @@ export const orderService = {
 
     if (!response.ok) {
       let errorMessage = 'Backend API failed';
+      let errorData: any = null;
+      
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || errorMessage;
+        const responseText = await response.text();
+        console.log('Raw response text:', responseText);
+        
+        if (responseText && responseText.trim()) {
+          errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } else {
+          errorMessage = `HTTP ${response.status}: ${response.statusText || 'Empty response from server'}`;
+        }
+        
         console.error('Backend API error response:', {
           status: response.status,
           statusText: response.statusText,
           error: errorData,
+          fieldErrors: errorData?.errors?.fieldErrors,
+          fullResponse: errorData ? JSON.stringify(errorData, null, 2) : 'No error data',
         });
+        
+        // If there are field errors, include them in the error message
+        if (errorData?.errors?.fieldErrors) {
+          const fieldErrorsText = Object.entries(errorData.errors.fieldErrors)
+            .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+            .join('; ');
+          errorMessage = `${errorMessage} - ${fieldErrorsText}`;
+        }
       } catch (parseError) {
-        errorMessage = `HTTP ${response.status}: ${response.statusText || 'Unknown error'}`;
-        console.error('Backend API error (non-JSON):', {
+        errorMessage = `HTTP ${response.status}: ${response.statusText || 'Failed to parse error response'}`;
+        console.error('Backend API error (parse failed):', {
           status: response.status,
           statusText: response.statusText,
+          parseError,
         });
       }
       throw new Error(errorMessage);

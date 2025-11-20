@@ -243,7 +243,7 @@ export default function MainSettingsPage() {
                   label="Customer Support Phone"
                   value={generalSettings.storePhone}
                   onChange={(e) => setGeneralSettings((prev) => ({ ...prev, storePhone: e.target.value }))}
-                  placeholder="e.g., +233 55 134 4310"
+                  placeholder="e.g., +233 553 886 5804"
                 />
                 <Input
                   label="Customer Support Email"
@@ -256,7 +256,7 @@ export default function MainSettingsPage() {
                   label="WhatsApp Number"
                   value={generalSettings.storeWhatsapp}
                   onChange={(e) => setGeneralSettings((prev) => ({ ...prev, storeWhatsapp: e.target.value }))}
-                  placeholder="e.g., +233 55 134 4310"
+                  placeholder="e.g., +233 553 886 5804"
                 />
                 <Input
                   label="Address"

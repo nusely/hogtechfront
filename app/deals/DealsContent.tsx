@@ -164,162 +164,204 @@ export function DealsContent() {
   }, []);
 
   const buildDealProduct = (deal: Deal, dp: DealProduct): DealDisplayProduct | null => {
-    const dealLevelDiscount = parseInteger(deal.discount_percentage) ?? 0;
+    try {
+      const dealLevelDiscount = parseInteger(deal.discount_percentage) ?? 0;
 
-      if (dp.product) {
-      const product = dp.product as Product & Record<string, unknown>;
-        const originalPrice =
-          parseAmount((product as any).price) ??
-          parseAmount(product.original_price) ??
-          0;
-      const discountPrice = parseAmount(product.discount_price);
-      const explicitDealPrice = parseAmount(dp.deal_price);
-      const overrideDiscount = parseInteger(dp.discount_percentage);
-      const computedDealPrice =
-        explicitDealPrice ??
-        discountPrice ??
-        (overrideDiscount && originalPrice
-          ? Number((originalPrice * (1 - overrideDiscount / 100)).toFixed(2))
-          : null) ??
-        (dealLevelDiscount && originalPrice
-          ? Number((originalPrice * (1 - dealLevelDiscount / 100)).toFixed(2))
-          : null) ??
-        originalPrice;
+      // Handle products with product object populated
+      if (dp.product && typeof dp.product === 'object') {
+        const product = dp.product as Product & Record<string, unknown>;
+        
+        // Validate product has required fields
+        if (!product.id && !product.name) {
+          console.warn('Deal product has product object but missing id/name:', dp);
+          // Fall through to check product_name
+        } else {
+          const originalPrice =
+            parseAmount((product as any).price) ??
+            parseAmount(product.original_price) ??
+            0;
+          const discountPrice = parseAmount(product.discount_price);
+          const explicitDealPrice = parseAmount(dp.deal_price);
+          const overrideDiscount = parseInteger(dp.discount_percentage);
+          const computedDealPrice =
+            explicitDealPrice ??
+            discountPrice ??
+            (overrideDiscount && originalPrice
+              ? Number((originalPrice * (1 - overrideDiscount / 100)).toFixed(2))
+              : null) ??
+            (dealLevelDiscount && originalPrice
+              ? Number((originalPrice * (1 - dealLevelDiscount / 100)).toFixed(2))
+              : null) ??
+            originalPrice;
 
-      const finalDealPrice = Number(
-        (computedDealPrice ?? 0).toFixed(2)
-      );
-      const dealDiscount =
-        overrideDiscount ??
-        computeDiscountPercentage(originalPrice, finalDealPrice) ??
-        dealLevelDiscount ??
-        0;
+          const finalDealPrice = Number(
+            (computedDealPrice ?? 0).toFixed(2)
+          );
+          const dealDiscount =
+            overrideDiscount ??
+            computeDiscountPercentage(originalPrice, finalDealPrice) ??
+            dealLevelDiscount ??
+            0;
 
-      const stockOverride =
-        dp.product_id
-          ? null
-          : parseInteger(dp.stock_quantity) ?? parseInteger(dp.original_stock);
-      const stockQuantity =
-        stockOverride ??
-        parseInteger((product as any).stock_quantity) ??
-        0;
+          const stockOverride =
+            dp.product_id
+              ? null
+              : parseInteger(dp.stock_quantity) ?? parseInteger(dp.original_stock);
+          const stockQuantity =
+            stockOverride ??
+            parseInteger((product as any).stock_quantity) ??
+            0;
 
-      const images = normalizeImages(product.thumbnail, product.images as string[] | null | undefined);
+          const images = normalizeImages(product.thumbnail, product.images as string[] | null | undefined);
 
-      return {
-          ...product,
-        original_price: originalPrice,
-        discount_price: finalDealPrice,
-          stock_quantity: stockQuantity,
-        in_stock: stockQuantity > 0 ? true : Boolean(product.in_stock),
-        thumbnail: images[0],
-        images,
-        price_range: product.price_range ?? {
-          min: finalDealPrice,
-          max: originalPrice || finalDealPrice,
-          hasRange: false,
-        },
-        deal_price: finalDealPrice,
-          deal_discount: dealDiscount,
-          base_product_id: product.id,
-      };
+          return {
+            ...product,
+            original_price: originalPrice,
+            discount_price: finalDealPrice,
+            stock_quantity: stockQuantity,
+            in_stock: stockQuantity > 0 ? true : Boolean(product.in_stock),
+            thumbnail: images[0],
+            images,
+            price_range: product.price_range ?? {
+              min: finalDealPrice,
+              max: originalPrice || finalDealPrice,
+              hasRange: false,
+            },
+            deal_price: finalDealPrice,
+            deal_discount: dealDiscount,
+            base_product_id: product.id,
+          };
+        }
       } 
 
-    if (dp.product_name) {
-      const originalPrice =
-        parseAmount(dp.original_price) ?? 0;
-      const explicitDealPrice = parseAmount(dp.deal_price);
-      const overrideDiscount = parseInteger(dp.discount_percentage);
-      const computedDealPrice =
-        explicitDealPrice ??
-        (overrideDiscount && originalPrice
-          ? Number((originalPrice * (1 - overrideDiscount / 100)).toFixed(2))
-          : null) ??
-        (dealLevelDiscount && originalPrice
-          ? Number((originalPrice * (1 - dealLevelDiscount / 100)).toFixed(2))
-          : null) ??
-        originalPrice;
+      // Handle standalone products (product_name exists)
+      if (dp.product_name) {
+        const originalPrice =
+          parseAmount(dp.original_price) ?? 0;
+        const explicitDealPrice = parseAmount(dp.deal_price);
+        const overrideDiscount = parseInteger(dp.discount_percentage);
+        const computedDealPrice =
+          explicitDealPrice ??
+          (overrideDiscount && originalPrice
+            ? Number((originalPrice * (1 - overrideDiscount / 100)).toFixed(2))
+            : null) ??
+          (dealLevelDiscount && originalPrice
+            ? Number((originalPrice * (1 - dealLevelDiscount / 100)).toFixed(2))
+            : null) ??
+          originalPrice;
 
-      const finalDealPrice = Number(
-        (computedDealPrice ?? 0).toFixed(2)
-      );
+        const finalDealPrice = Number(
+          (computedDealPrice ?? 0).toFixed(2)
+        );
 
-      const dealDiscount =
-        overrideDiscount ??
-        computeDiscountPercentage(originalPrice, finalDealPrice) ??
-        dealLevelDiscount ??
-        0;
+        const dealDiscount =
+          overrideDiscount ??
+          computeDiscountPercentage(originalPrice, finalDealPrice) ??
+          dealLevelDiscount ??
+          0;
 
-      const images = normalizeImages(dp.product_image_url, dp.product_images);
-      const rawStock =
-        parseInteger(dp.stock_quantity) ??
-        parseInteger(dp.original_stock);
-      const stockQuantity = rawStock ?? (finalDealPrice > 0 ? 999 : 0);
-      const createdAt = dp.created_at || new Date().toISOString();
+        const images = normalizeImages(dp.product_image_url, dp.product_images);
+        const rawStock =
+          parseInteger(dp.stock_quantity) ??
+          parseInteger(dp.original_stock);
+        const stockQuantity = rawStock ?? (finalDealPrice > 0 ? 999 : 0);
+        const createdAt = dp.created_at || new Date().toISOString();
 
-      const keyFeatures = parseKeyFeatures(dp.product_key_features);
-      const specs = parseSpecifications(dp.product_specifications);
+        const keyFeatures = parseKeyFeatures(dp.product_key_features);
+        const specs = parseSpecifications(dp.product_specifications);
 
-      const standaloneProduct: DealDisplayProduct = {
-        id: dp.id,
+        const standaloneProduct: DealDisplayProduct = {
+          id: dp.id,
           name: dp.product_name,
-        slug: `deal-${dp.id}`,
+          slug: `deal-${dp.id}`,
           description: dp.product_description || '',
           key_features: keyFeatures,
-        specifications: specs,
-        category_id: (dp.product as Product | undefined)?.category_id || 'standalone',
-        brand: (dp.product as Product | undefined)?.brand || 'Hedgehog Technologies Deals',
-        brand_id: (dp.product as Product | undefined)?.brand_id,
-        original_price: originalPrice || finalDealPrice,
-        discount_price: finalDealPrice,
-        in_stock: stockQuantity > 0,
-        stock_quantity: stockQuantity,
+          specifications: specs,
+          category_id: (dp.product as Product | undefined)?.category_id || 'standalone',
+          brand: (dp.product as Product | undefined)?.brand || 'Hedgehog Technologies Deals',
+          brand_id: (dp.product as Product | undefined)?.brand_id,
+          original_price: originalPrice || finalDealPrice,
+          discount_price: finalDealPrice,
+          in_stock: stockQuantity > 0,
+          stock_quantity: stockQuantity,
           images,
-        thumbnail: images[0] || PLACEHOLDER_IMAGE,
+          thumbnail: images[0] || PLACEHOLDER_IMAGE,
           featured: false,
-        rating: 0,
+          rating: 0,
           review_count: 0,
-        specs: (typeof specs === 'object' && !Array.isArray(specs) ? specs : {}) as Product['specs'],
+          specs: (typeof specs === 'object' && !Array.isArray(specs) ? specs : {}) as Product['specs'],
           variants: [],
-        created_at: createdAt,
-        updated_at: createdAt,
-        category_name: (dp.product as Product | undefined)?.category_name || null,
-        category_slug: (dp.product as Product | undefined)?.category_slug || null,
-        brand_name: (dp.product as Product | undefined)?.brand_name || 'Hedgehog Technologies Deals',
-        brand_slug: (dp.product as Product | undefined)?.brand_slug || null,
-        base_product_id: dp.product_id || dp.id,
+          created_at: createdAt,
+          updated_at: createdAt,
+          category_name: (dp.product as Product | undefined)?.category_name || null,
+          category_slug: (dp.product as Product | undefined)?.category_slug || null,
+          brand_name: (dp.product as Product | undefined)?.brand_name || 'Hedgehog Technologies Deals',
+          brand_slug: (dp.product as Product | undefined)?.brand_slug || null,
+          base_product_id: dp.product_id || dp.id,
           price_range: {
-          min: finalDealPrice,
-          max: originalPrice || finalDealPrice,
+            min: finalDealPrice,
+            max: originalPrice || finalDealPrice,
             hasRange: false,
           },
-        deal_price: finalDealPrice,
-        deal_discount: dealDiscount,
-      };
+          deal_price: finalDealPrice,
+          deal_discount: dealDiscount,
+        };
 
-      return standaloneProduct;
+        return standaloneProduct;
+      }
+
+      // If we have product_id but no product object or product_name, log warning
+      if (dp.product_id) {
+        console.warn('Deal product has product_id but no product object or product_name:', {
+          dealProductId: dp.id,
+          productId: dp.product_id,
+          dealId: deal.id,
+          dealTitle: deal.title,
+        });
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error building deal product:', {
+        error,
+        dealProduct: dp,
+        deal: deal.id,
+      });
+      return null;
     }
-
-    return null;
   };
 
   const productsByDeal = deals
     .map((deal) => {
       const dealProductsForDeal = dealProducts.filter((dp) => dp.deal_id === deal.id);
-      console.log(`Deal ${deal.id} (${deal.title}): ${dealProductsForDeal.length} deal products`);
+      console.log(`Deal ${deal.id} (${deal.title}): ${dealProductsForDeal.length} deal products`, dealProductsForDeal);
 
       const products = dealProductsForDeal
-        .map((dp) => buildDealProduct(deal, dp))
+        .map((dp) => {
+          const built = buildDealProduct(deal, dp);
+          if (!built) {
+            console.warn(`Failed to build product for deal ${deal.id}:`, {
+              dealProductId: dp.id,
+              productId: dp.product_id,
+              productName: dp.product_name,
+              hasProduct: !!dp.product,
+            });
+          }
+          return built;
+        })
         .filter((product): product is DealDisplayProduct => product !== null);
     
-    return {
-      deal,
-      products,
-    };
+      console.log(`Deal ${deal.id} (${deal.title}): Built ${products.length} products from ${dealProductsForDeal.length} deal products`);
+    
+      return {
+        deal,
+        products,
+      };
     })
     .filter(({ products }) => products.length > 0);
 
-  console.log('Products by deal:', productsByDeal);
+  console.log('Products by deal (final):', productsByDeal);
+  console.log('Total deals with products:', productsByDeal.length);
 
   return (
     <motion.main
@@ -345,7 +387,13 @@ export function DealsContent() {
       </motion.section>
 
       {/* Deals Campaigns Section */}
-      {productsByDeal.length > 0 && (
+      {isLoading ? (
+        <motion.section className="container mx-auto px-4 py-12" variants={fadeInUp} custom={0.08}>
+          <div className="text-center py-12">
+            <p className="text-[#3A3A3A]">Loading deals...</p>
+          </div>
+        </motion.section>
+      ) : productsByDeal.length > 0 ? (
         <motion.section className="container mx-auto px-4 py-12" variants={fadeInUp} custom={0.08}>
           {productsByDeal.map(({ deal, products }) => (
             <motion.div key={deal.id} className="mb-12" variants={fadeIn}
@@ -414,6 +462,23 @@ export function DealsContent() {
               )}
             </motion.div>
           ))}
+        </motion.section>
+      ) : (
+        <motion.section className="container mx-auto px-4 py-12" variants={fadeInUp} custom={0.08}>
+          <div className="text-center py-12 bg-white rounded-xl">
+            <p className="text-[#3A3A3A] text-lg mb-2">No active deals at the moment</p>
+            <p className="text-[#6B7280] text-sm">Check back soon for amazing deals!</p>
+            {deals.length > 0 && (
+              <p className="text-[#6B7280] text-xs mt-4">
+                Found {deals.length} deal(s) but no products are associated with them.
+              </p>
+            )}
+            {dealProducts.length > 0 && (
+              <p className="text-[#6B7280] text-xs mt-2">
+                Found {dealProducts.length} deal product(s) but they may not be linked to active deals.
+              </p>
+            )}
+          </div>
         </motion.section>
       )}
 

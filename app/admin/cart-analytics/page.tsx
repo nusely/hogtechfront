@@ -61,8 +61,8 @@ useEffect(() => {
     const basePrice =
       typeof item.product.discount_price === 'number' && !Number.isNaN(item.product.discount_price)
         ? item.product.discount_price
-        : typeof item.product.original_price === 'number'
-          ? item.product.original_price
+        : typeof item.product.price === 'number'
+          ? item.product.price
           : 0;
 
     const selectedVariants = item.selected_variants || {};
@@ -88,10 +88,41 @@ useEffect(() => {
     try {
       setLoading(true);
       
-      // Fetch cart items that haven't been updated in over 24 hours (abandoned carts)
-      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      console.log('🔍 Starting abandoned carts fetch...');
       
-      const { data: abandonedItems, error } = await supabase
+      // First, test if cart_items table exists with a simple count
+      console.log('🔍 Testing if cart_items table exists...');
+      const { count: testCount, error: testError } = await supabase
+        .from('cart_items')
+        .select('*', { count: 'exact', head: true });
+      
+      if (testError) {
+        console.error('❌ Table existence test failed:', {
+          error: testError,
+          errorString: JSON.stringify(testError),
+          errorKeys: Object.keys(testError || {}),
+          code: testError?.code,
+          message: testError?.message,
+          details: testError?.details,
+          hint: testError?.hint,
+        });
+        
+        if (testError.code === 'PGRST116' || testError.message?.includes('does not exist')) {
+          console.warn('⚠️ cart_items table does not exist. Run the migration first!');
+          setCarts([]);
+          setLoading(false);
+          return;
+        }
+      } else {
+        console.log('✅ cart_items table exists! Count:', testCount);
+      }
+      
+      // Fetch cart items that haven't been updated in over 12 hours (abandoned carts)
+      const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+      console.log('🔍 Fetching items older than:', twelveHoursAgo);
+      
+      // Try with explicit foreign key first, fallback to implicit relationship
+      let query = supabase
         .from('cart_items')
         .select(`
           id,
@@ -103,10 +134,10 @@ useEffect(() => {
           product:products(
             id,
             name,
-            original_price,
+            price,
             discount_price
           ),
-          user:users!cart_items_user_id_fkey(
+          user:users(
             id,
             first_name,
             last_name,
@@ -114,11 +145,106 @@ useEffect(() => {
             email
           )
         `)
-        .lt('updated_at', twentyFourHoursAgo)
+        .lt('updated_at', twelveHoursAgo)
         .order('updated_at', { ascending: false });
+      
+      console.log('🔍 Attempting query with joins...');
+      let { data: abandonedItems, error } = await query;
+      
+      // If cart_items table doesn't exist, return empty array gracefully
+      if (error) {
+        console.error('❌ Initial query with joins failed:', {
+          error: error,
+          errorString: JSON.stringify(error),
+          errorKeys: Object.keys(error || {}),
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          stack: error.stack
+        });
+        
+        if (error.code === 'PGRST116') {
+          console.warn('⚠️ cart_items table not found. Abandoned carts feature requires database migration.');
+          setCarts([]);
+          setLoading(false);
+          return;
+        }
+      }
+      
+      // If foreign key join fails, try without user join
+      if (error && (error.message?.includes('relationship') || error.message?.includes('does not exist') || error.code === '42P01' || error.code === 'PGRST301')) {
+        console.warn('Error fetching with user join, trying simplified query:', {
+          code: error.code,
+          message: error.message
+        });
+        const simpleQuery = supabase
+          .from('cart_items')
+          .select(`
+            id,
+            user_id,
+            quantity,
+            selected_variants,
+            created_at,
+            updated_at,
+            product:products(
+              id,
+              name,
+              price,
+              discount_price
+            )
+          `)
+          .lt('updated_at', twelveHoursAgo)
+          .order('updated_at', { ascending: false });
+        
+        console.log('🔍 Attempting simplified query without user join...');
+        const simpleResult = await simpleQuery;
+        if (simpleResult.error) {
+          console.error('❌ Simplified query also failed:', {
+            error: simpleResult.error,
+            errorString: JSON.stringify(simpleResult.error),
+            errorKeys: Object.keys(simpleResult.error || {}),
+            code: simpleResult.error.code,
+            message: simpleResult.error.message,
+            details: simpleResult.error.details,
+            hint: simpleResult.error.hint,
+          });
+          throw simpleResult.error;
+        }
+        
+        console.log('✅ Simplified query succeeded! Got', simpleResult.data?.length || 0, 'items');
+        
+        // Fetch users separately if needed
+        abandonedItems = simpleResult.data;
+        if (abandonedItems && abandonedItems.length > 0) {
+          const userIds = [...new Set(abandonedItems.map((item: any) => item.user_id).filter(Boolean))];
+          if (userIds.length > 0) {
+            const { data: users } = await supabase
+              .from('users')
+              .select('id, first_name, last_name, full_name, email')
+              .in('id', userIds);
+            
+            // Attach users to items
+            if (users) {
+              const userMap = new Map(users.map((u: any) => [u.id, u]));
+              abandonedItems = abandonedItems.map((item: any) => ({
+                ...item,
+                user: item.user_id ? userMap.get(item.user_id) || null : null,
+              }));
+            }
+          }
+        }
+        error = null;
+      }
 
       if (error) {
-        console.error('Error fetching abandoned carts:', error);
+        console.error('Final error after all attempts:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        
         // Check if it's a foreign key relationship error
         if (error.message?.includes('relationship') || error.message?.includes('does not exist')) {
           console.error('💡 Foreign key relationship missing. Please run the database migration.');
@@ -126,6 +252,8 @@ useEffect(() => {
         }
         throw error;
       }
+      
+      console.log('Successfully fetched', abandonedItems?.length || 0, 'abandoned cart items');
 
       const rawCarts = (abandonedItems || [])
         .filter((item) => (item.quantity ?? 0) > 0 && item.product)
@@ -201,9 +329,28 @@ useEffect(() => {
           new Date(b.abandoned_at).getTime() - new Date(a.abandoned_at).getTime()
       );
 
+      console.log('✅ Successfully processed', mergedCarts.length, 'abandoned carts');
       setCarts(mergedCarts);
-    } catch (error) {
-      console.error('Error fetching abandoned carts:', error);
+    } catch (error: any) {
+      console.error('❌ FINAL ERROR - Error fetching abandoned carts:', {
+        error: error,
+        errorType: typeof error,
+        errorConstructor: error?.constructor?.name,
+        errorString: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+        errorKeys: Object.keys(error || {}),
+        message: error?.message || 'Unknown error',
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        stack: error?.stack,
+      });
+      
+      // Show user-friendly message based on error type
+      if (error?.code === 'PGRST116' || error?.message?.includes('does not exist')) {
+        console.warn('💡 The cart_items table does not exist in the database.');
+        console.warn('   Run the migration: create_cart_and_wishlist_tables_minimal.sql');
+      }
+      
       setCarts([]);
     } finally {
       setLoading(false);
@@ -294,9 +441,8 @@ useEffect(() => {
           <div>
             <h3 className="font-bold text-[#163b86] mb-2">Recover Lost Sales</h3>
             <p className="text-sm text-[#163b86] mb-3">
-              Send personalized recovery emails to customers who abandoned their carts. Offer a
-              small discount (5-10%) to encourage them to complete their purchase within 24
-              hours!
+              Send personalized recovery emails to customers who abandoned their carts after 12 hours of inactivity. Offer a
+              small discount (5-10%) to encourage them to complete their purchase!
             </p>
             <div className="flex gap-2">
               <Button 
@@ -345,9 +491,22 @@ useEffect(() => {
           <h2 className="text-lg font-bold text-[#1A1A1A]">Abandoned Carts</h2>
         </div>
         <div className="divide-y divide-gray-200">
-          {filteredCarts.length === 0 ? (
-            <div className="p-12 text-center text-[#3A3A3A]">
-              No abandoned carts found
+          {loading ? (
+            <div className="p-12 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#00afef]"></div>
+              <p className="mt-4 text-sm text-[#3A3A3A]">Loading abandoned carts...</p>
+            </div>
+          ) : filteredCarts.length === 0 ? (
+            <div className="p-12 text-center">
+              <ShoppingCart className="mx-auto mb-4 text-gray-300" size={48} />
+              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-2">
+                {carts.length === 0 && !loading ? 'No Abandoned Carts' : 'No Results Found'}
+              </h3>
+              <p className="text-sm text-[#3A3A3A] max-w-md mx-auto">
+                {carts.length === 0 && !loading
+                  ? 'Great news! There are currently no abandoned carts in your store. This could mean customers are completing their purchases successfully, or no carts have been idle for over 12 hours.'
+                  : 'Try adjusting your search query to find what you\'re looking for.'}
+              </p>
             </div>
           ) : (
             filteredCarts.map((cart) => (

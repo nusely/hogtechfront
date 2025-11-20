@@ -160,17 +160,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
 
       const apiUrl = buildApiUrl(`/api/notifications?limit=8`);
-      console.log('Fetching notifications from:', apiUrl);
+      console.log('🔔 Fetching notifications from:', apiUrl);
 
-      const response = await fetch(apiUrl, {
-        headers,
-        credentials: 'include', // Include cookies/auth
-      });
+      let response;
+      try {
+        response = await fetch(apiUrl, {
+          headers,
+          credentials: 'include', // Include cookies/auth
+        });
+      } catch (error: any) {
+        console.error('❌ Notifications fetch error:', {
+          message: error?.message,
+          name: error?.name,
+          apiUrl,
+          error,
+        });
+        // Don't throw - just log and return empty
+        setNotificationsPreview([]);
+        setUnreadNotificationsCount(0);
+        return;
+      }
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unknown error');
-        console.error('Notifications API error:', response.status, errorText);
-        throw new Error(`Failed to fetch notifications (${response.status}): ${errorText}`);
+        console.error('⚠️ Notifications API error:', response.status, errorText);
+        setNotificationsPreview([]);
+        setUnreadNotificationsCount(0);
+        return;
       }
 
       const payload = await response.json();
@@ -521,9 +537,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       label: 'Marketing',
       children: [
         { icon: Package, label: 'Deals', href: '/admin/deals' },
+        { icon: Tag, label: 'Coupons', href: '/admin/coupons' },
         { icon: Image, label: 'Banners', href: '/admin/banners' },
         { icon: Image, label: 'Sidebar Ads', href: '/admin/sidebar-ads' },
-        { icon: Tag, label: 'Coupons', href: '/admin/coupons' },
+        // Removed: Coupons menu item - coupon system removed
       ],
     },
     {
@@ -536,6 +553,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       icon: SlidersHorizontal,
       label: 'Main Settings',
       href: '/admin/main-settings',
+    },
+    {
+      icon: ScrollText,
+      label: 'Manual',
+      href: '/admin/manual',
     },
   ];
 

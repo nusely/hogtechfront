@@ -18,6 +18,7 @@ import { getFilterBrands, Brand } from '@/services/brand.service';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion, Variants } from 'framer-motion';
 import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
+import HedgehogLoader from '@/components/loaders/HedgehogLoader';
 
 interface ProductFilters {
   category?: string;
@@ -238,14 +239,14 @@ export function ShopContent() {
     
     if (filters.minPrice !== undefined) {
       filtered = filtered.filter(p => {
-        const price = p.discount_price || p.original_price;
+        const price = p.discount_price || p.original_price || 0;
         return price >= filters.minPrice!;
       });
     }
     
     if (filters.maxPrice !== undefined) {
       filtered = filtered.filter(p => {
-        const price = p.discount_price || p.original_price;
+        const price = p.discount_price || p.original_price || 0;
         return price <= filters.maxPrice!;
       });
     }
@@ -259,14 +260,14 @@ export function ShopContent() {
       filtered.sort((a, b) => {
         switch (filters.sortBy) {
           case 'price_asc':
-            return (a.discount_price || a.original_price) - (b.discount_price || b.original_price);
+            return (a.discount_price || a.original_price || 0) - (b.discount_price || b.original_price || 0);
           case 'price_desc':
-            return (b.discount_price || b.original_price) - (a.discount_price || a.original_price);
+            return (b.discount_price || b.original_price || 0) - (a.discount_price || a.original_price || 0);
           case 'rating':
             return (b.rating || 0) - (a.rating || 0);
           case 'newest':
           default:
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
         }
       });
     }
@@ -519,9 +520,9 @@ export function ShopContent() {
 
             {/* Products Grid/List */}
             {isLoading && products.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00afef] mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading products...</p>
+              <div className="flex flex-col items-center justify-center py-20">
+                <HedgehogLoader size={120} speedMs={700} />
+                <p className="text-gray-700 mt-8 text-lg font-medium">Finding amazing products...</p>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg shadow-sm">
@@ -532,22 +533,27 @@ export function ShopContent() {
               </div>
             ) : (
               <>
-                <motion.div
+                <div
                   className={viewMode === 'grid' 
                   ? 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 xl:gap-6'
                   : 'space-y-4'
                 }
-                  variants={fadeInUp}
-                  custom={0.08}
                 >
-                  {filteredProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onQuickView={() => setQuickViewProduct(product)}
-                    />
-                  ))}
-                </motion.div>
+                  {filteredProducts.map((product) => {
+                    // Validate product has required fields
+                    if (!product || !product.id) {
+                      return null;
+                    }
+                    
+                    return (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onQuickView={() => setQuickViewProduct(product)}
+                      />
+                    );
+                  })}
+                </div>
 
                 {/* Load More Button */}
                 {hasMore && (
@@ -566,8 +572,10 @@ export function ShopContent() {
           </motion.div>
 
           {/* Sidebar Ads (Desktop Only) */}
-          <motion.div className="hidden lg:block w-64 flex-shrink-0" variants={fadeInUp} custom={0.12}>
-            <SidebarAds position="right" page="shop" />
+          <motion.div className="hidden xl:block w-52 flex-shrink-0" variants={fadeInUp} custom={0.12}>
+            <div className="sticky top-24 self-start">
+              <SidebarAds position="right" page="shop" />
+            </div>
           </motion.div>
         </motion.div>
       </motion.div>

@@ -161,6 +161,31 @@ export default function BannersPage() {
     });
   };
 
+  // Helper function to sanitize URLs (remove HTML entities)
+  const sanitizeUrl = (url: string | null | undefined): string | null => {
+    if (!url || typeof url !== 'string') {
+      return null;
+    }
+    
+    // Remove HTML entities and decode
+    let sanitized = url
+      .replace(/&#x2F;/g, '/')  // Replace HTML entity for /
+      .replace(/&#x2f;/g, '/')   // Replace lowercase HTML entity for /
+      .replace(/&amp;/g, '&')   // Replace HTML entity for &
+      .replace(/&lt;/g, '<')    // Replace HTML entity for <
+      .replace(/&gt;/g, '>')    // Replace HTML entity for >
+      .replace(/&quot;/g, '"')  // Replace HTML entity for "
+      .replace(/&#39;/g, "'")   // Replace HTML entity for '
+      .trim();
+    
+    // Remove leading & if present (malformed URL)
+    if (sanitized.startsWith('&')) {
+      sanitized = sanitized.substring(1);
+    }
+    
+    return sanitized || null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -193,6 +218,16 @@ export default function BannersPage() {
         return;
       }
 
+      // Sanitize URLs before sending
+      const sanitizedImageUrl = sanitizeUrl(formData.image_url);
+      const sanitizedLinkUrl = sanitizeUrl(formData.link_url);
+
+      if (!sanitizedImageUrl) {
+        toast.error('Invalid image URL');
+        setSaving(false);
+        return;
+      }
+
       const isEditing = !!editingBanner;
       const baseEndpoint = buildApiUrl('/api/banners');
       
@@ -207,8 +242,8 @@ export default function BannersPage() {
           body: JSON.stringify({
             title: formData.title || null,
             subtitle: formData.subtitle || null,
-            image_url: formData.image_url,
-            link: formData.link_url || null, // Use 'link' column (matches database schema)
+            image_url: sanitizedImageUrl,
+            link: sanitizedLinkUrl || null, // Use 'link' column (matches database schema)
             button_text: formData.button_text || null,
             order: formData.display_order || 0, // Use 'order' column (matches database schema)
             active: formData.active !== false,

@@ -55,25 +55,47 @@ export interface Discount {
 
 export const discountService = {
   async applyDiscount(payload: DiscountApplyPayload): Promise<DiscountApplyResult> {
+    console.log('🎫 Frontend: Applying discount with payload:', payload);
+    
     const authHeaders = await getAuthHeaders();
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...authHeaders,
     };
 
-    const response = await fetch(buildApiUrl('/api/discounts/apply'), {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload),
-    });
+    const url = buildApiUrl('/api/discounts/apply');
+    console.log('🎫 Frontend: Sending request to:', url);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Failed to apply discount');
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      });
+
+      console.log('🎫 Frontend: Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🎫 Frontend: Error response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { message: errorText || 'Failed to apply discount' };
+        }
+        
+        throw new Error(errorData.message || errorData.error || 'Failed to apply discount');
+      }
+
+      const result = await response.json();
+      console.log('🎫 Frontend: Success response:', result);
+      return result.data as DiscountApplyResult;
+    } catch (error: any) {
+      console.error('🎫 Frontend: Exception applying discount:', error);
+      throw error;
     }
-
-    const result = await response.json();
-    return result.data as DiscountApplyResult;
   },
 
   // Get all discounts

@@ -159,25 +159,25 @@ export const SidebarAds: React.FC<SidebarAdsProps> = ({ position, page }) => {
 
   return (
     <aside
-      className={`hidden xl:block w-52 sticky top-20 h-fit ${
-        position === 'left' ? 'mr-6' : 'ml-6'
+      className={`w-full ${
+        position === 'left' ? 'mr-4' : 'ml-4'
       }`}
     >
-      <div className="space-y-4">
+      <div className="space-y-3">
         {adGroups.map((group) => (
           <div key={group.group_id}>
             {group.ads.length > 1 ? (
               <SidebarAdCarousel ads={group.ads} />
             ) : (
-              <div className="block rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <div className="block rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 <Link href={group.ads[0].link}>
-                  <div className="relative aspect-square">
+                  <div className="relative aspect-[3/4]">
                     <Image
                       loader={r2ImageLoader}
                       src={group.ads[0].image_url || '/placeholders/placeholder-ad.webp'}
                       alt={group.ads[0].title || 'Advertisement'}
                       fill
-                      sizes="(max-width: 1200px) 0vw, 13vw"
+                      sizes="(max-width: 1280px) 0vw, 200px"
                       className="object-cover"
                       loading="lazy"
                       unoptimized={group.ads[0].image_url?.includes('files.hogtechgh.com') || group.ads[0].image_url?.includes('.r2.dev') || true}
@@ -187,17 +187,17 @@ export const SidebarAds: React.FC<SidebarAdsProps> = ({ position, page }) => {
                 
                 {/* Product ad content */}
                 {group.ads[0].is_product_ad && (
-                  <div className="p-3 bg-white">
-                    <h4 className="font-semibold text-sm text-[#1A1A1A] mb-1 line-clamp-1">
+                  <div className="p-2.5 bg-white">
+                    <h4 className="font-semibold text-xs text-[#1A1A1A] mb-1 line-clamp-1">
                       {group.ads[0].product_name}
                     </h4>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-sm font-bold text-[#1A1A1A]">
+                        <span className="text-xs font-bold text-[#1A1A1A]">
                           GH₵{group.ads[0].product_discount_price || group.ads[0].product_price}
                         </span>
                         {group.ads[0].product_discount_price && group.ads[0].product_price && (
-                          <span className="text-xs text-[#3A3A3A] line-through">
+                          <span className="text-[10px] text-[#3A3A3A] line-through">
                             GH₵{group.ads[0].product_price}
                           </span>
                         )}
@@ -207,8 +207,8 @@ export const SidebarAds: React.FC<SidebarAdsProps> = ({ position, page }) => {
                       <Button
                         size="sm"
                         variant="primary"
-                        className="w-full text-xs"
-                        icon={<ShoppingCart size={12} />}
+                        className="w-full text-[10px] py-1.5"
+                        icon={<ShoppingCart size={10} />}
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();

@@ -29,6 +29,7 @@ import { seoConfig } from '@/lib/seo.config';
 import { buildApiUrl } from '@/lib/api';
 import { motion } from 'framer-motion';
 import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
+import HedgehogLoader from '@/components/loaders/HedgehogLoader';
 
 export function HomeContent() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);

@@ -10,7 +10,6 @@ import { removeFromCart, updateQuantity } from '@/store/cartSlice';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/helpers';
 import { CouponCode } from '@/components/cart/CouponCode';
-import { CouponValidation } from '@/types/coupon';
 import { taxService } from '@/services/tax.service';
 import { discountService } from '@/services/discount.service';
 import toast from 'react-hot-toast';
@@ -18,7 +17,7 @@ import toast from 'react-hot-toast';
 export default function CartPage() {
   const dispatch = useAppDispatch();
   const { items, total, itemCount } = useAppSelector((state) => state.cart);
-  const [appliedCoupon, setAppliedCoupon] = useState<CouponValidation | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
   const [taxAmount, setTaxAmount] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -40,12 +39,12 @@ export default function CartPage() {
 
   // No delivery fee on cart page - delivery options are selected on checkout
   const deliveryFee = 0;
-  const couponDiscount = appliedCoupon?.discount_amount || 0;
+  const couponDiscount = appliedCoupon?.discountAmount || 0;
   const totalDiscount = discountAmount + couponDiscount;
   const grandTotal = total + taxAmount - totalDiscount;
 
-  const handleCouponApplied = (validation: CouponValidation) => {
-    setAppliedCoupon(validation);
+  const handleCouponApplied = (result: any) => {
+    setAppliedCoupon(result);
   };
 
   const handleCouponRemoved = () => {
@@ -130,7 +129,7 @@ export default function CartPage() {
                     <div className="relative w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                       <Image
                         loader={r2ImageLoader}
-                        src={item.thumbnail || '/placeholder-product.webp'}
+                        src={item.thumbnail || '/placeholders/placeholder-product.webp'}
                         alt={item.name}
                         fill
                         sizes="96px"
@@ -211,13 +210,7 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1 space-y-4">
-            {/* Coupon Code */}
-            <CouponCode
-              onCouponApplied={handleCouponApplied}
-              onCouponRemoved={handleCouponRemoved}
-              cartTotal={total}
-              appliedCoupon={appliedCoupon}
-            />
+            {/* Removed: CouponCode component - coupon system removed */}
 
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
@@ -241,7 +234,7 @@ export default function CartPage() {
                     <span>-{formatCurrency(couponDiscount)}</span>
                   </div>
                 )}
-                
+
                 {taxAmount > 0 && (
                   <div className="flex justify-between text-gray-600">
                     <span>Tax (VAT)</span>

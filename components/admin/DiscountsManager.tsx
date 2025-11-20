@@ -377,7 +377,7 @@ export function DiscountsManager() {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Discount Rules</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Manage coupons and promotional discounts available to customers.
+            Manage promotional discounts available to customers.
           </p>
         </div>
         <Button variant="primary" onClick={handleCreateNew}>

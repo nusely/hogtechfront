@@ -6,7 +6,7 @@ import { Footer } from '@/components/Footer';
 import { MobileBottomNav } from '@/components/navigation/MobileBottomNav';
 import { AnnouncementBar } from '@/components/AnnouncementBar';
 import React, { Suspense } from 'react';
-import CheckmarkLoader from '@/components/loaders/CheckmarkLoader';
+import HedgehogLoader from '@/components/loaders/HedgehogLoader';
 
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -40,8 +40,9 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
       <main className="flex-1 pb-20 md:pb-0">
         <Suspense
           fallback={
-            <div className="py-20 flex items-center justify-center">
-              <CheckmarkLoader size={72} color="#00afef" speedMs={600} />
+            <div className="min-h-screen flex flex-col items-center justify-center">
+              <HedgehogLoader size={120} speedMs={700} />
+              <p className="text-gray-600 mt-8 text-lg">Loading...</p>
             </div>
           }
         >

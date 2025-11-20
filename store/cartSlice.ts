@@ -84,14 +84,28 @@ const cartSlice = createSlice({
       const item = state.items.find((item) => item.id === id);
       
       if (item) {
+        const oldQuantity = item.quantity;
         item.quantity = quantity;
-        const basePrice = item.discount_price || item.original_price || 0;
-        const variantAdjustments = Object.values(item.selected_variants || {}).reduce((sum: number, variant: any) => {
-          // Support both price_modifier (from VariantOption) and price_adjustment (from ProductVariant)
-          const adjustment = variant.price_modifier ?? variant.price_adjustment ?? 0;
-          return sum + (typeof adjustment === 'number' ? adjustment : parseFloat(adjustment) || 0);
-        }, 0);
-        item.subtotal = quantity * (basePrice + variantAdjustments);
+        
+        // Calculate unit price from existing subtotal if available, otherwise use price fields
+        let unitPrice = 0;
+        
+        if (oldQuantity > 0 && item.subtotal > 0) {
+          // Use existing subtotal to calculate unit price (most reliable)
+          unitPrice = item.subtotal / oldQuantity;
+        } else {
+          // Fallback to price fields
+          const basePrice = item.discount_price || item.original_price || 0;
+          const variantAdjustments = Object.values(item.selected_variants || {}).reduce((sum: number, variant: any) => {
+            // Support both price_modifier (from VariantOption) and price_adjustment (from ProductVariant)
+            const adjustment = variant.price_modifier ?? variant.price_adjustment ?? 0;
+            return sum + (typeof adjustment === 'number' ? adjustment : parseFloat(adjustment) || 0);
+          }, 0);
+          unitPrice = basePrice + variantAdjustments;
+        }
+        
+        // Recalculate subtotal with new quantity
+        item.subtotal = Number((unitPrice * quantity).toFixed(2));
       }
 
       const totals = calculateCartTotals(state.items);

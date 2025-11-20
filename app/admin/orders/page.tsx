@@ -39,6 +39,8 @@ interface Order {
   created_at: string;
   items_count: number;
   notes?: string | null;
+  discount?: number | null;
+  discount_code?: string | null;
 }
 
 export default function AdminOrdersPage() {
@@ -48,6 +50,10 @@ export default function AdminOrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFilter, setDateFilter] = useState<string>('all');
+  const [discountFilter, setDiscountFilter] = useState<string>('all');
+  const [customDateFrom, setCustomDateFrom] = useState<string>('');
+  const [customDateTo, setCustomDateTo] = useState<string>('');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
@@ -143,7 +149,7 @@ export default function AdminOrdersPage() {
     }, searchQuery ? 300 : 0);
     
     return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, user, statusFilter, searchQuery, router]);
+  }, [isAuthenticated, user, statusFilter, searchQuery, dateFilter, discountFilter, customDateFrom, customDateTo, router]);
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -180,6 +186,48 @@ export default function AdminOrdersPage() {
         if (statusFilter !== 'all') {
           params.append('status', statusFilter);
         }
+
+        // Date filter
+        if (dateFilter === 'custom' && customDateFrom && customDateTo) {
+          params.append('date_from', customDateFrom);
+          params.append('date_to', customDateTo);
+        } else if (dateFilter !== 'all') {
+          const now = new Date();
+          let fromDate: Date;
+          
+          switch (dateFilter) {
+            case 'today':
+              fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+              params.append('date_from', fromDate.toISOString());
+              params.append('date_to', now.toISOString());
+              break;
+            case '7days':
+              fromDate = new Date(now);
+              fromDate.setDate(fromDate.getDate() - 7);
+              params.append('date_from', fromDate.toISOString());
+              params.append('date_to', now.toISOString());
+              break;
+            case '30days':
+              fromDate = new Date(now);
+              fromDate.setDate(fromDate.getDate() - 30);
+              params.append('date_from', fromDate.toISOString());
+              params.append('date_to', now.toISOString());
+              break;
+            case 'thismonth':
+              fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+              params.append('date_from', fromDate.toISOString());
+              params.append('date_to', now.toISOString());
+              break;
+          }
+        }
+
+        // Discount filter
+        if (discountFilter === 'with_discount') {
+          params.append('has_discount', 'true');
+        } else if (discountFilter === 'without_discount') {
+          params.append('has_discount', 'false');
+        }
+
         const url = `${API_URL}/orders${params.toString() ? `?${params.toString()}` : ''}`;
         
         const response = await fetch(url, {
@@ -247,6 +295,8 @@ export default function AdminOrdersPage() {
                 created_at: order.created_at,
                 items_count: order.order_items?.length || 0,
                 notes: order.notes || null,
+                discount: order.discount || 0,
+                discount_code: order.discount_code || null,
               };
             });
 
@@ -290,6 +340,50 @@ export default function AdminOrdersPage() {
       // Apply status filter
       if (statusFilter !== 'all') {
         query = query.eq('status', statusFilter);
+      }
+
+      // Apply date filter
+      if (dateFilter === 'custom' && customDateFrom && customDateTo) {
+        const fromDate = new Date(customDateFrom);
+        const toDate = new Date(customDateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (!isNaN(fromDate.getTime())) {
+          query = query.gte('created_at', fromDate.toISOString());
+        }
+        if (!isNaN(toDate.getTime())) {
+          query = query.lte('created_at', toDate.toISOString());
+        }
+      } else if (dateFilter !== 'all') {
+        const now = new Date();
+        let fromDate: Date;
+        
+        switch (dateFilter) {
+          case 'today':
+            fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            query = query.gte('created_at', fromDate.toISOString());
+            break;
+          case '7days':
+            fromDate = new Date(now);
+            fromDate.setDate(fromDate.getDate() - 7);
+            query = query.gte('created_at', fromDate.toISOString());
+            break;
+          case '30days':
+            fromDate = new Date(now);
+            fromDate.setDate(fromDate.getDate() - 30);
+            query = query.gte('created_at', fromDate.toISOString());
+            break;
+          case 'thismonth':
+            fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            query = query.gte('created_at', fromDate.toISOString());
+            break;
+        }
+      }
+
+      // Apply discount filter
+      if (discountFilter === 'with_discount') {
+        query = query.gt('discount', 0);
+      } else if (discountFilter === 'without_discount') {
+        query = query.or('discount.is.null,discount.eq.0');
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -718,7 +812,7 @@ export default function AdminOrdersPage() {
         )}
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
             <div className="md:col-span-2">
               <div className="relative">
@@ -749,17 +843,63 @@ export default function AdminOrdersPage() {
               </select>
             </div>
 
+            {/* Discount Filter */}
+            <div>
+              <select
+                value={discountFilter}
+                onChange={(e) => setDiscountFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
+              >
+                <option value="all">All Orders</option>
+                <option value="with_discount">With Discount</option>
+                <option value="without_discount">Without Discount</option>
+              </select>
+            </div>
+
             {/* Date Filter */}
             <div>
-              <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]">
-                <option>Last 30 days</option>
-                <option>Last 7 days</option>
-                <option>Today</option>
-                <option>This month</option>
-                <option>All time</option>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
+              >
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="7days">Last 7 days</option>
+                <option value="30days">Last 30 days</option>
+                <option value="thismonth">This month</option>
+                <option value="custom">Custom Range</option>
               </select>
             </div>
           </div>
+
+          {/* Custom Date Range Inputs */}
+          {dateFilter === 'custom' && (
+            <div className="mt-4 grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  From Date
+                </label>
+                <input
+                  type="date"
+                  value={customDateFrom}
+                  onChange={(e) => setCustomDateFrom(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  value={customDateTo}
+                  onChange={(e) => setCustomDateTo(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00afef]"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Orders List */}
@@ -802,6 +942,7 @@ export default function AdminOrdersPage() {
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Customer</th>
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Date</th>
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Items</th>
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Discount</th>
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Total</th>
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Status</th>
                     <th className="text-left px-6 py-4 text-sm font-semibold text-[#1A1A1A]">Payment</th>
@@ -837,6 +978,22 @@ export default function AdminOrdersPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-[#3A3A3A]">
                         {order.items_count} items
+                      </td>
+                      <td className="px-6 py-4">
+                        {order.discount && order.discount > 0 ? (
+                          <div className="flex flex-col">
+                            <span className="text-green-600 font-medium text-xs">
+                              -GHS {order.discount.toLocaleString()}
+                            </span>
+                            {order.discount_code && (
+                              <span className="text-[10px] text-gray-500 bg-gray-100 px-1 rounded w-fit">
+                                {order.discount_code}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-semibold text-[#1A1A1A]">
