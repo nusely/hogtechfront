@@ -2,11 +2,8 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
-  // Disable Turbopack (use webpack instead) to avoid Turbopack panics
-  experimental: {
-    turbo: false,
-    instrumentationHook: true,
-  },
+  // Note: instrumentationHook is now available by default in Next.js 16
+  // No need to configure it in experimental
   images: {
     remotePatterns: [
       {

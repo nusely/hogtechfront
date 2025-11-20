@@ -215,7 +215,7 @@ useEffect(() => {
         console.log('✅ Simplified query succeeded! Got', simpleResult.data?.length || 0, 'items');
         
         // Fetch users separately if needed
-        abandonedItems = simpleResult.data;
+        abandonedItems = simpleResult.data as any[];
         if (abandonedItems && abandonedItems.length > 0) {
           const userIds = [...new Set(abandonedItems.map((item: any) => item.user_id).filter(Boolean))];
           if (userIds.length > 0) {
@@ -229,9 +229,21 @@ useEffect(() => {
               const userMap = new Map(users.map((u: any) => [u.id, u]));
               abandonedItems = abandonedItems.map((item: any) => ({
                 ...item,
-                user: item.user_id ? userMap.get(item.user_id) || null : null,
-              }));
+                user: item.user_id ? [userMap.get(item.user_id)].filter(Boolean) : [],
+              })) as any[];
+            } else {
+              // Ensure user property exists even if no users found
+              abandonedItems = abandonedItems.map((item: any) => ({
+                ...item,
+                user: [],
+              })) as any[];
             }
+          } else {
+            // Ensure user property exists even if no user_ids
+            abandonedItems = abandonedItems.map((item: any) => ({
+              ...item,
+              user: [],
+            })) as any[];
           }
         }
         error = null;
