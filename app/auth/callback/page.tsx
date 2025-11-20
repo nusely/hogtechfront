@@ -134,8 +134,8 @@ export default function AuthCallbackPage() {
 
                       if (createError2) {
                         // Check if it's a duplicate key error (profile already exists)
-                        const errorCode = createError2?.code || createError2?.error_code;
-                        const errorMessage = createError2?.message || createError2?.error_description || String(createError2);
+                        const errorCode = createError2?.code;
+                        const errorMessage = createError2?.message || String(createError2);
                         
                         if (errorCode === '23505' || errorMessage?.includes('duplicate') || errorMessage?.includes('unique') || errorMessage?.includes('already exists')) {
                           console.log('Profile already exists (duplicate), fetching existing profile');
@@ -166,8 +166,8 @@ export default function AuthCallbackPage() {
                       }
                       } else {
                         // Check if it's a duplicate key error (profile already exists)
-                        const errorCode = createError?.code || createError?.error_code;
-                        const errorMessage = createError?.message || createError?.error_description || String(createError);
+                        const errorCode = createError?.code;
+                        const errorMessage = createError?.message || String(createError);
                         
                         if (errorCode === '23505' || errorMessage?.includes('duplicate') || errorMessage?.includes('unique') || errorMessage?.includes('already exists')) {
                           console.log('Profile already exists (duplicate), fetching existing profile');
@@ -200,8 +200,8 @@ export default function AuthCallbackPage() {
                 }
               } catch (insertError: any) {
                 // Check if it's a duplicate key error (profile already exists)
-                const errorCode = insertError?.code || insertError?.error_code;
-                const errorMessage = insertError?.message || insertError?.error_description || String(insertError);
+                const errorCode = insertError?.code;
+                const errorMessage = insertError?.message || String(insertError);
                 
                 if (errorCode === '23505' || errorMessage?.includes('duplicate') || errorMessage?.includes('unique') || errorMessage?.includes('already exists')) {
                   console.log('Profile already exists (caught in try-catch), fetching existing profile');
