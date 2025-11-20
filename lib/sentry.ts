@@ -30,15 +30,15 @@ export const initSentry = () => {
     // sessions when an error occurs.
     replaysOnErrorSampleRate: 1.0,
 
+    // Set `tracePropagationTargets` to control which requests have tracing headers added
+    tracePropagationTargets: [
+      'localhost',
+      /^https:\/\/hogtechgh\.com/,
+      /^https:\/\/.*\.hogtechgh\.com/,
+    ],
+
     integrations: [
-      Sentry.browserTracingIntegration({
-        // Set `tracePropagationTargets` to control which requests have tracing headers added
-        tracePropagationTargets: [
-          'localhost',
-          /^https:\/\/hogtechgh\.com/,
-          /^https:\/\/.*\.hogtechgh\.com/,
-        ],
-      }),
+      Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({
         // Mask all text content, block all media content
         maskAllText: true,
