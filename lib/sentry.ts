@@ -31,18 +31,12 @@ export const initSentry = () => {
     replaysOnErrorSampleRate: 1.0,
 
     integrations: [
-      Sentry.browserTracingIntegration({
-        tracePropagationTargets: [
-          'localhost',
-          /^https:\/\/hogtechgh\.com/,
-          /^https:\/\/.*\.hogtechgh\.com/,
-        ],
-      }),
-      Sentry.replayIntegration({
-        // Mask all text content, block all media content
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
+      // Temporarily disabled due to Sentry v8 API compatibility issues
+      // Sentry.browserTracingIntegration(),
+      // Sentry.replayIntegration({
+      //   maskAllText: true,
+      //   blockAllMedia: true,
+      // }),
     ],
 
     // Before sending an event, filter out sensitive information
