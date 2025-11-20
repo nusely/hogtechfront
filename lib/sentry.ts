@@ -31,7 +31,7 @@ export const initSentry = () => {
     replaysOnErrorSampleRate: 1.0,
 
     integrations: [
-      new Sentry.BrowserTracing({
+      Sentry.browserTracingIntegration({
         // Set `tracePropagationTargets` to control which requests have tracing headers added
         tracePropagationTargets: [
           'localhost',
@@ -39,7 +39,7 @@ export const initSentry = () => {
           /^https:\/\/.*\.hogtechgh\.com/,
         ],
       }),
-      new Sentry.Replay({
+      Sentry.replayIntegration({
         // Mask all text content, block all media content
         maskAllText: true,
         blockAllMedia: true,
