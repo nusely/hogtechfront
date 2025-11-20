@@ -1,5 +1,5 @@
 # Robots.txt for Hedgehog Technologies
-# https://ventechgadgets.com
+# https://hogtechgh.com
 
 User-agent: *
 Allow: /
@@ -12,7 +12,7 @@ Disallow: /orders
 Disallow: /auth/
 
 # Sitemap
-Sitemap: https://ventechgadgets.com/sitemap.xml
+Sitemap: https://hogtechgh.com/sitemap.xml
 
 # Crawl-delay for good bots
 Crawl-delay: 1

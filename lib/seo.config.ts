@@ -32,10 +32,10 @@ export const seoConfig = {
 
   // Website Information
   website: {
-    url: 'https://ventechgadgets.com', // Update with your actual domain
+    url: 'https://hogtechgh.com',
     defaultImage: '/og-image.jpg', // Add an OG image
-    twitterHandle: '@ventechgadgets',
-    facebookPage: 'https://facebook.com/ventechgadgets',
+    twitterHandle: '@hogtechgh',
+    facebookPage: 'https://facebook.com/hogtechgh',
   },
 
   // SEO Keywords (Primary and Secondary)
