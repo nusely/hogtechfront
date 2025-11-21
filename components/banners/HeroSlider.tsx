@@ -60,6 +60,8 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
             alt={banner.title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+            priority={index === 0} // Prioritize first image for faster loading
+            loading={index === 0 ? "eager" : "lazy"}
             className="object-cover"
             priority={index === 0}
             unoptimized

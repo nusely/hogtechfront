@@ -29,7 +29,7 @@ import { seoConfig } from '@/lib/seo.config';
 import { buildApiUrl } from '@/lib/api';
 import { motion } from 'framer-motion';
 import { fadeIn, fadeInScale, fadeInUp, staggerChildren } from '@/lib/motion';
-import HedgehogLoader from '@/components/loaders/HedgehogLoader';
+import { PageLoader } from '@/components/loaders/PageLoader';
 
 export function HomeContent() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -166,32 +166,37 @@ export function HomeContent() {
   }, []);
 
 
+  // Single state for hero banners
+  const [heroBanners, setHeroBanners] = useState<Banner[]>([]);
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAllData = async () => {
       try {
         setIsLoading(true);
 
-        // Fetch all data in parallel
-        const [productsData, categoriesData] = await Promise.all([
+        // Fetch ALL data in parallel - including hero banners for faster loading
+        const [productsData, categoriesData, featuredData, bannersData] = await Promise.all([
           productService.getProducts({ featured: false, limit: 20 }),
           getCategories(),
+          productService.getProducts({ featured: true, limit: 10 }),
+          fetchBanners(),
         ]);
 
-        // Get featured products separately - only products explicitly marked as featured
-        const featuredData = await productService.getProducts({ featured: true, limit: 10 });
         // Filter to ensure only products with featured=true are included
         const actualFeaturedProducts = featuredData.filter(p => p.featured === true);
-        setFeaturedProducts(actualFeaturedProducts);
 
         // Filter out featured products from all products - exclude products that are featured
         const featuredProductIds = new Set(actualFeaturedProducts.map(p => p.id));
         const nonFeaturedProducts = productsData.filter(p => !p.featured && !featuredProductIds.has(p.id));
-        setAllProducts(nonFeaturedProducts);
 
         // Set categories (main categories only for homepage)
-        // Don't slice here - let CategoryCarousel handle the display limit
         const mainCategories = categoriesData.filter(cat => !cat.parent_id);
+
+        // Set all data at once for synchronized loading
+        setFeaturedProducts(actualFeaturedProducts);
+        setAllProducts(nonFeaturedProducts);
         setCategories(mainCategories);
+        setHeroBanners(bannersData || []);
       } catch (error) {
         console.error('Error fetching homepage data:', error);
       } finally {
@@ -199,11 +204,12 @@ export function HomeContent() {
       }
     };
     
-    fetchData();
+    fetchAllData();
     
     // Set up interval to refresh banners every 30 seconds (for admin updates)
-    const bannerRefreshInterval = setInterval(() => {
-      fetchBanners();
+    const bannerRefreshInterval = setInterval(async () => {
+      const bannersData = await fetchBanners();
+      if (bannersData) setHeroBanners(bannersData);
     }, 30000);
     
     return () => {
@@ -211,16 +217,27 @@ export function HomeContent() {
     };
   }, [fetchBanners]);
 
-  const [heroBanners, setHeroBanners] = useState<Banner[]>([]);
-
-  useEffect(() => {
-    fetchBanners().then(banners => banners && setHeroBanners(banners));
-  }, [fetchBanners]);
+  // Show loading screen for critical above-the-fold content
+  if (isLoading) {
+    return <PageLoader message="Loading your shopping experience..." />;
+  }
 
   return (
-    <motion.main className="bg-white overflow-x-hidden" variants={fadeIn} initial="hidden" animate="visible">
+    <motion.main 
+      className="bg-white overflow-x-hidden" 
+      variants={fadeIn} 
+      initial="hidden" 
+      animate="visible"
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
       {/* Hero Section */}
-      <motion.section className="container mx-auto px-3 sm:px-4 py-4 sm:py-6" variants={fadeInUp} initial="hidden" animate="visible">
+      <motion.section 
+        className="container mx-auto px-3 sm:px-4 py-4 sm:py-6" 
+        variants={fadeInUp} 
+        initial="hidden" 
+        animate="visible"
+        transition={{ delay: 0.1, duration: 0.6 }}
+      >
         <HeroSlider banners={heroBanners} />
       </motion.section>
 
@@ -270,15 +287,14 @@ export function HomeContent() {
           </Link>
         </div>
 
-        {isLoading ? (
-          <ProductListSkeleton count={5} />
-        ) : featuredProducts.length > 0 ? (
+        {featuredProducts.length > 0 ? (
           <motion.div
             className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3 md:gap-4"
             variants={staggerChildren(0.06)}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
           >
             {featuredProducts.slice(0, 10).map((product) => (
               <ProductCard
@@ -314,17 +330,7 @@ export function HomeContent() {
             </Link>
           </div>
 
-          {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="bg-white rounded-xl p-4 animate-pulse">
-                  <div className="w-full h-32 bg-gray-200 rounded-lg mb-3" />
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-gray-200 rounded w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : categories.length > 0 ? (
+          {categories.length > 0 ? (
             <CategoryCarousel categories={categories} />
           ) : (
             <div className="text-center py-12 bg-white rounded-xl">
@@ -357,9 +363,7 @@ export function HomeContent() {
             </Link>
           </div>
 
-        {isLoading ? (
-          <ProductListSkeleton count={20} />
-        ) : allProducts.length === 0 ? (
+        {allProducts.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
             <p className="text-[#3A3A3A] text-sm mb-4">No products available yet</p>
             <Link href="/shop">

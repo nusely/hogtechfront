@@ -4,6 +4,11 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   // Note: instrumentationHook is now available by default in Next.js 16
   // No need to configure it in experimental
+  
+  // PWA Configuration
+  experimental: {
+    webVitalsAttribution: ['CLS', 'LCP'],
+  },
   images: {
     remotePatterns: [
       {
@@ -30,7 +35,7 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  // Add headers to allow CORS for images
+  // Add headers to allow CORS for images and PWA caching
   async headers() {
     return [
       {
@@ -39,6 +44,34 @@ const nextConfig: NextConfig = {
           {
             key: 'Access-Control-Allow-Origin',
             value: '*',
+          },
+        ],
+      },
+      // PWA manifest headers
+      {
+        source: '/favicons/site.webmanifest',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      // Service worker headers
+      {
+        source: '/sw.js',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/javascript',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
           },
         ],
       },

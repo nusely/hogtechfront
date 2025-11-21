@@ -319,7 +319,7 @@ export function ShopContent() {
       animate="visible"
     >
       <motion.div
-        className="container mx-auto px-3 sm:px-4 max-w-full overflow-x-hidden"
+        className="container mx-auto px-4 max-w-full overflow-x-hidden"
         variants={layoutVariants}
       >
         {/* Header */}
@@ -329,7 +329,7 @@ export function ShopContent() {
         </motion.div>
 
         <motion.div
-          className="flex flex-col lg:flex-row gap-4 lg:gap-6"
+          className="flex flex-col lg:flex-row gap-4 lg:gap-4"
           variants={layoutVariants}
         >
           {/* Filters Sidebar - Desktop: Always visible on left, Mobile: Toggle */}
@@ -571,9 +571,9 @@ export function ShopContent() {
             )}
           </motion.div>
 
-          {/* Sidebar Ads (Desktop Only) */}
-          <motion.div className="hidden xl:block w-52 flex-shrink-0" variants={fadeInUp} custom={0.12}>
-            <div className="sticky top-24 self-start">
+          {/* Sidebar Ads (Desktop Only) - Sticky like coupon box */}
+          <motion.div className="hidden xl:block w-44 flex-shrink-0" variants={fadeInUp} custom={0.12}>
+            <div className="sticky top-4 self-start mr-3">
               <SidebarAds position="right" page="shop" />
             </div>
           </motion.div>

@@ -6,11 +6,28 @@ import { LayoutWrapper } from "@/components/LayoutWrapper";
 import { Toaster } from "react-hot-toast";
 import { seoConfig } from "@/lib/seo.config";
 import { DataSync } from "@/components/DataSync";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { initSentry } from "@/lib/sentry";
 
 // Initialize Sentry (only in browser)
 if (typeof window !== 'undefined') {
   initSentry();
+  
+  // Register service worker for PWA (mobile only)
+  if ('serviceWorker' in navigator) {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      (window.innerWidth <= 768);
+    
+    if (isMobile) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+        })
+        .catch((registrationError) => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    }
+  }
 }
 
 const inter = Inter({
@@ -90,12 +107,37 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* PWA Meta Tags */}
+        <meta name="application-name" content="Hedgehog Tech" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Hedgehog Tech" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-config" content="/favicons/browserconfig.xml" />
+        <meta name="msapplication-TileColor" content="#00afef" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        
+        {/* Google Analytics */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-9K7PDYW4YL"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-9K7PDYW4YL');
+            `,
+          }}
+        />
+      </head>
       <body className={`${inter.variable} font-sans antialiased bg-gray-50`} suppressHydrationWarning>
         <ReduxProvider>
           <DataSync />
           <div className="min-h-screen flex flex-col">
             <LayoutWrapper>{children}</LayoutWrapper>
           </div>
+          <PWAInstallPrompt />
           <Toaster
             position="top-right"
             toastOptions={{

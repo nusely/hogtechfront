@@ -171,13 +171,13 @@ export const SidebarAds: React.FC<SidebarAdsProps> = ({ position, page }) => {
             ) : (
               <div className="block rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                 <Link href={group.ads[0].link}>
-                  <div className="relative aspect-[3/4]">
+                  <div className="relative aspect-square">
                     <Image
                       loader={r2ImageLoader}
                       src={group.ads[0].image_url || '/placeholders/placeholder-ad.webp'}
                       alt={group.ads[0].title || 'Advertisement'}
                       fill
-                      sizes="(max-width: 1280px) 0vw, 200px"
+                      sizes="(max-width: 1280px) 0vw, 176px"
                       className="object-cover"
                       loading="lazy"
                       unoptimized={group.ads[0].image_url?.includes('files.hogtechgh.com') || group.ads[0].image_url?.includes('.r2.dev') || true}

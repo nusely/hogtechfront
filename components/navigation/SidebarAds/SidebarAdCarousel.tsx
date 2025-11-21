@@ -48,13 +48,13 @@ export const SidebarAdCarousel: React.FC<SidebarAdCarouselProps> = ({ ads }) => 
           {ads.map((ad) => (
             <div key={ad.id} className="flex-[0_0_100%]">
               <Link href={ad.link}>
-                <div className="relative aspect-[3/4]">
+                <div className="relative aspect-square">
                   <Image
                     loader={r2ImageLoader}
                     src={ad.image_url || '/placeholders/placeholder-ad.webp'}
                     alt={ad.title || 'Advertisement'}
                     fill
-                    sizes="(max-width: 1280px) 0vw, 200px"
+                    sizes="(max-width: 1280px) 0vw, 176px"
                     className="object-cover"
                     loading="lazy"
                     unoptimized={ad.image_url?.includes('files.hogtechgh.com') || ad.image_url?.includes('.r2.dev') || true}

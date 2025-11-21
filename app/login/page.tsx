@@ -227,7 +227,7 @@ export default function LoginPage() {
                 alt="Hedgehog Technologies"
                 width={200}
                 height={80}
-                className="object-contain h-12 sm:h-16 w-auto"
+                className="object-contain h-6 sm:h-16 w-auto"
                 style={{ width: 'auto', height: 'auto' }}
                 priority
               />
