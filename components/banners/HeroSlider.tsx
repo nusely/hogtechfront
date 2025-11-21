@@ -63,7 +63,6 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({
             priority={index === 0} // Prioritize first image for faster loading
             loading={index === 0 ? "eager" : "lazy"}
             className="object-cover"
-            priority={index === 0}
             unoptimized
           />
 
